@@ -388,4 +388,448 @@
 
     const map = L.map('map', { worldCopyJump: true, minZoom: 2 }).setView([25, 10], 2);
 
-    L.tileLayer('https://{s}.tile.o
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      subdomains: 'abc',
+      attribution: '&copy; OpenStreetMap contributors',
+      referrerPolicy: 'strict-origin-when-cross-origin'
+    }).addTo(map);
+
+    function loadCities() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveCities() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cities));
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function countryCodeToFlag(code) {
+      if (!code || code.length !== 2) return '📍';
+      return code.toUpperCase().split('').map(char => String.fromCodePoint(127397 + char.charCodeAt(0))).join('');
+    }
+
+    function normalizePlace(item) {
+      const address = item.address || {};
+      const city = address.city || address.town || address.village || address.municipality || item.name || '';
+      const country = address.country || '';
+      const countryCode = (address.country_code || '').toUpperCase();
+
+      return {
+        city,
+        country,
+        countryCode,
+        flag: countryCodeToFlag(countryCode),
+        lat: Number(item.lat),
+        lng: Number(item.lon),
+        displayName: item.display_name || `${city}, ${country}`
+      };
+    }
+
+    async function searchCities(query) {
+      const encoded = encodeURIComponent(query);
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encoded}`;
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Şehir araması yapılamadı.');
+      }
+
+      const data = await response.json();
+      return data
+        .map(normalizePlace)
+        .filter(item => item.city && item.country);
+    }
+
+    function renderSuggestions(items) {
+      if (!items.length) {
+        suggestionsEl.innerHTML = '';
+        suggestionsEl.style.display = 'none';
+        return;
+      }
+
+      suggestionsEl.innerHTML = items.map((item, index) => `
+        <div class="suggestion-item" data-index="${index}">
+          <span class="suggestion-title">${escapeHtml(item.flag)} ${escapeHtml(item.city)}</span>
+          <span class="suggestion-subtitle">${escapeHtml(item.country)}</span>
+        </div>
+      `).join('');
+
+      suggestionsEl.style.display = 'block';
+
+      suggestionsEl.querySelectorAll('.suggestion-item').forEach(element => {
+        element.addEventListener('click', () => {
+          const item = items[Number(element.dataset.index)];
+          selectedPlace = item;
+          cityNameInput.value = `${item.city}, ${item.country}`;
+          suggestionsEl.innerHTML = '';
+          suggestionsEl.style.display = 'none';
+        });
+      });
+    }
+
+    function getFilteredCities() {
+      const searchValue = searchInput.value.trim().toLowerCase();
+      const statusValue = filterStatus.value;
+
+      return cities.filter(item => {
+        const matchesSearch = !searchValue || item.city.toLowerCase().includes(searchValue) || item.country.toLowerCase().includes(searchValue);
+        const matchesStatus = !statusValue || item.status === statusValue;
+        return matchesSearch && matchesStatus;
+      });
+    }
+
+    function getCountryGroups() {
+      const filtered = getFilteredCities();
+      const groups = new Map();
+
+      filtered.forEach(item => {
+        const key = `${item.country}__${item.countryCode || ''}`;
+        if (!groups.has(key)) {
+          groups.set(key, {
+            id: key,
+            country: item.country,
+            countryCode: item.countryCode,
+            flag: item.flag,
+            lat: item.lat,
+            lng: item.lng,
+            cities: [],
+            statuses: new Set()
+          });
+        }
+        const group = groups.get(key);
+        group.cities.push(item);
+        group.statuses.add(item.status);
+      });
+
+      return Array.from(groups.values()).map(group => ({
+        ...group,
+        cityCount: group.cities.length,
+        statuses: Array.from(group.statuses)
+      }));
+    }
+
+    function createFlagIcon(flag) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="flag-marker">${escapeHtml(flag)}</div>`,
+        iconSize: [34, 40],
+        iconAnchor: [17, 38],
+        popupAnchor: [0, -34]
+      });
+    }
+
+    function clearMarkers() {
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+    }
+
+    function addCityMarker(item) {
+      const popupHtml = `
+        <div>
+          <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br>
+          <span>Durum: ${escapeHtml(item.status)}</span><br>
+          ${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}
+          ${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}
+        </div>
+      `;
+
+      const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
+        .addTo(map)
+        .bindPopup(popupHtml);
+
+      markers.push(marker);
+    }
+
+    function renderMap() {
+      clearMarkers();
+
+      if (viewMode.value === 'country') {
+        const countries = getCountryGroups();
+        countries.forEach(item => {
+          const popupHtml = `
+            <div>
+              <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br>
+              <span>Toplam şehir: ${item.cityCount}</span><br>
+              <span>Şehirler: ${escapeHtml(item.cities.map(city => city.city).join(', '))}</span>
+            </div>
+          `;
+          const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
+            .addTo(map)
+            .bindPopup(popupHtml);
+          markers.push(marker);
+        });
+
+        if (countries.length === 1) {
+          map.setView([countries[0].lat, countries[0].lng], 5);
+        } else if (countries.length > 1) {
+          map.fitBounds(L.latLngBounds(countries.map(item => [item.lat, item.lng])), { padding: [40, 40] });
+        } else {
+          map.setView([25, 10], 2);
+        }
+        return;
+      }
+
+      const filtered = getFilteredCities();
+      filtered.forEach(addCityMarker);
+
+      if (filtered.length === 1) {
+        map.setView([filtered[0].lat, filtered[0].lng], 6);
+      } else if (filtered.length > 1) {
+        map.fitBounds(L.latLngBounds(filtered.map(item => [item.lat, item.lng])), { padding: [40, 40] });
+      } else {
+        map.setView([25, 10], 2);
+      }
+    }
+
+    function renderStats() {
+      totalCitiesEl.textContent = cities.length;
+      totalCountriesEl.textContent = new Set(cities.map(item => item.country.toLowerCase())).size;
+    }
+
+    function renderList() {
+      if (viewMode.value === 'country') {
+        const countries = getCountryGroups();
+        listTitle.textContent = 'Gezilen Ülkeler';
+
+        if (!countries.length) {
+          cityList.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
+          return;
+        }
+
+        cityList.innerHTML = countries.map(item => `
+          <div class="city-item">
+            <strong><span class="flag-inline">${escapeHtml(item.flag)}</span>${escapeHtml(item.country)}</strong>
+            <span class="city-meta">Toplam şehir: ${item.cityCount}</span>
+            <div class="tag">${escapeHtml(item.statuses.join(' • '))}</div>
+            <div class="city-note">${escapeHtml(item.cities.map(city => city.city).join(', '))}</div>
+            <div class="city-actions">
+              <button type="button" class="small-btn" data-action="focus-country" data-id="${item.id}">Haritada Göster</button>
+              <button type="button" class="small-btn" data-action="delete-country" data-id="${item.id}">Ülkeyi Sil</button>
+            </div>
+          </div>
+        `).join('');
+        return;
+      }
+
+      const filtered = getFilteredCities().slice(0, 3);
+      listTitle.textContent = 'Eklenen Son 3 Şehir';
+
+      if (!filtered.length) {
+        cityList.innerHTML = '<div class="empty">Henüz gösterilecek şehir yok.</div>';
+        return;
+      }
+
+      cityList.innerHTML = filtered.map(item => `
+        <div class="city-item">
+          <strong><span class="flag-inline">${escapeHtml(item.flag)}</span>${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
+          <span class="city-meta">${item.date || 'Tarih yok'} • ${escapeHtml(item.displayName || '')}</span>
+          <div class="tag">${escapeHtml(item.status)}</div>
+          ${item.note ? `<div class="city-note">${escapeHtml(item.note)}</div>` : ''}
+          <div class="city-actions">
+            <button type="button" class="small-btn" data-action="focus-city" data-id="${item.id}">Haritada Göster</button>
+            <button type="button" class="small-btn" data-action="delete-city" data-id="${item.id}">Sil</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll() {
+      renderStats();
+      renderList();
+      renderMap();
+    }
+
+    async function addCity() {
+      const rawCity = cityNameInput.value.trim();
+      const date = visitDateInput.value;
+      const status = statusInput.value;
+      const note = noteInput.value.trim();
+
+      if (!rawCity) {
+        alert('Lütfen şehir adı gir.');
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Ekleniyor...';
+
+      try {
+        let place = selectedPlace;
+
+        if (!place) {
+          const results = await searchCities(rawCity);
+          if (!results.length) {
+            throw new Error('Şehir bulunamadı.');
+          }
+          place = results[0];
+        }
+
+        cities.unshift({
+          id: crypto.randomUUID(),
+          city: place.city,
+          country: place.country,
+          countryCode: place.countryCode,
+          flag: place.flag,
+          date,
+          status,
+          note,
+          lat: place.lat,
+          lng: place.lng,
+          displayName: place.displayName
+        });
+
+        saveCities();
+        renderAll();
+
+        cityNameInput.value = '';
+        visitDateInput.value = '';
+        statusInput.value = 'Gezildi';
+        noteInput.value = '';
+        selectedPlace = null;
+        suggestionsEl.innerHTML = '';
+        suggestionsEl.style.display = 'none';
+      } catch (error) {
+        alert(error.message || 'Şehir eklenemedi.');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Şehri Kaydet';
+      }
+    }
+
+    function focusCity(id) {
+      const item = cities.find(city => city.id === id);
+      if (!item) return;
+      map.setView([item.lat, item.lng], 7);
+      markers.find(marker => {
+        const pos = marker.getLatLng();
+        if (pos.lat === item.lat && pos.lng === item.lng) {
+          marker.openPopup();
+          return true;
+        }
+        return false;
+      });
+    }
+
+    function deleteCity(id) {
+      const confirmed = confirm('Bu şehri silmek istiyor musun?');
+      if (!confirmed) return;
+      cities = cities.filter(item => item.id !== id);
+      saveCities();
+      renderAll();
+    }
+
+    function focusCountry(id) {
+      const item = getCountryGroups().find(country => country.id === id);
+      if (!item) return;
+      map.setView([item.lat, item.lng], 5);
+      markers.find(marker => {
+        const pos = marker.getLatLng();
+        if (pos.lat === item.lat && pos.lng === item.lng) {
+          marker.openPopup();
+          return true;
+        }
+        return false;
+      });
+    }
+
+    function deleteCountry(id) {
+      const confirmed = confirm('Bu ülkeye ait tüm kayıtlar silinsin mi?');
+      if (!confirmed) return;
+      cities = cities.filter(item => `${item.country}__${item.countryCode || ''}` !== id);
+      saveCities();
+      renderAll();
+    }
+
+    function clearAllCities() {
+      const confirmed = confirm('Tüm şehirler silinsin mi?');
+      if (!confirmed) return;
+      cities = [];
+      localStorage.removeItem(STORAGE_KEY);
+      renderAll();
+    }
+
+    cityNameInput.addEventListener('input', () => {
+      selectedPlace = null;
+      const value = cityNameInput.value.trim();
+
+      clearTimeout(searchTimer);
+      if (value.length < 2) {
+        suggestionsEl.innerHTML = '';
+        suggestionsEl.style.display = 'none';
+        return;
+      }
+
+      searchTimer = setTimeout(async () => {
+        try {
+          const results = await searchCities(value);
+          renderSuggestions(results);
+        } catch (error) {
+          suggestionsEl.innerHTML = '';
+          suggestionsEl.style.display = 'none';
+        }
+      }, 350);
+    });
+
+    cityNameInput.addEventListener('keydown', async event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const value = cityNameInput.value.trim();
+      if (!value || selectedPlace) return;
+      try {
+        const results = await searchCities(value);
+        if (results.length) {
+          selectedPlace = results[0];
+          cityNameInput.value = `${results[0].city}, ${results[0].country}`;
+          suggestionsEl.innerHTML = '';
+          suggestionsEl.style.display = 'none';
+        }
+      } catch (error) {}
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.search-wrap')) {
+        suggestionsEl.style.display = 'none';
+      }
+    });
+
+    cityList.addEventListener('click', event => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+
+      if (action === 'focus-city') focusCity(id);
+      if (action === 'delete-city') deleteCity(id);
+      if (action === 'focus-country') focusCountry(id);
+      if (action === 'delete-country') deleteCountry(id);
+    });
+
+    saveBtn.addEventListener('click', addCity);
+    clearAllBtn.addEventListener('click', clearAllCities);
+    searchInput.addEventListener('input', renderAll);
+    filterStatus.addEventListener('change', renderAll);
+    viewMode.addEventListener('change', renderAll);
+    clearFilterBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterStatus.value = '';
+      renderAll();
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
