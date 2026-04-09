@@ -22,14 +22,17 @@
     }
     .app {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 380px minmax(0, 1fr);
       min-height: 100vh;
     }
     .sidebar {
       background: #ffffff;
       border-right: 1px solid #e5e7eb;
-      padding: 18px;
+      padding: 20px;
       overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
     }
     .sidebar h1 {
       margin: 0 0 8px;
@@ -203,7 +206,8 @@
       margin-right: 6px;
     }
     .main {
-      padding: 18px;
+      padding: 20px;
+      min-width: 0;
     }
     .topbar {
       display: flex;
@@ -224,11 +228,13 @@
     }
     #map {
       width: 100%;
-      height: calc(100vh - 90px);
+      height: calc(100vh - 94px);
+      min-height: 620px;
       border-radius: 18px;
       overflow: hidden;
       border: 1px solid #dbeafe;
       box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      background: #dbeafe;
     }
     .leaflet-popup-content {
       line-height: 1.5;
@@ -267,10 +273,27 @@
       border-radius: 12px;
       padding: 12px;
     }
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: 340px minmax(0, 1fr);
+      }
+    }
+
     @media (max-width: 980px) {
       .app {
         grid-template-columns: 1fr;
       }
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid #e5e7eb;
+        position: static;
+        height: auto;
+      }
+      #map {
+        height: 68vh;
+        min-height: 420px;
+      }
+    }
       .sidebar {
         border-right: 0;
         border-bottom: 1px solid #e5e7eb;
@@ -335,13 +358,12 @@
       </div>
 
       <div class="card">
-        <h2 id="listTitle">Eklenen Şehirler</h2>
+        <h2 id="listTitle">Eklenen Son 3 Şehir</h2>
         <div id="cityList" class="city-list"></div>
       </div>
 
       <div class="card">
         <h2>Veri Yönetimi</h2>
-        <button id="sampleBtn" type="button" class="button secondary">Örnek Veriler Ekle</button>
         <button id="clearAllBtn" type="button" class="button danger" data-action="clear-all">Tümünü Sil</button>
       </div>
     </aside>
@@ -379,7 +401,6 @@
     const listTitle = document.getElementById('listTitle');
     const filterStatus = document.getElementById('filterStatus');
     const clearFilterBtn = document.getElementById('clearFilterBtn');
-    const sampleBtn = document.getElementById('sampleBtn');
     const clearAllBtn = document.getElementById('clearAllBtn');
     const suggestionsEl = document.getElementById('suggestions');
     const sidebar = document.querySelector('.sidebar');
@@ -648,8 +669,8 @@
         return;
       }
 
-      const filtered = getFilteredCities();
-      listTitle.textContent = 'Eklenen Şehirler';
+      const filtered = getFilteredCities().slice(0, 3);
+      listTitle.textContent = 'Eklenen Son 3 Şehir';
 
       if (!filtered.length) {
         cityList.innerHTML = '<div class="empty">Henüz gösterilecek şehir yok.</div>';
@@ -776,55 +797,7 @@
       if (marker) marker.openPopup();
     };
 
-    function addSampleData() {
-      const sampleData = [
-        {
-          id: crypto.randomUUID(),
-          city: 'İstanbul',
-          country: 'Türkiye',
-          countryCode: 'TR',
-          flag: '🇹🇷',
-          date: '2026-04-01',
-          status: 'Gezildi',
-          note: 'Boğaz ve tarihi yarımada çok güzeldi.',
-          lat: 41.0082,
-          lng: 28.9784,
-          displayName: 'İstanbul, Türkiye'
-        },
-        {
-          id: crypto.randomUUID(),
-          city: 'Roma',
-          country: 'İtalya',
-          countryCode: 'IT',
-          flag: '🇮🇹',
-          date: '2025-09-14',
-          status: 'Gezildi',
-          note: 'Tarihi yapılar ve sokaklar çok etkileyiciydi.',
-          lat: 41.9028,
-          lng: 12.4964,
-          displayName: 'Roma, İtalya'
-        },
-        {
-          id: crypto.randomUUID(),
-          city: 'Tokyo',
-          country: 'Japonya',
-          countryCode: 'JP',
-          flag: '🇯🇵',
-          date: '',
-          status: 'Planlanıyor',
-          note: 'İleri tarihte gitmek istiyorum.',
-          lat: 35.6762,
-          lng: 139.6503,
-          displayName: 'Tokyo, Japonya'
-        }
-      ];
-
-      cities = [...sampleData, ...cities];
-      saveCities();
-      renderAll();
-    }
-
-    function clearAllCities() {
+    function clearAllCities()() {
       const confirmed = confirm('Tüm şehirler silinsin mi?');
       if (!confirmed) return;
       cities = [];
@@ -913,7 +886,7 @@
       filterStatus.value = '';
       renderAll();
     });
-    sampleBtn.addEventListener('click', addSampleData);
+    
 
     renderAll();
   </script>
