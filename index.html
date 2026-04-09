@@ -5,534 +5,968 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Şehir Haritam</title>
 
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
   <style>
-    :root {
-      --bg-top: #14364a;
-      --bg-bottom: #06293d;
-      --panel: #042c43;
-      --panel-2: #08344d;
-      --text: #f3f7fb;
-      --muted: rgba(226, 236, 245, 0.72);
-      --line: rgba(255,255,255,0.08);
-      --accent: #ff6f7d;
-      --accent-2: #ffb84d;
-      --pill: rgba(255,255,255,0.08);
-      --shadow: 0 18px 40px rgba(0,0,0,0.22);
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    :root{
+      --bg-1:#081c2a;
+      --bg-2:#0d3044;
+      --panel:#0f2b3c;
+      --panel-2:#13374d;
+      --card:#13344a;
+      --card-2:#173d56;
+      --muted:#9fb4c5;
+      --text:#edf6fd;
+      --accent:#66c2ff;
+      --accent-2:#7ef0c8;
+      --danger:#ff6b6b;
+      --line:rgba(255,255,255,.08);
+      --soft:rgba(255,255,255,.05);
+      --shadow:0 14px 28px rgba(0,0,0,.22);
+      --radius-xl:28px;
+      --radius-lg:22px;
+      --radius-md:16px;
+      --safe-top:env(safe-area-inset-top,0px);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #0b2230, #081f2d);
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      padding: 0;
-      color: var(--text);
-    }
-
-    .phone {
-      width: 100%;
-      max-width: 430px;
-      min-height: 100vh;
-      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 45%, #03263a 100%);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero {
-      position: relative;
-      height: 355px;
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Inter,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#071722,#091d2b)}
+    body{display:flex;justify-content:center;color:var(--text)}
+    .phone{
+      width:100%;max-width:430px;min-height:100vh;position:relative;overflow:hidden;
       background:
-        linear-gradient(180deg, rgba(10,20,35,0.18), rgba(10,20,35,0.05) 38%, rgba(4,27,41,0.7) 100%),
-        url('https://images.unsplash.com/photo-1555990538-f5342d2f60d4?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
-      border-bottom-left-radius: 26px;
-      border-bottom-right-radius: 26px;
+        radial-gradient(circle at top right, rgba(102,194,255,.16), transparent 22%),
+        radial-gradient(circle at top left, rgba(126,240,200,.12), transparent 20%),
+        linear-gradient(180deg,var(--bg-2),var(--bg-1));
     }
 
-    .statusbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: calc(14px + var(--safe-top)) 20px 0;
-      font-weight: 700;
-      font-size: 15px;
-      text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+    .topbar{
+      position:sticky;top:0;z-index:50;
+      padding:calc(14px + var(--safe-top)) 18px 14px;
+      backdrop-filter:blur(10px);
+      background:linear-gradient(180deg, rgba(9,26,38,.94), rgba(9,26,38,.72));
+      border-bottom:1px solid var(--line);
+    }
+    .status{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#dce9f3;margin-bottom:10px}
+    .status-right{display:flex;gap:8px;align-items:center}
+    .brand{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .brand h1{margin:0;font-size:28px;line-height:1.05}
+    .brand p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+    .brand-badge{
+      width:52px;height:52px;border-radius:18px;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(180deg,#1b4b68,#17354a);box-shadow:var(--shadow);font-size:24px;border:1px solid var(--line)
     }
 
-    .status-icons {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
+    .content{padding:16px 16px calc(100px + var(--safe-bottom));display:grid;gap:14px}
+    .hero-card,.card,.map-card{
+      background:linear-gradient(180deg, rgba(23,61,86,.95), rgba(16,44,62,.98));
+      border:1px solid var(--line);border-radius:var(--radius-xl);box-shadow:var(--shadow);
+    }
+    .hero-card{padding:16px;position:relative;overflow:hidden}
+    .hero-card::after{
+      content:'';position:absolute;right:-28px;top:-28px;width:120px;height:120px;border-radius:999px;
+      background:radial-gradient(circle, rgba(102,194,255,.18), transparent 70%);
+    }
+    .hero-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .hero-title{margin:0;font-size:17px;font-weight:800}
+    .hero-sub{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.4}
+    .cta-chip{
+      padding:10px 14px;border-radius:999px;background:linear-gradient(180deg,#74c6ff,#43a4f7);
+      color:white;font-size:12px;font-weight:800;white-space:nowrap
+    }
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+    .stat{
+      background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:18px;padding:12px;text-align:center
+    }
+    .stat-value{font-size:24px;font-weight:900;margin-bottom:4px}
+    .stat-label{font-size:11px;color:var(--muted);line-height:1.3}
+
+    .section-head{padding:14px 14px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .section-head h2{margin:0;font-size:15px}
+    .section-head span{font-size:12px;color:var(--muted)}
+    .card-body{padding:14px}
+
+    .segmented{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#0d2535;padding:5px;border-radius:16px;border:1px solid var(--line)}
+    .seg-btn{
+      border:none;background:transparent;color:#adc3d2;padding:10px;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer
+    }
+    .seg-btn.active{background:linear-gradient(180deg,#1b4b68,#17364c);color:white;box-shadow:var(--shadow)}
+
+    .input,.select,.textarea,.button{
+      width:100%;padding:13px 14px;border-radius:16px;border:1px solid var(--line);background:#0d2535;color:var(--text);
+      font-size:14px;outline:none
+    }
+    .input::placeholder,.textarea::placeholder{color:#8097a7}
+    .input:focus,.select:focus,.textarea:focus{border-color:rgba(102,194,255,.55);box-shadow:0 0 0 4px rgba(102,194,255,.12)}
+    .stack{display:grid;gap:10px}
+    .helper{font-size:12px;color:var(--muted);line-height:1.45}
+    .button{
+      border:none;background:linear-gradient(180deg,#78d0ff,#43a4f7);font-weight:800;color:#fff;cursor:pointer;
+      box-shadow:0 10px 20px rgba(67,164,247,.22)
+    }
+    .button.secondary{background:#18384f;box-shadow:none}
+    .button.danger{background:linear-gradient(180deg,#ff8b8b,#ff6767);box-shadow:0 10px 20px rgba(255,103,103,.18)}
+    .button:disabled{opacity:.65;cursor:not-allowed}
+
+    .search-wrap{position:relative}
+    .suggestions{
+      position:absolute;left:0;right:0;top:calc(100% - 4px);display:none;max-height:240px;overflow:auto;z-index:40;
+      background:#0f2c3e;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)
+    }
+    .suggestion-item{padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+    .suggestion-item:last-child{border-bottom:none}
+    .suggestion-item:hover{background:#16384f}
+    .suggestion-title{display:block;font-size:14px;font-weight:800}
+    .suggestion-subtitle{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+
+    .tabs{display:flex;gap:8px}
+    .tab-chip{
+      padding:9px 12px;border-radius:999px;background:var(--soft);border:1px solid var(--line);font-size:12px;font-weight:800;color:#bdd1de
     }
 
-    .top-actions {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      padding: 0 20px;
+    .screen{display:none}
+    .screen.active{display:grid;gap:14px}
+
+    .map-card{padding:10px}
+    #map{width:100%;height:300px;border-radius:22px;overflow:hidden;background:#c7def0;border:1px solid rgba(255,255,255,.08)}
+    .map-note{padding:10px 6px 2px;color:var(--muted);font-size:12px;line-height:1.4}
+
+    .mini-map{
+      width:100%;height:190px;border-radius:22px;background:linear-gradient(180deg,#0d2535,#0a2130);
+      overflow:hidden;border:1px solid var(--line);position:relative
+    }
+    .mini-map svg{width:100%;height:100%;display:block}
+    .continent{fill:#2a5c78;stroke:#17384a;stroke-width:2.1}
+    .visited{fill:#71c7ff;stroke:#9edaff;stroke-width:2.1}
+    .flags-row{display:flex;gap:10px;overflow:auto;padding-top:12px;scrollbar-width:none}
+    .flags-row::-webkit-scrollbar{display:none}
+    .flag-chip{
+      min-width:48px;width:48px;height:48px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:28px;flex:0 0 auto
     }
 
-    .icon-btn {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(5, 43, 65, 0.78);
-      backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: var(--shadow);
+    .city-list{display:grid;gap:10px;max-height:440px;overflow:auto}
+    .city-item{
+      background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:18px;padding:12px
+    }
+    .city-item strong{display:block;font-size:15px;line-height:1.35}
+    .city-meta{display:block;font-size:12px;color:var(--muted);margin:6px 0 8px;line-height:1.4}
+    .city-note{font-size:13px;color:#d9e7f1;line-height:1.45;margin-bottom:8px}
+    .city-actions{display:flex;gap:8px}
+    .small-btn{
+      flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:#18384f;color:white;font-size:12px;font-weight:800;cursor:pointer
+    }
+    .tag{
+      display:inline-block;margin-bottom:8px;padding:5px 9px;border-radius:999px;background:rgba(102,194,255,.14);color:#9edaff;font-size:12px;font-weight:700
+    }
+    .empty{
+      text-align:center;padding:18px;border-radius:18px;border:1px dashed rgba(255,255,255,.12);color:var(--muted);font-size:13px;background:rgba(255,255,255,.03)
     }
 
-    .profile-pin-wrap {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      margin-top: -48px;
-      z-index: 5;
+    .fab{
+      position:fixed;left:50%;transform:translateX(-50%);bottom:72px;z-index:55;width:68px;height:68px;border-radius:999px;
+      border:none;cursor:pointer;color:white;font-size:28px;font-weight:900;
+      background:linear-gradient(180deg,#7ef0c8,#35c79d);box-shadow:0 18px 30px rgba(53,199,157,.28)
     }
 
-    .profile-pin {
-      width: 108px;
-      height: 108px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #fffdf8, #f4f2ea);
-      border: 5px solid #d9ba8f;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+    .bottom-nav{
+      position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:430px;z-index:50;
+      padding:10px 16px calc(14px + var(--safe-bottom));
+      background:linear-gradient(180deg, rgba(8,28,42,0), rgba(8,28,42,.95) 24%)
+    }
+    .bottom-shell{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px;background:rgba(10,34,50,.96);
+      border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow)
+    }
+    .nav-btn{
+      border:none;background:transparent;color:#bdd1de;padding:10px 4px;border-radius:18px;cursor:pointer;font-size:11px;font-weight:800
+    }
+    .nav-btn.active{background:#17364c;color:white}
+    .nav-icon{display:block;font-size:20px;margin-bottom:4px}
+
+    .flag-marker{
+      width:34px;height:34px;border-radius:999px;background:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;
+      font-size:20px;box-shadow:0 6px 18px rgba(0,0,0,.18);position:relative
+    }
+    .flag-marker::after{
+      content:'';position:absolute;width:10px;height:10px;background:#fff;bottom:-4px;left:50%;transform:translateX(-50%) rotate(45deg);z-index:-1
     }
 
-    .profile-pin::after {
-      content: '';
-      width: 16px;
-      height: 38px;
-      border-radius: 10px;
-      background: #c9c7c2;
-      position: absolute;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .profile-core {
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, #ff8e98, #ff5566 72%);
-      z-index: 2;
-      box-shadow: inset 0 2px 3px rgba(255,255,255,0.45);
-    }
-
-    .content {
-      padding: 0 18px calc(110px + var(--safe-bottom));
-    }
-
-    .profile-section {
-      text-align: center;
-      margin-top: 12px;
-    }
-
-    .username {
-      margin: 0;
-      font-size: 34px;
-      line-height: 1.1;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-    }
-
-    .handle {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 16px;
-    }
-
-    .premium-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 16px;
-      padding: 11px 22px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #ffc766, #ffad37);
-      color: #fff9ef;
-      font-weight: 700;
-      font-size: 15px;
-      box-shadow: 0 10px 24px rgba(255, 184, 77, 0.28);
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 26px;
-      text-align: center;
-    }
-
-    .stat {
-      position: relative;
-      padding: 0 6px;
-    }
-
-    .stat:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      right: -4px;
-      top: 8px;
-      bottom: 8px;
-      width: 1px;
-      background: rgba(255,255,255,0.08);
-    }
-
-    .stat-label {
-      color: rgba(197, 219, 233, 0.55);
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      font-size: 26px;
-      font-weight: 700;
-    }
-
-    .map-panel {
-      margin-top: 26px;
-      background: transparent;
-    }
-
-    .mini-map {
-      position: relative;
-      width: 100%;
-      height: 210px;
-      border-radius: 22px;
-      background: linear-gradient(180deg, #08324b, #04273c);
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .mini-map svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .continent {
-      fill: #2d6483;
-      stroke: #18384a;
-      stroke-width: 2.2;
-      opacity: 0.95;
-    }
-
-    .visited {
-      fill: #ff6676;
-      stroke: #ff9ba5;
-      stroke-width: 2.2;
-    }
-
-    .flags-row {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding: 14px 0 6px;
-      scrollbar-width: none;
-    }
-
-    .flags-row::-webkit-scrollbar { display: none; }
-
-    .flag-chip {
-      min-width: 46px;
-      width: 46px;
-      height: 46px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
-      border: 1px solid rgba(255,255,255,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
-      flex: 0 0 auto;
-    }
-
-    .divider {
-      height: 1px;
-      background: rgba(255,255,255,0.08);
-      margin: 16px 0 18px;
-    }
-
-    .info-card {
-      background: linear-gradient(180deg, rgba(4, 38, 58, 0.98), rgba(3, 32, 49, 0.98));
-      border-radius: 24px;
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .info-head {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 14px;
-    }
-
-    .info-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.06);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-
-    .info-title {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .info-text {
-      margin-top: 4px;
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .mock-card {
-      margin-top: 12px;
-      background: linear-gradient(180deg, #104562, #072f48);
-      border-radius: 24px;
-      padding: 14px;
-      border: 1px solid rgba(255,255,255,0.07);
-      min-height: 110px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .mock-card::before {
-      content: '';
-      position: absolute;
-      inset: 12px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .mock-globe {
-      position: absolute;
-      right: 18px;
-      top: 16px;
-      font-size: 38px;
-      opacity: 0.15;
-    }
-
-    .bottom-bar {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      width: 100%;
-      max-width: 430px;
-      padding: 10px 18px calc(14px + var(--safe-bottom));
-      background: linear-gradient(180deg, rgba(4,39,60,0), rgba(4,39,60,0.92) 30%);
-      z-index: 30;
-    }
-
-    .bottom-shell {
-      background: linear-gradient(180deg, rgba(11, 65, 95, 0.96), rgba(6, 45, 67, 0.96));
-      border-radius: 28px;
-      padding: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.22);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nav-group {
-      flex: 1;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.04));
-      border-radius: 24px;
-      padding: 6px;
-    }
-
-    .nav-item {
-      text-align: center;
-      padding: 10px 4px;
-      border-radius: 18px;
-      color: rgba(229, 238, 246, 0.82);
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .nav-item.active {
-      background: rgba(255,255,255,0.12);
-      color: #ff8a95;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
-    }
-
-    .nav-icon {
-      display: block;
-      font-size: 22px;
-      margin-bottom: 4px;
-    }
-
-    .fab {
-      width: 64px;
-      height: 64px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 35% 30%, #0b4a6f, #062d44 70%);
-      border: 1px solid rgba(255,255,255,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 14px 28px rgba(0,0,0,0.22);
-      flex: 0 0 auto;
-    }
-
-    @media (min-width: 700px) {
-      body {
-        padding: 18px;
-      }
-      .phone {
-        min-height: calc(100vh - 36px);
-        border-radius: 34px;
-        box-shadow: 0 30px 70px rgba(0,0,0,0.3);
-      }
-      .bottom-bar {
-        bottom: 18px;
-      }
+    @media (min-width:700px){
+      body{padding:18px}
+      .phone{border-radius:34px;box-shadow:0 26px 60px rgba(0,0,0,.35);min-height:calc(100vh - 36px)}
+      .bottom-nav{bottom:18px}
+      .fab{bottom:90px}
     }
   </style>
 </head>
 <body>
   <div class="phone">
-    <section class="hero">
-      <div class="statusbar">
+    <header class="topbar">
+      <div class="status">
         <span>19:45</span>
-        <div class="status-icons">
+        <div class="status-right">
           <span>📶</span>
           <span>📡</span>
           <span>🔋 41</span>
         </div>
       </div>
-
-      <div class="top-actions">
-        <div class="icon-btn">⤴️</div>
-        <div class="icon-btn">🖌️</div>
+      <div class="brand">
+        <div>
+          <h1>Şehir Haritam</h1>
+          <p>Gezdiğin şehirleri kaydet, ülkeleri bayraklarla gör ve haritada takip et.</p>
+        </div>
+        <div class="brand-badge">🌍</div>
       </div>
-    </section>
-
-    <div class="profile-pin-wrap">
-      <div class="profile-pin">
-        <div class="profile-core"></div>
-      </div>
-    </div>
+    </header>
 
     <main class="content">
-      <section class="profile-section">
-        <h1 class="username">yapay zeka</h1>
-        <div class="handle">@yzeka34817551</div>
-        <div class="premium-btn">⭐ Premium'a Katıl</div>
-      </section>
-
-      <section class="stats">
-        <div class="stat">
-          <div class="stat-label">Destinasyon</div>
-          <div class="stat-value">122</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Ülke</div>
-          <div class="stat-value">18</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">İstek Listemde</div>
-          <div class="stat-value">0</div>
-        </div>
-      </section>
-
-      <section class="map-panel">
-        <div class="mini-map">
-          <svg viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet">
-            <path class="continent" d="M64 156 C98 120, 173 105, 233 118 C291 130, 334 165, 349 204 C363 240, 355 279, 325 307 C294 333, 244 346, 214 372 C187 394, 147 401, 121 384 C95 367, 90 336, 77 305 C61 269, 41 203, 64 156 Z"/>
-            <path class="continent" d="M269 352 C301 331, 351 335, 386 355 C417 373, 435 402, 437 440 C440 476, 422 514, 391 533 C359 553, 316 549, 292 520 C271 493, 257 453, 254 424 C251 395, 247 370, 269 352 Z"/>
-            <path class="continent" d="M413 132 C463 101, 537 92, 625 98 C718 104, 800 119, 867 149 C927 176, 968 220, 984 261 C996 291, 992 319, 971 340 C948 362, 913 368, 878 364 C835 359, 799 351, 760 362 C724 372, 702 397, 653 412 C605 427, 550 428, 511 405 C465 378, 444 341, 423 316 C403 292, 383 264, 379 228 C374 190, 381 152, 413 132 Z"/>
-            <path class="continent" d="M801 419 C833 403, 878 405, 912 426 C943 445, 961 476, 957 505 C954 531, 927 548, 895 549 C858 550, 826 536, 809 510 C794 487, 789 438, 801 419 Z"/>
-
-            <path class="visited" d="M533 139 C565 126, 607 126, 636 140 C622 158, 594 164, 564 161 C547 160, 538 151, 533 139 Z"/>
-            <path class="visited" d="M584 166 C606 161, 631 162, 650 173 C653 192, 644 206, 623 212 C603 216, 583 208, 571 191 C569 181, 575 171, 584 166 Z"/>
-            <path class="visited" d="M621 201 C637 191, 662 194, 679 204 C683 225, 675 241, 657 251 C640 259, 621 255, 609 240 C607 224, 611 210, 621 201 Z"/>
-            <path class="visited" d="M657 209 C684 199, 716 202, 738 218 C744 243, 732 261, 712 270 C688 279, 662 275, 644 259 C640 239, 644 220, 657 209 Z"/>
-            <path class="visited" d="M590 240 C618 238, 650 246, 670 267 C671 300, 649 321, 621 326 C592 331, 560 319, 547 293 C547 269, 561 247, 590 240 Z"/>
-            <path class="visited" d="M709 250 C735 244, 764 252, 780 272 C782 302, 763 320, 737 321 C711 323, 689 309, 681 284 C683 266, 692 253, 709 250 Z"/>
-            <path class="visited" d="M759 279 C793 276, 831 286, 856 308 C857 346, 831 370, 795 371 C760 372, 726 351, 720 319 C722 295, 736 282, 759 279 Z"/>
-          </svg>
-        </div>
-
-        <div class="flags-row">
-          <div class="flag-chip">🇦🇱</div>
-          <div class="flag-chip">🇦🇹</div>
-          <div class="flag-chip">🇧🇦</div>
-          <div class="flag-chip">🇭🇷</div>
-          <div class="flag-chip">🇪🇸</div>
-          <div class="flag-chip">🇮🇹</div>
-          <div class="flag-chip">🇲🇪</div>
-          <div class="flag-chip">🇽🇰</div>
-          <div class="flag-chip">🇲🇰</div>
-          <div class="flag-chip">🇭🇺</div>
-          <div class="flag-chip">🇷🇸</div>
-        </div>
-      </section>
-
-      <div class="divider"></div>
-
-      <section class="info-card">
-        <div class="info-head">
-          <div class="info-icon">🌐</div>
-          <div>
-            <p class="info-title">Konum bulunamadı</p>
-            <div class="info-text">Başlamak için konumunuzu seçin. Sonraki adımda şehir ekleme, harita ve profil bölümleri ayrı ekranlara ayrılabilir.</div>
+      <section id="screen-home" class="screen active">
+        <section class="hero-card">
+          <div class="hero-head">
+            <div>
+              <p class="hero-title">Seyahat Özeti</p>
+              <p class="hero-sub">Yeni şehir ekledikçe ana sayfa, harita ve kayıtlar otomatik güncellenir.</p>
+            </div>
+            <div class="cta-chip" id="heroViewLabel">Şehir görünümü</div>
           </div>
-        </div>
+          <div class="stats">
+            <div class="stat">
+              <div id="totalCities" class="stat-value">0</div>
+              <div class="stat-label">Gezilen Şehir</div>
+            </div>
+            <div class="stat">
+              <div id="totalCountries" class="stat-value">0</div>
+              <div class="stat-label">Ülke</div>
+            </div>
+            <div class="stat">
+              <div id="wishlistCount" class="stat-value">0</div>
+              <div class="stat-label">İstek Listesi</div>
+            </div>
+          </div>
+        </section>
 
-        <div class="mock-card">
-          <div class="mock-globe">🗺️</div>
-        </div>
+        <section class="card">
+          <div class="section-head">
+            <h2>Öne Çıkan Harita</h2>
+            <div class="tabs">
+              <span class="tab-chip" id="homeMapMode">Şehirler</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="mini-map">
+              <svg viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet">
+                <path class="continent" d="M64 156 C98 120, 173 105, 233 118 C291 130, 334 165, 349 204 C363 240, 355 279, 325 307 C294 333, 244 346, 214 372 C187 394, 147 401, 121 384 C95 367, 90 336, 77 305 C61 269, 41 203, 64 156 Z"/>
+                <path class="continent" d="M269 352 C301 331, 351 335, 386 355 C417 373, 435 402, 437 440 C440 476, 422 514, 391 533 C359 553, 316 549, 292 520 C271 493, 257 453, 254 424 C251 395, 247 370, 269 352 Z"/>
+                <path class="continent" d="M413 132 C463 101, 537 92, 625 98 C718 104, 800 119, 867 149 C927 176, 968 220, 984 261 C996 291, 992 319, 971 340 C948 362, 913 368, 878 364 C835 359, 799 351, 760 362 C724 372, 702 397, 653 412 C605 427, 550 428, 511 405 C465 378, 444 341, 423 316 C403 292, 383 264, 379 228 C374 190, 381 152, 413 132 Z"/>
+                <path class="continent" d="M801 419 C833 403, 878 405, 912 426 C943 445, 961 476, 957 505 C954 531, 927 548, 895 549 C858 550, 826 536, 809 510 C794 487, 789 438, 801 419 Z"/>
+                <path class="visited" d="M533 139 C565 126, 607 126, 636 140 C622 158, 594 164, 564 161 C547 160, 538 151, 533 139 Z"/>
+                <path class="visited" d="M584 166 C606 161, 631 162, 650 173 C653 192, 644 206, 623 212 C603 216, 583 208, 571 191 C569 181, 575 171, 584 166 Z"/>
+                <path class="visited" d="M621 201 C637 191, 662 194, 679 204 C683 225, 675 241, 657 251 C640 259, 621 255, 609 240 C607 224, 611 210, 621 201 Z"/>
+                <path class="visited" d="M657 209 C684 199, 716 202, 738 218 C744 243, 732 261, 712 270 C688 279, 662 275, 644 259 C640 239, 644 220, 657 209 Z"/>
+                <path class="visited" d="M590 240 C618 238, 650 246, 670 267 C671 300, 649 321, 621 326 C592 331, 560 319, 547 293 C547 269, 561 247, 590 240 Z"/>
+                <path class="visited" d="M709 250 C735 244, 764 252, 780 272 C782 302, 763 320, 737 321 C711 323, 689 309, 681 284 C683 266, 692 253, 709 250 Z"/>
+                <path class="visited" d="M759 279 C793 276, 831 286, 856 308 C857 346, 831 370, 795 371 C760 372, 726 351, 720 319 C722 295, 736 282, 759 279 Z"/>
+              </svg>
+            </div>
+            <div id="flagsRow" class="flags-row"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2 id="homeListTitle">Son 3 Şehir</h2>
+            <span>Hızlı görünüm</span>
+          </div>
+          <div class="card-body">
+            <div id="homeList" class="city-list"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="screen-add" class="screen">
+        <section class="card">
+          <div class="section-head">
+            <h2>Yeni Şehir Ekle</h2>
+            <span>Otomatik bul</span>
+          </div>
+          <div class="card-body stack">
+            <div class="search-wrap">
+              <input id="cityName" class="input" type="text" placeholder="Örn: Roma, Köln, Tokyo" autocomplete="off" />
+              <div id="suggestions" class="suggestions"></div>
+            </div>
+            <input id="visitDate" class="input" type="date" />
+            <select id="status" class="select">
+              <option value="Gezildi">Gezildi</option>
+              <option value="Planlanıyor">Planlanıyor</option>
+              <option value="Tekrar gidilecek">Tekrar gidilecek</option>
+            </select>
+            <textarea id="note" class="textarea" rows="4" placeholder="Kısa not: yemek, anı, favori yer..."></textarea>
+            <div class="helper">Şehir adını yaz. Sistem sana uygun şehirleri önerir. Seçtiğinde ülke otomatik gelir ve bayraklı pin oluşur.</div>
+            <button id="saveBtn" type="button" class="button">Şehri Kaydet</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="screen-map" class="screen">
+        <section class="card">
+          <div class="section-head">
+            <h2>Harita ve Filtre</h2>
+            <span id="mapModeLabel">Şehir bazlı</span>
+          </div>
+          <div class="card-body stack">
+            <div class="segmented">
+              <button id="viewCityBtn" type="button" class="seg-btn active">Şehir</button>
+              <button id="viewCountryBtn" type="button" class="seg-btn">Ülke</button>
+            </div>
+            <input id="searchInput" class="input" type="text" placeholder="Şehir veya ülke ara" />
+            <select id="filterStatus" class="select">
+              <option value="">Tüm durumlar</option>
+              <option value="Gezildi">Gezildi</option>
+              <option value="Planlanıyor">Planlanıyor</option>
+              <option value="Tekrar gidilecek">Tekrar gidilecek</option>
+            </select>
+            <button id="clearFilterBtn" type="button" class="button secondary">Filtreyi Temizle</button>
+          </div>
+        </section>
+
+        <section class="map-card">
+          <div id="map"></div>
+          <div class="map-note">Harita ve arama servisleri bazı tarayıcılarda dosya doğrudan açıldığında kısıtlanabilir. Local server ile açılırsa daha stabil çalışır.</div>
+        </section>
+      </section>
+
+      <section id="screen-list" class="screen">
+        <section class="card">
+          <div class="section-head">
+            <h2 id="listTitle">Kayıtlar</h2>
+            <span id="listCountLabel">0 kayıt</span>
+          </div>
+          <div class="card-body">
+            <div id="cityList" class="city-list"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>Veri Yönetimi</h2>
+            <span>Temizleme</span>
+          </div>
+          <div class="card-body">
+            <button id="clearAllBtn" type="button" class="button danger">Tümünü Sil</button>
+          </div>
+        </section>
       </section>
     </main>
 
-    <div class="bottom-bar">
+    <button id="fabAdd" class="fab" type="button">＋</button>
+
+    <nav class="bottom-nav">
       <div class="bottom-shell">
-        <div class="nav-group">
-          <div class="nav-item active"><span class="nav-icon">🏠</span>Ana</div>
-          <div class="nav-item"><span class="nav-icon">🗺️</span>Harita</div>
-          <div class="nav-item"><span class="nav-icon">👤</span>Profil</div>
-        </div>
-        <div class="fab">📍</div>
+        <button class="nav-btn active" data-screen="home" type="button"><span class="nav-icon">🏠</span>Ana</button>
+        <button class="nav-btn" data-screen="map" type="button"><span class="nav-icon">🗺️</span>Harita</button>
+        <button class="nav-btn" data-screen="list" type="button"><span class="nav-icon">📍</span>Kayıtlar</button>
+        <button class="nav-btn" data-screen="add" type="button"><span class="nav-icon">➕</span>Ekle</button>
       </div>
-    </div>
+    </nav>
   </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    const STORAGE_KEY = 'sehir-haritam-veriler';
+
+    const cityNameInput = document.getElementById('cityName');
+    const visitDateInput = document.getElementById('visitDate');
+    const statusInput = document.getElementById('status');
+    const noteInput = document.getElementById('note');
+    const saveBtn = document.getElementById('saveBtn');
+
+    const totalCitiesEl = document.getElementById('totalCities');
+    const totalCountriesEl = document.getElementById('totalCountries');
+    const wishlistCountEl = document.getElementById('wishlistCount');
+
+    const suggestionsEl = document.getElementById('suggestions');
+
+    const viewCityBtn = document.getElementById('viewCityBtn');
+    const viewCountryBtn = document.getElementById('viewCountryBtn');
+    const mapModeLabel = document.getElementById('mapModeLabel');
+    const heroViewLabel = document.getElementById('heroViewLabel');
+    const homeMapMode = document.getElementById('homeMapMode');
+
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+
+    const homeList = document.getElementById('homeList');
+    const homeListTitle = document.getElementById('homeListTitle');
+    const flagsRow = document.getElementById('flagsRow');
+
+    const listTitle = document.getElementById('listTitle');
+    const listCountLabel = document.getElementById('listCountLabel');
+    const cityList = document.getElementById('cityList');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const screens = {
+      home: document.getElementById('screen-home'),
+      add: document.getElementById('screen-add'),
+      map: document.getElementById('screen-map'),
+      list: document.getElementById('screen-list'),
+    };
+    const fabAdd = document.getElementById('fabAdd');
+
+    let cities = loadCities();
+    let selectedPlace = null;
+    let searchTimer = null;
+    let markers = [];
+    let viewMode = 'city';
+    let activeScreen = 'home';
+
+    const map = L.map('map', { worldCopyJump: true, minZoom: 2 }).setView([25, 10], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      subdomains: 'abc',
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    setTimeout(() => map.invalidateSize(), 300);
+    window.addEventListener('resize', () => map.invalidateSize());
+
+    function loadCities() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveCities() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cities));
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function countryCodeToFlag(code) {
+      if (!code || code.length !== 2) return '📍';
+      return code.toUpperCase().split('').map(char => String.fromCodePoint(127397 + char.charCodeAt(0))).join('');
+    }
+
+    function normalizePlace(item) {
+      const address = item.address || {};
+      const city = address.city || address.town || address.village || address.municipality || item.name || '';
+      const country = address.country || '';
+      const countryCode = (address.country_code || '').toUpperCase();
+
+      return {
+        city,
+        country,
+        countryCode,
+        flag: countryCodeToFlag(countryCode),
+        lat: Number(item.lat),
+        lng: Number(item.lon),
+        displayName: item.display_name || `${city}, ${country}`
+      };
+    }
+
+    async function searchCities(query) {
+      const encoded = encodeURIComponent(query);
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encoded}`;
+      const response = await fetch(url, {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.ok) throw new Error('Şehir araması yapılamadı.');
+
+      const data = await response.json();
+      return data.map(normalizePlace).filter(item => item.city && item.country);
+    }
+
+    function renderSuggestions(items) {
+      if (!items.length) {
+        suggestionsEl.innerHTML = '';
+        suggestionsEl.style.display = 'none';
+        return;
+      }
+
+      suggestionsEl.innerHTML = items.map((item, index) => `
+        <div class="suggestion-item" data-index="${index}">
+          <span class="suggestion-title">${escapeHtml(item.flag)} ${escapeHtml(item.city)}</span>
+          <span class="suggestion-subtitle">${escapeHtml(item.country)}</span>
+        </div>
+      `).join('');
+
+      suggestionsEl.style.display = 'block';
+
+      suggestionsEl.querySelectorAll('.suggestion-item').forEach(element => {
+        element.addEventListener('click', () => {
+          const item = items[Number(element.dataset.index)];
+          selectedPlace = item;
+          cityNameInput.value = `${item.city}, ${item.country}`;
+          suggestionsEl.innerHTML = '';
+          suggestionsEl.style.display = 'none';
+        });
+      });
+    }
+
+    function getFilteredCities() {
+      const searchValue = searchInput.value.trim().toLowerCase();
+      const statusValue = filterStatus.value;
+
+      return cities.filter(item => {
+        const matchesSearch = !searchValue || item.city.toLowerCase().includes(searchValue) || item.country.toLowerCase().includes(searchValue);
+        const matchesStatus = !statusValue || item.status === statusValue;
+        return matchesSearch && matchesStatus;
+      });
+    }
+
+    function getCountryGroups() {
+      const filtered = getFilteredCities();
+      const groups = new Map();
+
+      filtered.forEach(item => {
+        const key = `${item.country}__${item.countryCode || ''}`;
+        if (!groups.has(key)) {
+          groups.set(key, {
+            id: key,
+            country: item.country,
+            countryCode: item.countryCode,
+            flag: item.flag,
+            lat: item.lat,
+            lng: item.lng,
+            cities: [],
+            statuses: new Set()
+          });
+        }
+        const group = groups.get(key);
+        group.cities.push(item);
+        group.statuses.add(item.status);
+      });
+
+      return Array.from(groups.values()).map(group => ({
+        ...group,
+        cityCount: group.cities.length,
+        statuses: Array.from(group.statuses)
+      }));
+    }
+
+    function createFlagIcon(flag) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="flag-marker">${escapeHtml(flag)}</div>`,
+        iconSize: [34, 40],
+        iconAnchor: [17, 38],
+        popupAnchor: [0, -34]
+      });
+    }
+
+    function clearMarkers() {
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+    }
+
+    function addCityMarker(item) {
+      const popupHtml = `
+        <div>
+          <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br>
+          <span>Durum: ${escapeHtml(item.status)}</span><br>
+          ${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}
+          ${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}
+        </div>
+      `;
+
+      const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
+        .addTo(map)
+        .bindPopup(popupHtml);
+
+      markers.push(marker);
+    }
+
+    function renderMap() {
+      clearMarkers();
+
+      if (viewMode === 'country') {
+        const countries = getCountryGroups();
+        countries.forEach(item => {
+          const popupHtml = `
+            <div>
+              <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br>
+              <span>Toplam şehir: ${item.cityCount}</span><br>
+              <span>Şehirler: ${escapeHtml(item.cities.map(city => city.city).join(', '))}</span>
+            </div>
+          `;
+          const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
+            .addTo(map)
+            .bindPopup(popupHtml);
+          markers.push(marker);
+        });
+
+        if (countries.length === 1) {
+          map.setView([countries[0].lat, countries[0].lng], 5);
+        } else if (countries.length > 1) {
+          map.fitBounds(L.latLngBounds(countries.map(item => [item.lat, item.lng])), { padding: [28, 28] });
+        } else {
+          map.setView([25, 10], 2);
+        }
+        return;
+      }
+
+      const filtered = getFilteredCities();
+      filtered.forEach(addCityMarker);
+
+      if (filtered.length === 1) {
+        map.setView([filtered[0].lat, filtered[0].lng], 6);
+      } else if (filtered.length > 1) {
+        map.fitBounds(L.latLngBounds(filtered.map(item => [item.lat, item.lng])), { padding: [28, 28] });
+      } else {
+        map.setView([25, 10], 2);
+      }
+    }
+
+    function renderStats() {
+      totalCitiesEl.textContent = cities.length;
+      totalCountriesEl.textContent = new Set(cities.map(item => item.country.toLowerCase())).size;
+      wishlistCountEl.textContent = cities.filter(item => item.status === 'Planlanıyor').length;
+    }
+
+    function renderViewButtons() {
+      viewCityBtn.classList.toggle('active', viewMode === 'city');
+      viewCountryBtn.classList.toggle('active', viewMode === 'country');
+      mapModeLabel.textContent = viewMode === 'city' ? 'Şehir bazlı' : 'Ülke bazlı';
+      heroViewLabel.textContent = viewMode === 'city' ? 'Şehir görünümü' : 'Ülke görünümü';
+      homeMapMode.textContent = viewMode === 'city' ? 'Şehirler' : 'Ülkeler';
+    }
+
+    function renderFlags() {
+      const countries = Array.from(new Map(cities.map(item => [item.countryCode || item.country, item.flag || '📍'])).values());
+      if (!countries.length) {
+        flagsRow.innerHTML = '<div class="empty" style="min-width:100%">Henüz ülke eklenmedi.</div>';
+        return;
+      }
+      flagsRow.innerHTML = countries.map(flag => `<div class="flag-chip">${escapeHtml(flag)}</div>`).join('');
+    }
+
+    function renderHomeList() {
+      if (viewMode === 'country') {
+        const countries = getCountryGroups().slice(0, 3);
+        homeListTitle.textContent = 'Son 3 Ülke';
+        if (!countries.length) {
+          homeList.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
+          return;
+        }
+
+        homeList.innerHTML = countries.map(item => `
+          <div class="city-item">
+            <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong>
+            <span class="city-meta">Toplam şehir: ${item.cityCount}</span>
+            <div class="tag">${escapeHtml(item.statuses.join(' • '))}</div>
+            <div class="city-note">${escapeHtml(item.cities.map(city => city.city).join(', '))}</div>
+          </div>
+        `).join('');
+        return;
+      }
+
+      const latestCities = cities.slice(0, 3);
+      homeListTitle.textContent = 'Son 3 Şehir';
+      if (!latestCities.length) {
+        homeList.innerHTML = '<div class="empty">Henüz şehir eklenmedi.</div>';
+        return;
+      }
+
+      homeList.innerHTML = latestCities.map(item => `
+        <div class="city-item">
+          <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
+          <span class="city-meta">${item.date || 'Tarih yok'}</span>
+          <div class="tag">${escapeHtml(item.status)}</div>
+          ${item.note ? `<div class="city-note">${escapeHtml(item.note)}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderList() {
+      if (viewMode === 'country') {
+        const countries = getCountryGroups();
+        listTitle.textContent = 'Ülke Kayıtları';
+        listCountLabel.textContent = `${countries.length} ülke`;
+
+        if (!countries.length) {
+          cityList.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
+          return;
+        }
+
+        cityList.innerHTML = countries.map(item => `
+          <div class="city-item">
+            <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong>
+            <span class="city-meta">Toplam şehir: ${item.cityCount}</span>
+            <div class="tag">${escapeHtml(item.statuses.join(' • '))}</div>
+            <div class="city-note">${escapeHtml(item.cities.map(city => city.city).join(', '))}</div>
+            <div class="city-actions">
+              <button type="button" class="small-btn" data-action="focus-country" data-id="${item.id}">Haritada Göster</button>
+              <button type="button" class="small-btn" data-action="delete-country" data-id="${item.id}">Ülkeyi Sil</button>
+            </div>
+          </div>
+        `).join('');
+        return;
+      }
+
+      const filtered = getFilteredCities();
+      listTitle.textContent = 'Şehir Kayıtları';
+      listCountLabel.textContent = `${filtered.length} şehir`;
+
+      if (!filtered.length) {
+        cityList.innerHTML = '<div class="empty">Henüz gösterilecek şehir yok.</div>';
+        return;
+      }
+
+      cityList.innerHTML = filtered.map(item => `
+        <div class="city-item">
+          <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
+          <span class="city-meta">${item.date || 'Tarih yok'} • ${escapeHtml(item.displayName || '')}</span>
+          <div class="tag">${escapeHtml(item.status)}</div>
+          ${item.note ? `<div class="city-note">${escapeHtml(item.note)}</div>` : ''}
+          <div class="city-actions">
+            <button type="button" class="small-btn" data-action="focus-city" data-id="${item.id}">Haritada Göster</button>
+            <button type="button" class="small-btn" data-action="delete-city" data-id="${item.id}">Sil</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll() {
+      renderStats();
+      renderViewButtons();
+      renderFlags();
+      renderHomeList();
+      renderList();
+      renderMap();
+      if (activeScreen === 'map') {
+        setTimeout(() => map.invalidateSize(), 100);
+      }
+    }
+
+    async function addCity() {
+      const rawCity = cityNameInput.value.trim();
+      const date = visitDateInput.value;
+      const status = statusInput.value;
+      const note = noteInput.value.trim();
+
+      if (!rawCity) {
+        alert('Lütfen şehir adı gir.');
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Ekleniyor...';
+
+      try {
+        let place = selectedPlace;
+
+        if (!place) {
+          const results = await searchCities(rawCity);
+          if (!results.length) throw new Error('Şehir bulunamadı.');
+          place = results[0];
+        }
+
+        cities.unshift({
+          id: crypto.randomUUID(),
+          city: place.city,
+          country: place.country,
+          countryCode: place.countryCode,
+          flag: place.flag,
+          date,
+          status,
+          note,
+          lat: place.lat,
+          lng: place.lng,
+          displayName: place.displayName
+        });
+
+        saveCities();
+        renderAll();
+
+        cityNameInput.value = '';
+        visitDateInput.value = '';
+        statusInput.value = 'Gezildi';
+        noteInput.value = '';
+        selectedPlace = null;
+        suggestionsEl.innerHTML = '';
+        suggestionsEl.style.display = 'none';
+
+        switchScreen('home');
+      } catch (error) {
+        alert(error.message || 'Şehir eklenemedi.');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Şehri Kaydet';
+      }
+    }
+
+    function focusCity(id) {
+      const item = cities.find(city => city.id === id);
+      if (!item) return;
+      switchScreen('map');
+      setTimeout(() => {
+        map.setView([item.lat, item.lng], 7);
+        markers.find(marker => {
+          const pos = marker.getLatLng();
+          if (pos.lat === item.lat && pos.lng === item.lng) {
+            marker.openPopup();
+            return true;
+          }
+          return false;
+        });
+      }, 120);
+    }
+
+    function deleteCity(id) {
+      const confirmed = confirm('Bu şehri silmek istiyor musun?');
+      if (!confirmed) return;
+      cities = cities.filter(item => item.id !== id);
+      saveCities();
+      renderAll();
+    }
+
+    function focusCountry(id) {
+      const item = getCountryGroups().find(country => country.id === id);
+      if (!item) return;
+      switchScreen('map');
+      setTimeout(() => {
+        map.setView([item.lat, item.lng], 5);
+        markers.find(marker => {
+          const pos = marker.getLatLng();
+          if (pos.lat === item.lat && pos.lng === item.lng) {
+            marker.openPopup();
+            return true;
+          }
+          return false;
+        });
+      }, 120);
+    }
+
+    function deleteCountry(id) {
+      const confirmed = confirm('Bu ülkeye ait tüm kayıtlar silinsin mi?');
+      if (!confirmed) return;
+      cities = cities.filter(item => `${item.country}__${item.countryCode || ''}` !== id);
+      saveCities();
+      renderAll();
+    }
+
+    function clearAllCities() {
+      const confirmed = confirm('Tüm şehirler silinsin mi?');
+      if (!confirmed) return;
+      cities = [];
+      localStorage.removeItem(STORAGE_KEY);
+      renderAll();
+    }
+
+    function switchScreen(name) {
+      activeScreen = name;
+      Object.entries(screens).forEach(([key, screen]) => {
+        screen.classList.toggle('active', key === name);
+      });
+      navButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.screen === name);
+      });
+      if (name === 'map') {
+        setTimeout(() => map.invalidateSize(), 150);
+      }
+    }
+
+    cityNameInput.addEventListener('input', () => {
+      selectedPlace = null;
+      const value = cityNameInput.value.trim();
+
+      clearTimeout(searchTimer);
+      if (value.length < 2) {
+        suggestionsEl.innerHTML = '';
+        suggestionsEl.style.display = 'none';
+        return;
+      }
+
+      searchTimer = setTimeout(async () => {
+        try {
+          const results = await searchCities(value);
+          renderSuggestions(results);
+        } catch (error) {
+          suggestionsEl.innerHTML = '';
+          suggestionsEl.style.display = 'none';
+        }
+      }, 350);
+    });
+
+    cityNameInput.addEventListener('keydown', async event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const value = cityNameInput.value.trim();
+      if (!value || selectedPlace) return;
+      try {
+        const results = await searchCities(value);
+        if (results.length) {
+          selectedPlace = results[0];
+          cityNameInput.value = `${results[0].city}, ${results[0].country}`;
+          suggestionsEl.innerHTML = '';
+          suggestionsEl.style.display = 'none';
+        }
+      } catch (error) {}
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.search-wrap')) {
+        suggestionsEl.style.display = 'none';
+      }
+    });
+
+    cityList.addEventListener('click', event => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+
+      if (action === 'focus-city') focusCity(id);
+      if (action === 'delete-city') deleteCity(id);
+      if (action === 'focus-country') focusCountry(id);
+      if (action === 'delete-country') deleteCountry(id);
+    });
+
+    viewCityBtn.addEventListener('click', () => {
+      viewMode = 'city';
+      renderAll();
+    });
+
+    viewCountryBtn.addEventListener('click', () => {
+      viewMode = 'country';
+      renderAll();
+    });
+
+    navButtons.forEach(button => {
+      button.addEventListener('click', () => switchScreen(button.dataset.screen));
+    });
+
+    fabAdd.addEventListener('click', () => switchScreen('add'));
+    saveBtn.addEventListener('click', addCity);
+    clearAllBtn.addEventListener('click', clearAllCities);
+    searchInput.addEventListener('input', renderAll);
+    filterStatus.addEventListener('change', renderAll);
+    clearFilterBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterStatus.value = '';
+      renderAll();
+    });
+
+    renderAll();
+  </script>
 </body>
 </html>
