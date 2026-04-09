@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Şehir Haritam</title>
 
   <link
@@ -13,145 +13,344 @@
   />
 
   <style>
+    :root {
+      --bg: #eef4ff;
+      --panel: rgba(255, 255, 255, 0.84);
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #162033;
+      --muted: #667085;
+      --line: rgba(15, 23, 42, 0.08);
+      --primary: #2563eb;
+      --primary-soft: #dbeafe;
+      --danger: #dc2626;
+      --shadow: 0 14px 36px rgba(37, 99, 235, 0.12);
+      --radius-xl: 26px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
     * { box-sizing: border-box; }
-    body {
+
+    html, body {
       margin: 0;
+      min-height: 100%;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f4f7fb;
-      color: #1f2937;
+      background:
+        radial-gradient(circle at top left, #dbeafe 0, transparent 30%),
+        radial-gradient(circle at bottom right, #bfdbfe 0, transparent 28%),
+        linear-gradient(180deg, #edf4ff 0%, #f7fbff 100%);
+      color: var(--text);
     }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .phone-shell {
+      width: 100%;
+      max-width: 430px;
+      min-height: calc(100vh - 36px);
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      border-radius: 34px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+      position: relative;
+    }
+
     .app {
-      display: grid;
-      grid-template-columns: 380px minmax(0, 1fr);
-      min-height: 100vh;
+      min-height: calc(100vh - 36px);
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0.18));
     }
-    .sidebar {
-      background: #fff;
-      border-right: 1px solid #e5e7eb;
-      padding: 20px;
-      overflow-y: auto;
+
+    .topbar {
+      padding: calc(16px + var(--safe-top)) 18px 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.72));
+      border-bottom: 1px solid var(--line);
       position: sticky;
       top: 0;
-      height: 100vh;
+      z-index: 20;
+      backdrop-filter: blur(14px);
     }
-    .main {
-      padding: 20px;
-      min-width: 0;
-    }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
-    }
-    .intro {
-      margin: 0 0 18px;
-      color: #6b7280;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .card {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
-    .card h2 {
-      margin: 0 0 12px;
-      font-size: 16px;
-    }
-    .input, .select, .textarea, .button {
-      width: 100%;
-      padding: 11px 12px;
-      border-radius: 10px;
-      border: 1px solid #d1d5db;
-      font-size: 14px;
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 10px;
-      background: #fff;
-    }
-    .textarea {
-      min-height: 84px;
-      resize: vertical;
-    }
-    .button {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-weight: 700;
-    }
-    .button.secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-    .button.danger {
-      background: #dc2626;
-    }
-    .helper {
       font-size: 12px;
-      color: #6b7280;
-      line-height: 1.45;
-      margin-top: -4px;
-      margin-bottom: 10px;
+      color: var(--muted);
     }
+
+    .brand-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .brand-badge {
+      min-width: 54px;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #eff6ff, #dbeafe);
+      color: var(--primary);
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .content {
+      padding: 16px 14px calc(96px + var(--safe-bottom));
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero-card,
+    .card,
+    .map-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-card {
+      padding: 14px;
+      background: linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%);
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .hero-note {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
+
     .stat-box {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(15,23,42,0.06);
+      border-radius: 18px;
       padding: 12px;
     }
+
     .stat-box .value {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 700;
       margin-bottom: 4px;
     }
+
     .stat-box .label {
       font-size: 12px;
-      color: #6b7280;
+      color: var(--muted);
     }
+
+    .card-header {
+      padding: 14px 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .card-subtitle {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 4px;
+      background: #eef4ff;
+      border-radius: 16px;
+      margin-bottom: 12px;
+    }
+
+    .segmented button {
+      border: none;
+      background: transparent;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #36517f;
+      cursor: pointer;
+    }
+
+    .segmented button.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+    }
+
+    .input, .select, .textarea, .button {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: rgba(37, 99, 235, 0.35);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+    }
+
+    .textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .button {
+      border: none;
+      background: linear-gradient(180deg, #3b82f6, #2563eb);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+      margin-bottom: 0;
+    }
+
+    .button.secondary {
+      background: #eef2f7;
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .button.danger {
+      background: linear-gradient(180deg, #ef4444, #dc2626);
+      box-shadow: 0 12px 24px rgba(220, 38, 38, 0.18);
+    }
+
+    .helper {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-top: -2px;
+      margin-bottom: 10px;
+    }
+
     .search-wrap {
       position: relative;
     }
+
     .suggestions {
       position: absolute;
-      top: calc(100% - 8px);
+      top: calc(100% - 4px);
       left: 0;
       right: 0;
       display: none;
       background: #fff;
-      border: 1px solid #d1d5db;
-      border-radius: 12px;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(15,23,42,0.08);
+      border-radius: 18px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
       overflow: hidden;
-      z-index: 9999;
+      z-index: 1000;
       max-height: 260px;
       overflow-y: auto;
     }
+
     .suggestion-item {
-      padding: 10px 12px;
+      padding: 11px 14px;
       border-bottom: 1px solid #eef2f7;
       cursor: pointer;
     }
-    .suggestion-item:last-child {
-      border-bottom: 0;
-    }
-    .suggestion-item:hover {
-      background: #eff6ff;
-    }
+
+    .suggestion-item:last-child { border-bottom: 0; }
+    .suggestion-item:hover { background: #eff6ff; }
+
     .suggestion-title {
       display: block;
       font-weight: 700;
       margin-bottom: 2px;
+      font-size: 14px;
     }
+
     .suggestion-subtitle {
       display: block;
       font-size: 12px;
-      color: #6b7280;
+      color: var(--muted);
     }
+
+    .map-card {
+      padding: 10px;
+      background: linear-gradient(180deg, #f7fbff 0%, #ebf4ff 100%);
+    }
+
+    #map {
+      width: 100%;
+      height: 300px;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(37,99,235,0.12);
+      background: #dbeafe;
+    }
+
+    .map-hint {
+      padding: 10px 4px 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
     .city-list {
       display: flex;
       flex-direction: column;
@@ -159,75 +358,66 @@
       max-height: 320px;
       overflow: auto;
     }
+
     .city-item {
       background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
+      border: 1px solid rgba(15,23,42,0.06);
+      border-radius: 18px;
       padding: 12px;
     }
+
     .city-item strong {
       display: block;
       margin-bottom: 4px;
       font-size: 15px;
-    }
-    .city-meta {
-      display: block;
-      font-size: 13px;
-      color: #6b7280;
-      margin-bottom: 8px;
       line-height: 1.35;
     }
+
+    .city-meta {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
     .city-note {
       font-size: 13px;
-      color: #374151;
+      color: #334155;
       margin-bottom: 8px;
       line-height: 1.45;
     }
+
     .city-actions {
       display: flex;
       gap: 8px;
     }
+
     .small-btn {
       flex: 1;
-      border: 1px solid #d1d5db;
+      border: 1px solid rgba(15,23,42,0.08);
       background: #fff;
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 12px;
+      padding: 10px;
       font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
     }
-    .small-btn:hover {
-      background: #f8fafc;
-    }
+
+    .small-btn:hover { background: #f8fafc; }
+
     .tag {
       display: inline-block;
       background: #dbeafe;
       color: #1d4ed8;
       font-size: 12px;
-      padding: 4px 8px;
+      padding: 5px 9px;
       border-radius: 999px;
       margin-bottom: 8px;
     }
+
     .flag-inline { margin-right: 6px; }
-    .topbar h2 {
-      margin: 0;
-      font-size: 24px;
-    }
-    .topbar p {
-      margin: 4px 0 0;
-      color: #6b7280;
-      font-size: 14px;
-    }
-    #map {
-      width: 100%;
-      height: calc(100vh - 94px);
-      min-height: 620px;
-      border-radius: 18px;
-      overflow: hidden;
-      border: 1px solid #dbeafe;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-      background: #dbeafe;
-    }
+
     .flag-marker {
       width: 34px;
       height: 34px;
@@ -241,6 +431,7 @@
       font-size: 20px;
       position: relative;
     }
+
     .flag-marker::after {
       content: '';
       position: absolute;
@@ -253,107 +444,194 @@
       z-index: -1;
       box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.08);
     }
+
     .empty {
       font-size: 13px;
-      color: #6b7280;
+      color: var(--muted);
       background: #fff;
-      border: 1px dashed #d1d5db;
-      border-radius: 12px;
-      padding: 12px;
+      border: 1px dashed rgba(15,23,42,0.12);
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
     }
-    @media (max-width: 1180px) {
-      .app {
-        grid-template-columns: 340px minmax(0, 1fr);
-      }
+
+    .bottom-nav {
+      position: sticky;
+      bottom: 0;
+      padding: 10px 14px calc(10px + var(--safe-bottom));
+      background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.92));
+      backdrop-filter: blur(14px);
+      border-top: 1px solid var(--line);
+      z-index: 25;
     }
-    @media (max-width: 980px) {
-      .app {
-        grid-template-columns: 1fr;
+
+    .bottom-nav-inner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(15,23,42,0.06);
+      border-radius: 22px;
+      padding: 8px;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.08);
+    }
+
+    .nav-item {
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 16px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .nav-item.active {
+      background: #eff6ff;
+      color: var(--primary);
+    }
+
+    .nav-icon {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0; }
+      .phone-shell {
+        max-width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
       }
-      .sidebar {
-        position: static;
-        height: auto;
-        border-right: 0;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      #map {
-        height: 68vh;
-        min-height: 420px;
-      }
+      .app { min-height: 100vh; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <h1>Şehir Haritam</h1>
-      <p class="intro">Gezdiğin şehirleri dünya haritası üzerinde işaretle. Şehir adını yaz, sistem bulsun, sen seç ve kaydet.</p>
-
-      <div class="card">
-        <h2>Şehir Ekle</h2>
-        <div class="search-wrap">
-          <input id="cityName" class="input" type="text" placeholder="Şehir adı yaz" autocomplete="off" />
-          <div id="suggestions" class="suggestions"></div>
+  <div class="phone-shell">
+    <div class="app">
+      <header class="topbar">
+        <div class="status-row">
+          <span>Mobil görünüm</span>
+          <span>Şehir Haritam</span>
         </div>
-        <input id="visitDate" class="input" type="date" />
-        <select id="status" class="select">
-          <option value="Gezildi">Gezildi</option>
-          <option value="Planlanıyor">Planlanıyor</option>
-          <option value="Tekrar gidilecek">Tekrar gidilecek</option>
-        </select>
-        <textarea id="note" class="textarea" placeholder="Not: en sevdiğin yer, yemek, anı..."></textarea>
-        <div class="helper">Şehir adını yazdığında altta öneriler çıkar. Birini seçip kaydedebilirsin.</div>
-        <button id="saveBtn" type="button" class="button">Şehri Kaydet</button>
-      </div>
-
-      <div class="card">
-        <h2>Özet</h2>
-        <div class="stats">
-          <div class="stat-box">
-            <div id="totalCities" class="value">0</div>
-            <div class="label">Toplam şehir</div>
+        <div class="brand-row">
+          <div>
+            <h1 class="brand-title">Şehir Haritam</h1>
+            <p class="brand-subtitle">Gezdiğin şehirleri mobil uygulama gibi kaydet, filtrele ve haritada gör.</p>
           </div>
-          <div class="stat-box">
-            <div id="totalCountries" class="value">0</div>
-            <div class="label">Toplam ülke</div>
-          </div>
+          <div class="brand-badge">🌍</div>
         </div>
-      </div>
+      </header>
 
-      <div class="card">
-        <h2>Görünüm ve Filtre</h2>
-        <select id="viewMode" class="select">
-          <option value="city">Şehir bazlı gösterim</option>
-          <option value="country">Ülke bazlı gösterim</option>
-        </select>
-        <input id="searchInput" class="input" type="text" placeholder="Şehir veya ülke ara" />
-        <select id="filterStatus" class="select">
-          <option value="">Tüm durumlar</option>
-          <option value="Gezildi">Gezildi</option>
-          <option value="Planlanıyor">Planlanıyor</option>
-          <option value="Tekrar gidilecek">Tekrar gidilecek</option>
-        </select>
-        <button id="clearFilterBtn" type="button" class="button secondary">Filtreyi Temizle</button>
-      </div>
+      <main class="content">
+        <section class="hero-card">
+          <div class="hero-top">
+            <div>
+              <p class="hero-title">Seyahat Özeti</p>
+              <p class="hero-note">Şehir ekledikçe harita ve liste otomatik güncellenir.</p>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat-box">
+              <div id="totalCities" class="value">0</div>
+              <div class="label">Toplam şehir</div>
+            </div>
+            <div class="stat-box">
+              <div id="totalCountries" class="value">0</div>
+              <div class="label">Toplam ülke</div>
+            </div>
+          </div>
+        </section>
 
-      <div class="card">
-        <h2 id="listTitle">Eklenen Son 3 Şehir</h2>
-        <div id="cityList" class="city-list"></div>
-      </div>
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Şehir Ekle</h2>
+              <p class="card-subtitle">Şehir adını yaz, sistem sana sonuçları getirsin.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="search-wrap">
+              <input id="cityName" class="input" type="text" placeholder="Örn: Roma, Köln, Tokyo" autocomplete="off" />
+              <div id="suggestions" class="suggestions"></div>
+            </div>
+            <input id="visitDate" class="input" type="date" />
+            <select id="status" class="select">
+              <option value="Gezildi">Gezildi</option>
+              <option value="Planlanıyor">Planlanıyor</option>
+              <option value="Tekrar gidilecek">Tekrar gidilecek</option>
+            </select>
+            <textarea id="note" class="textarea" placeholder="Kısa not: yemek, anı, favori yer..."></textarea>
+            <div class="helper">Şehir adını yazarken altta öneriler çıkar. Birini seçip kaydedebilirsin.</div>
+            <button id="saveBtn" type="button" class="button">Şehri Kaydet</button>
+          </div>
+        </section>
 
-      <div class="card">
-        <h2>Veri Yönetimi</h2>
-        <button id="clearAllBtn" type="button" class="button danger">Tümünü Sil</button>
-      </div>
-    </aside>
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Görünüm ve Filtre</h2>
+              <p class="card-subtitle">Şehir veya ülke bazlı görünümü seç.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="segmented">
+              <button id="viewCityBtn" type="button" class="active">Şehir</button>
+              <button id="viewCountryBtn" type="button">Ülke</button>
+            </div>
+            <input id="searchInput" class="input" type="text" placeholder="Şehir veya ülke ara" />
+            <select id="filterStatus" class="select">
+              <option value="">Tüm durumlar</option>
+              <option value="Gezildi">Gezildi</option>
+              <option value="Planlanıyor">Planlanıyor</option>
+              <option value="Tekrar gidilecek">Tekrar gidilecek</option>
+            </select>
+            <button id="clearFilterBtn" type="button" class="button secondary">Filtreyi Temizle</button>
+          </div>
+        </section>
 
-    <main class="main">
-      <div class="topbar">
-        <h2>Dünya Haritası</h2>
-        <p>Not: Harita dosyayı doğrudan açınca değil, local server üzerinden açıldığında düzgün çalışır.</p>
-      </div>
-      <div id="map"></div>
-    </main>
+        <section class="map-card">
+          <div id="map"></div>
+          <div class="map-hint">Harita bazı tarayıcılarda dosyayı doğrudan açınca görünmeyebilir. Local server ile açılırsa daha stabil çalışır.</div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 id="listTitle" class="card-title">Eklenen Son 3 Şehir</h2>
+              <p class="card-subtitle">Son eklediklerin burada görünür.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="cityList" class="city-list"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Veri Yönetimi</h2>
+              <p class="card-subtitle">Tüm kayıtları tek adımda temizleyebilirsin.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <button id="clearAllBtn" type="button" class="button danger">Tümünü Sil</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="bottom-nav">
+        <div class="bottom-nav-inner">
+          <div class="nav-item active"><span class="nav-icon">🏠</span>Ana</div>
+          <div class="nav-item"><span class="nav-icon">➕</span>Ekle</div>
+          <div class="nav-item"><span class="nav-icon">🗺️</span>Harita</div>
+          <div class="nav-item"><span class="nav-icon">⚙️</span>Ayar</div>
+        </div>
+      </footer>
+    </div>
   </div>
 
   <script
@@ -378,22 +656,26 @@
     const clearFilterBtn = document.getElementById('clearFilterBtn');
     const clearAllBtn = document.getElementById('clearAllBtn');
     const suggestionsEl = document.getElementById('suggestions');
-    const viewMode = document.getElementById('viewMode');
     const listTitle = document.getElementById('listTitle');
+    const viewCityBtn = document.getElementById('viewCityBtn');
+    const viewCountryBtn = document.getElementById('viewCountryBtn');
 
     let cities = loadCities();
     let selectedPlace = null;
     let searchTimer = null;
     let markers = [];
+    let viewMode = 'city';
 
     const map = L.map('map', { worldCopyJump: true, minZoom: 2 }).setView([25, 10], 2);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       subdomains: 'abc',
-      attribution: '&copy; OpenStreetMap contributors',
-      referrerPolicy: 'strict-origin-when-cross-origin'
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    setTimeout(() => map.invalidateSize(), 250);
+    window.addEventListener('resize', () => map.invalidateSize());
 
     function loadCities() {
       try {
@@ -439,19 +721,13 @@
       const encoded = encodeURIComponent(query);
       const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encoded}`;
       const response = await fetch(url, {
-        headers: {
-          'Accept': 'application/json'
-        }
+        headers: { 'Accept': 'application/json' }
       });
 
-      if (!response.ok) {
-        throw new Error('Şehir araması yapılamadı.');
-      }
+      if (!response.ok) throw new Error('Şehir araması yapılamadı.');
 
       const data = await response.json();
-      return data
-        .map(normalizePlace)
-        .filter(item => item.city && item.country);
+      return data.map(normalizePlace).filter(item => item.city && item.country);
     }
 
     function renderSuggestions(items) {
@@ -557,7 +833,7 @@
     function renderMap() {
       clearMarkers();
 
-      if (viewMode.value === 'country') {
+      if (viewMode === 'country') {
         const countries = getCountryGroups();
         countries.forEach(item => {
           const popupHtml = `
@@ -576,7 +852,7 @@
         if (countries.length === 1) {
           map.setView([countries[0].lat, countries[0].lng], 5);
         } else if (countries.length > 1) {
-          map.fitBounds(L.latLngBounds(countries.map(item => [item.lat, item.lng])), { padding: [40, 40] });
+          map.fitBounds(L.latLngBounds(countries.map(item => [item.lat, item.lng])), { padding: [32, 32] });
         } else {
           map.setView([25, 10], 2);
         }
@@ -589,7 +865,7 @@
       if (filtered.length === 1) {
         map.setView([filtered[0].lat, filtered[0].lng], 6);
       } else if (filtered.length > 1) {
-        map.fitBounds(L.latLngBounds(filtered.map(item => [item.lat, item.lng])), { padding: [40, 40] });
+        map.fitBounds(L.latLngBounds(filtered.map(item => [item.lat, item.lng])), { padding: [32, 32] });
       } else {
         map.setView([25, 10], 2);
       }
@@ -600,8 +876,13 @@
       totalCountriesEl.textContent = new Set(cities.map(item => item.country.toLowerCase())).size;
     }
 
+    function renderViewButtons() {
+      viewCityBtn.classList.toggle('active', viewMode === 'city');
+      viewCountryBtn.classList.toggle('active', viewMode === 'country');
+    }
+
     function renderList() {
-      if (viewMode.value === 'country') {
+      if (viewMode === 'country') {
         const countries = getCountryGroups();
         listTitle.textContent = 'Gezilen Ülkeler';
 
@@ -649,6 +930,7 @@
 
     function renderAll() {
       renderStats();
+      renderViewButtons();
       renderList();
       renderMap();
     }
@@ -672,9 +954,7 @@
 
         if (!place) {
           const results = await searchCities(rawCity);
-          if (!results.length) {
-            throw new Error('Şehir bulunamadı.');
-          }
+          if (!results.length) throw new Error('Şehir bulunamadı.');
           place = results[0];
         }
 
@@ -818,11 +1098,20 @@
       if (action === 'delete-country') deleteCountry(id);
     });
 
+    viewCityBtn.addEventListener('click', () => {
+      viewMode = 'city';
+      renderAll();
+    });
+
+    viewCountryBtn.addEventListener('click', () => {
+      viewMode = 'country';
+      renderAll();
+    });
+
     saveBtn.addEventListener('click', addCity);
     clearAllBtn.addEventListener('click', clearAllCities);
     searchInput.addEventListener('input', renderAll);
     filterStatus.addEventListener('change', renderAll);
-    viewMode.addEventListener('change', renderAll);
     clearFilterBtn.addEventListener('click', () => {
       searchInput.value = '';
       filterStatus.value = '';
