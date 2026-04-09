@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Şehir Haritam - Dünya Haritası</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+    .app {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: #ffffff;
+      border-right: 1px solid #e5e7eb;
+      padding: 18px;
+      overflow-y: auto;
+    }
+    .sidebar h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+    .sidebar p {
+      margin: 0 0 18px;
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+    .input, .select, .textarea, .button {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      margin-bottom: 10px;
+      background: white;
+    }
+    .textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .button.danger {
+      background: #dc2626;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .stat-box {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .stat-box .value {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .stat-box .label {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .helper {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.4;
+      margin-top: -4px;
+      margin-bottom: 10px;
+    }
+    .search-wrap {
+      position: relative;
+    }
+    .suggestions {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% - 8px);
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+      z-index: 1000;
+      display: none;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .suggestion-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .suggestion-item:last-child {
+      border-bottom: 0;
+    }
+    .suggestion-item:hover {
+      background: #eff6ff;
+    }
+    .suggestion-title {
+      display: block;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+    .suggestion-subtitle {
+      display: block;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .city-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 320px;
+      overflow: auto;
+    }
+    .city-item {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .city-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+    .city-meta {
+      display: block;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .city-note {
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .city-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .small-btn {
+      flex: 1;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .flag-inline {
+      margin-right: 6px;
+    }
+    .main {
+      padding: 18px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .topbar h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .topbar p {
+      margin: 4px 0 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    #map {
+      width: 100%;
+      height: calc(100vh - 90px);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #dbeafe;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
+    .leaflet-popup-content {
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .flag-marker {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      position: relative;
+    }
+    .flag-marker::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffffff;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      z-index: -1;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.08);
+    }
+    .empty {
+      font-size: 13px;
+      color: #6b7280;
+      background: white;
+      border: 1px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      #map {
+        height: 65vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>Şehir Haritam</h1>
+      <p>Gezdiğin şehirleri dünya haritası üzerinde işaretle, kısa not ekle ve tek ekrandan yönet.</p>
+
+      <div class="card">
+        <h2>Şehir Ekle</h2>
+        <div class="search-wrap">
+          <input id="cityName" class="input" type="text" placeholder="Şehir adı yaz" autocomplete="off" />
+          <div id="suggestions" class="suggestions"></div>
+        </div>
+        <input id="visitDate" class="input" type="date" />
+        <select id="status" class="select">
+          <option value="Gezildi">Gezildi</option>
+          <option value="Planlanıyor">Planlanıyor</option>
+          <option value="Tekrar gidilecek">Tekrar gidilecek</option>
+        </select>
+        <textarea id="note" class="textarea" placeholder="Not: en sevdiğin yer, yemek, anı..."></textarea>
+        <div class="helper">Sadece şehir adı yaz. Sistem uygun şehirleri bulur, sen listeden seçersin. Pinler ülke bayrağı şeklinde görünür.</div>
+        <button id="saveBtn" type="button" class="button">Şehri Kaydet</button>
+      </div>
+
+      <div class="card">
+        <h2>Özet</h2>
+        <div class="stats">
+          <div class="stat-box">
+            <div id="totalCities" class="value">0</div>
+            <div class="label">Toplam şehir</div>
+          </div>
+          <div class="stat-box">
+            <div id="totalCountries" class="value">0</div>
+            <div class="label">Toplam ülke</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Görünüm ve Filtre</h2>
+        <select id="viewMode" class="select">
+          <option value="city">Şehir bazlı gösterim</option>
+          <option value="country">Ülke bazlı gösterim</option>
+        </select>
+        <input id="searchInput" class="input" type="text" placeholder="Şehir veya ülke ara" />
+        <select id="filterStatus" class="select">
+          <option value="">Tüm durumlar</option>
+          <option value="Gezildi">Gezildi</option>
+          <option value="Planlanıyor">Planlanıyor</option>
+          <option value="Tekrar gidilecek">Tekrar gidilecek</option>
+        </select>
+        <button id="clearFilterBtn" type="button" class="button secondary">Filtreyi Temizle</button>
+      </div>
+
+      <div class="card">
+        <h2 id="listTitle">Eklenen Şehirler</h2>
+        <div id="cityList" class="city-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>Veri Yönetimi</h2>
+        <button id="sampleBtn" type="button" class="button secondary">Örnek Veriler Ekle</button>
+        <button id="clearAllBtn" type="button" class="button danger" data-action="clear-all">Tümünü Sil</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2>Dünya Haritası</h2>
+          <p>Şehir ekledikçe pin olarak haritada görünür. Liste ile harita senkron çalışır.</p>
+        </div>
+      </div>
+      <div id="map"></div>
+    </main>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    const STORAGE_KEY = 'sehir-haritam-veriler';
+
+    const cityNameInput = document.getElementById('cityName');
+    const visitDateInput = document.getElementById('visitDate');
+    const statusInput = document.getElementById('status');
+    const noteInput = document.getElementById('note');
+    const saveBtn = document.getElementById('saveBtn');
+    const cityList = document.getElementById('cityList');
+    const totalCitiesEl = document.getElementById('totalCities');
+    const totalCountriesEl = document.getElementById('totalCountries');
+    const searchInput = document.getElementById('searchInput');
+    const viewMode = document.getElementById('viewMode');
+    const listTitle = document.getElementById('listTitle');
+    const filterStatus = document.getElementById('filterStatus');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const suggestionsEl = document.getElementById('suggestions');
+    const sidebar = document.querySelector('.sidebar');
+
+    let cities = loadCities();
+    let markers = [];
+    let selectedPlace = null;
+    let searchTimer = null;
+
+    const map = L.map('map', {
+      worldCopyJump: true,
+      minZoom: 2
+    }).setView([25, 10], 2);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function loadCities() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveCities() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cities));
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function countryCodeToFlag(code) {
+      if (!code || code.length !== 2) return '📍';
+      return code
+        .toUpperCase()
+        .split('')
+        .map(char => String.fromCodePoint(127397 + char.charCodeAt()))
+        .join('');
+    }
+
+    function normalizePlace(item) {
+      const address = item.address || {};
+      const city = address.city || address.town || address.village || address.municipality || item.name || '';
+      const country = address.country || '';
+      const countryCode = (address.country_code || '').toUpperCase();
+
+      return {
+        city,
+        country,
+        countryCode,
+        flag: countryCodeToFlag(countryCode),
+        lat: Number(item.lat),
+        lng: Number(item.lon),
+        displayName: item.display_name || `${city}, ${country}`
+      };
+    }
+
+    async function searchCities(query) {
+      const encoded = encodeURIComponent(query);
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&featureType=city&q=${encoded}`;
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Şehir araması yapılamadı.');
+      }
+
+      const data = await response.json();
+      return data
+        .map(normalizePlace)
+        .filter(item => item.city && item.country);
+    }
+
+    function renderSuggestions(items) {
+      if (!items.length) {
+        suggestionsEl.style.display = 'none';
+        suggestionsEl.innerHTML = '';
+        return;
+      }
+
+      suggestionsEl.innerHTML = items.map((item, index) => `
+        <div class="suggestion-item" data-index="${index}">
+          <span class="suggestion-title">${escapeHtml(item.flag)} ${escapeHtml(item.city)}</span>
+          <span class="suggestion-subtitle">${escapeHtml(item.country)} • ${escapeHtml(item.displayName)}</span>
+        </div>
+      `).join('');
+      suggestionsEl.style.display = 'block';
+
+      Array.from(suggestionsEl.querySelectorAll('.suggestion-item')).forEach(element => {
+        element.addEventListener('click', () => {
+          const index = Number(element.dataset.index);
+          choosePlace(items[index]);
+        });
+      });
+    }
+
+    function choosePlace(place) {
+      selectedPlace = place;
+      cityNameInput.value = `${place.city}, ${place.country}`;
+      suggestionsEl.style.display = 'none';
+      suggestionsEl.innerHTML = '';
+    }
+
+    function getFilteredCities() {
+      const searchValue = searchInput.value.trim().toLowerCase();
+      const statusValue = filterStatus.value;
+
+      return cities.filter(item => {
+        const matchesSearch = !searchValue ||
+          item.city.toLowerCase().includes(searchValue) ||
+          item.country.toLowerCase().includes(searchValue);
+
+        const matchesStatus = !statusValue || item.status === statusValue;
+        return matchesSearch && matchesStatus;
+      });
+    }
+
+    function getCountryGroups() {
+      const filtered = getFilteredCities();
+      const mapByCountry = new Map();
+
+      filtered.forEach(item => {
+        const key = `${item.country}__${item.countryCode || ''}`;
+        if (!mapByCountry.has(key)) {
+          mapByCountry.set(key, {
+            id: key,
+            country: item.country,
+            countryCode: item.countryCode || '',
+            flag: item.flag || '📍',
+            lat: item.lat,
+            lng: item.lng,
+            cities: [],
+            statuses: new Set()
+          });
+        }
+
+        const group = mapByCountry.get(key);
+        group.cities.push(item);
+        group.statuses.add(item.status);
+      });
+
+      return Array.from(mapByCountry.values()).map(group => ({
+        ...group,
+        cityCount: group.cities.length,
+        statuses: Array.from(group.statuses)
+      }));
+    }
+
+    function clearMarkers() {
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+    }
+
+    function createFlagIcon(flag) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="flag-marker">${escapeHtml(flag)}</div>`,
+        iconSize: [34, 40],
+        iconAnchor: [17, 38],
+        popupAnchor: [0, -34]
+      });
+    }
+
+    function addMarker(item) {
+      const popupHtml = `
+        <div>
+          <strong>${escapeHtml(item.flag || '📍')} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br>
+          <span>Durum: ${escapeHtml(item.status)}</span><br>
+          ${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}
+          ${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}
+        </div>
+      `;
+
+      const marker = L.marker([item.lat, item.lng], {
+        icon: createFlagIcon(item.flag || '📍')
+      }).addTo(map).bindPopup(popupHtml);
+
+      markers.push(marker);
+      return marker;
+    }
+
+    function renderMap() {
+      clearMarkers();
+
+      if (viewMode.value === 'country') {
+        const countries = getCountryGroups();
+
+        countries.forEach(item => {
+          const popupHtml = `
+            <div>
+              <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br>
+              <span>Toplam şehir: ${item.cityCount}</span><br>
+              <span>Şehirler: ${escapeHtml(item.cities.map(city => city.city).join(', '))}</span>
+            </div>
+          `;
+
+          const marker = L.marker([item.lat, item.lng], {
+            icon: createFlagIcon(item.flag || '📍')
+          }).addTo(map).bindPopup(popupHtml);
+
+          markers.push(marker);
+        });
+
+        if (countries.length === 1) {
+          map.setView([countries[0].lat, countries[0].lng], 5);
+        } else if (countries.length > 1) {
+          const bounds = L.latLngBounds(countries.map(item => [item.lat, item.lng]));
+          map.fitBounds(bounds, { padding: [40, 40] });
+        } else {
+          map.setView([25, 10], 2);
+        }
+
+        return;
+      }
+
+      const filtered = getFilteredCities();
+      filtered.forEach(item => addMarker(item));
+
+      if (filtered.length === 1) {
+        map.setView([filtered[0].lat, filtered[0].lng], 6);
+      } else if (filtered.length > 1) {
+        const bounds = L.latLngBounds(filtered.map(item => [item.lat, item.lng]));
+        map.fitBounds(bounds, { padding: [40, 40] });
+      } else {
+        map.setView([25, 10], 2);
+      }
+    }
+
+    function renderStats() {
+      totalCitiesEl.textContent = cities.length;
+      const uniqueCountries = new Set(cities.map(item => item.country.trim().toLowerCase()));
+      totalCountriesEl.textContent = uniqueCountries.size;
+    }
+
+    function renderList() {
+      if (viewMode.value === 'country') {
+        const countries = getCountryGroups();
+        listTitle.textContent = 'Gezilen Ülkeler';
+
+        if (!countries.length) {
+          cityList.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
+          return;
+        }
+
+        cityList.innerHTML = countries.map(item => `
+          <div class="city-item">
+            <strong><span class="flag-inline">${escapeHtml(item.flag)}</span>${escapeHtml(item.country)}</strong>
+            <span class="city-meta">Toplam şehir: ${item.cityCount}</span>
+            <div class="tag">${escapeHtml(item.statuses.join(' • '))}</div>
+            <div class="city-note">${escapeHtml(item.cities.map(city => city.city).join(', '))}</div>
+            <div class="city-actions">
+              <button type="button" class="small-btn" data-action="focus-country" data-id="${item.id}">Haritada Göster</button>
+              <button type="button" class="small-btn" data-action="delete-country" data-id="${item.id}">Ülkeyi Sil</button>
+            </div>
+          </div>
+        `).join('');
+        return;
+      }
+
+      const filtered = getFilteredCities();
+      listTitle.textContent = 'Eklenen Şehirler';
+
+      if (!filtered.length) {
+        cityList.innerHTML = '<div class="empty">Henüz gösterilecek şehir yok.</div>';
+        return;
+      }
+
+      cityList.innerHTML = filtered.map(item => `
+        <div class="city-item">
+          <strong><span class="flag-inline">${escapeHtml(item.flag || '📍')}</span>${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
+          <span class="city-meta">${item.date || 'Tarih yok'} • ${escapeHtml(item.displayName || '')}</span>
+          <div class="tag">${escapeHtml(item.status)}</div>
+          ${item.note ? `<div class="city-note">${escapeHtml(item.note)}</div>` : ''}
+          <div class="city-actions">
+            <button type="button" class="small-btn" data-action="focus-city" data-id="${item.id}">Haritada Göster</button>
+            <button type="button" class="small-btn" data-action="delete-city" data-id="${item.id}">Sil</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll() {
+      renderStats();
+      renderList();
+      renderMap();
+    }
+
+    async function addCity() {
+      const rawCity = cityNameInput.value.trim();
+      const date = visitDateInput.value;
+      const status = statusInput.value;
+      const note = noteInput.value.trim();
+
+      if (!rawCity) {
+        alert('Lütfen şehir adı gir.');
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Ekleniyor...';
+
+      try {
+        let place = selectedPlace;
+
+        if (!place) {
+          const results = await searchCities(rawCity);
+          if (!results.length) {
+            throw new Error('Şehir bulunamadı. Farklı yazmayı dene.');
+          }
+          place = results[0];
+        }
+
+        const newItem = {
+          id: crypto.randomUUID(),
+          city: place.city,
+          country: place.country,
+          countryCode: place.countryCode,
+          flag: place.flag,
+          date,
+          status,
+          note,
+          lat: place.lat,
+          lng: place.lng,
+          displayName: place.displayName
+        };
+
+        cities.unshift(newItem);
+        saveCities();
+        renderAll();
+
+        cityNameInput.value = '';
+        visitDateInput.value = '';
+        statusInput.value = 'Gezildi';
+        noteInput.value = '';
+        selectedPlace = null;
+      } catch (error) {
+        alert(error.message || 'Şehir eklenemedi.');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Şehri Kaydet';
+      }
+    }
+
+    function focusCity(id) {
+      const item = cities.find(city => city.id === id);
+      if (!item) return;
+      map.setView([item.lat, item.lng], 7);
+      const marker = markers.find(m => {
+        const pos = m.getLatLng();
+        return pos.lat === item.lat && pos.lng === item.lng;
+      });
+      if (marker) marker.openPopup();
+    };
+
+    function deleteCity(id) {
+      const confirmed = confirm('Bu şehri silmek istiyor musun?');
+      if (!confirmed) return;
+      cities = cities.filter(item => item.id !== id);
+      saveCities();
+      renderAll();
+    };
+
+    function deleteCountry(id) {
+      const confirmed = confirm('Bu ülkeye ait tüm şehir kayıtları silinsin mi?');
+      if (!confirmed) return;
+
+      cities = cities.filter(item => {
+        const key = `${item.country}__${item.countryCode || ''}`;
+        return key !== id;
+      });
+
+      saveCities();
+      renderAll();
+    };
+
+    function focusCountry(id) {
+      const countries = getCountryGroups();
+      const item = countries.find(country => country.id === id);
+      if (!item) return;
+      map.setView([item.lat, item.lng], 5);
+      const marker = markers.find(m => {
+        const pos = m.getLatLng();
+        return pos.lat === item.lat && pos.lng === item.lng;
+      });
+      if (marker) marker.openPopup();
+    };
+
+    function addSampleData() {
+      const sampleData = [
+        {
+          id: crypto.randomUUID(),
+          city: 'İstanbul',
+          country: 'Türkiye',
+          countryCode: 'TR',
+          flag: '🇹🇷',
+          date: '2026-04-01',
+          status: 'Gezildi',
+          note: 'Boğaz ve tarihi yarımada çok güzeldi.',
+          lat: 41.0082,
+          lng: 28.9784,
+          displayName: 'İstanbul, Türkiye'
+        },
+        {
+          id: crypto.randomUUID(),
+          city: 'Roma',
+          country: 'İtalya',
+          countryCode: 'IT',
+          flag: '🇮🇹',
+          date: '2025-09-14',
+          status: 'Gezildi',
+          note: 'Tarihi yapılar ve sokaklar çok etkileyiciydi.',
+          lat: 41.9028,
+          lng: 12.4964,
+          displayName: 'Roma, İtalya'
+        },
+        {
+          id: crypto.randomUUID(),
+          city: 'Tokyo',
+          country: 'Japonya',
+          countryCode: 'JP',
+          flag: '🇯🇵',
+          date: '',
+          status: 'Planlanıyor',
+          note: 'İleri tarihte gitmek istiyorum.',
+          lat: 35.6762,
+          lng: 139.6503,
+          displayName: 'Tokyo, Japonya'
+        }
+      ];
+
+      cities = [...sampleData, ...cities];
+      saveCities();
+      renderAll();
+    }
+
+    function clearAllCities() {
+      const confirmed = confirm('Tüm şehirler silinsin mi?');
+      if (!confirmed) return;
+      cities = [];
+      localStorage.removeItem(STORAGE_KEY);
+      renderAll();
+    }
+
+    cityNameInput.addEventListener('input', () => {
+      selectedPlace = null;
+      const value = cityNameInput.value.trim();
+
+      clearTimeout(searchTimer);
+      if (value.length < 2) {
+        suggestionsEl.style.display = 'none';
+        suggestionsEl.innerHTML = '';
+        return;
+      }
+
+      searchTimer = setTimeout(async () => {
+        try {
+          const results = await searchCities(value);
+          renderSuggestions(results);
+        } catch (error) {
+          suggestionsEl.style.display = 'none';
+          suggestionsEl.innerHTML = '';
+        }
+      }, 350);
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.search-wrap')) {
+        suggestionsEl.style.display = 'none';
+      }
+    });
+
+    cityNameInput.addEventListener('keydown', async event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const value = cityNameInput.value.trim();
+      if (!value || selectedPlace) return;
+      try {
+        const results = await searchCities(value);
+        if (results.length) {
+          choosePlace(results[0]);
+        }
+      } catch (error) {
+      }
+    });
+
+    sidebar.addEventListener('click', event => {
+      const button = event.target.closest('button');
+      if (!button) return;
+
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+
+      if (action === 'focus-city' && id) {
+        event.preventDefault();
+        event.stopPropagation();
+        focusCity(id);
+      } else if (action === 'delete-city' && id) {
+        event.preventDefault();
+        event.stopPropagation();
+        deleteCity(id);
+      } else if (action === 'focus-country' && id) {
+        event.preventDefault();
+        event.stopPropagation();
+        focusCountry(id);
+      } else if (action === 'delete-country' && id) {
+        event.preventDefault();
+        event.stopPropagation();
+        deleteCountry(id);
+      } else if (action === 'clear-all') {
+        event.preventDefault();
+        event.stopPropagation();
+        clearAllCities();
+      }
+    });
+
+    saveBtn.addEventListener('click', addCity);
+    searchInput.addEventListener('input', renderAll);
+    viewMode.addEventListener('change', renderAll);
+    filterStatus.addEventListener('change', renderAll);
+    clearFilterBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterStatus.value = '';
+      renderAll();
+    });
+    sampleBtn.addEventListener('click', addSampleData);
+
+    renderAll();
+  </script>
+</body>
+</html>
