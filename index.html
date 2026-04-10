@@ -101,7 +101,7 @@
 
     #homeMap{
       width:100%;
-      height:255px;
+      height:360px;
       border-radius:18px;
       overflow:hidden;
       background:#d4dbe2;
@@ -412,7 +412,7 @@
 
         <div class="map-card">
           <div id="homeMap"></div>
-          <div class="map-note">Bu alan atlas gibi uzak dünya görünümüdür. İşaretli detaylı harita için Harita menüsünü kullan.</div>
+          <div class="map-note">Ana sayfada dünya haritası ülke bazlı görünür. Gidilen ülkeler kırmızı renkte boyanır; pinler sadece Harita sayfasında görünür.</div>
         </div>
 
 
@@ -552,7 +552,6 @@
     let searchTimer = null;
     let viewMode = 'city';
     let activeStatus = '';
-    let homeMarkers = [];
     let fullMarkers = [];
     let activeScreen = 'home';
 
@@ -577,6 +576,9 @@
     }).setView([18, 5], 1.8);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(homeMap);
+
+    let homeCountryLayer = null;
+    let worldGeoJsonCache = null;
 
     const fullMap = L.map('fullMap', {
       worldCopyJump:true,
@@ -732,21 +734,97 @@
       }
     }
 
-    function renderHomeMap() {
-      clearMapMarkers(homeMap, homeMarkers);
-      const points = [];
-      const list = viewMode === 'country' ? getCountryGroups() : getFilteredCities();
+    function normalizeCountryName(name) {
+      return (name || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
 
-      list.forEach(item => {
-        points.push([item.lat, item.lng]);
-        const marker = L.marker([item.lat, item.lng], {
-          icon:createFlagIcon(item.flag || '📍'),
-          interactive:false
-        }).addTo(homeMap);
-        homeMarkers.push(marker);
+    function getVisitedCountryNames() {
+      const aliases = {
+        'turkiye': ['turkey'],
+        'amerika birlesik devletleri': ['united states', 'united states of america'],
+        'ingiltere': ['united kingdom'],
+        'cekya': ['czech republic', 'czechia'],
+        'birlesik arap emirlikleri': ['united arab emirates'],
+        'guney kore': ['south korea', 'korea republic of'],
+        'kuzey makedonya': ['north macedonia', 'macedonia'],
+        'bosna hersek': ['bosnia and herzegovina'],
+      };
+
+      const set = new Set();
+      cities.forEach(item => {
+        const normalized = normalizeCountryName(item.country);
+        if (normalized) set.add(normalized);
+        Object.entries(aliases).forEach(([tr, list]) => {
+          if (normalized === tr || list.includes(normalized)) {
+            set.add(tr);
+            list.forEach(v => set.add(v));
+          }
+        });
       });
+      return set;
+    }
 
-      fitMap(homeMap, points, true);
+    async function ensureWorldGeoJson() {
+      if (worldGeoJsonCache) return worldGeoJsonCache;
+      const sources = [
+        'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json',
+        'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson'
+      ];
+      for (const url of sources) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          worldGeoJsonCache = await res.json();
+          return worldGeoJsonCache;
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    async function renderHomeMap() {
+      if (homeCountryLayer) {
+        homeMap.removeLayer(homeCountryLayer);
+        homeCountryLayer = null;
+      }
+
+      const data = await ensureWorldGeoJson();
+      if (!data) return;
+
+      const visited = getVisitedCountryNames();
+
+      homeCountryLayer = L.geoJSON(data, {
+        style: feature => {
+          const countryName =
+            normalizeCountryName(
+              (feature.properties && (
+                feature.properties.name ||
+                feature.properties.ADMIN ||
+                feature.properties.admin ||
+                feature.properties.NAME ||
+                feature.properties.name_en
+              )) || ''
+            );
+
+          const isVisited = visited.has(countryName);
+          return {
+            color: '#9ea8b2',
+            weight: 1,
+            fillColor: isVisited ? '#e45757' : '#f5f6f7',
+            fillOpacity: isVisited ? 0.9 : 0.95
+          };
+        },
+        interactive: false
+      }).addTo(homeMap);
+
+      setTimeout(() => {
+        homeMap.setView([18, 5], 1.8);
+      }, 0);
     }
 
     function renderFullMap() {
