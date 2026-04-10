@@ -71,11 +71,16 @@
       margin-top:14px;background:var(--panel);border:1px solid var(--line);
       border-radius:22px;padding:10px;box-shadow:var(--shadow);
     }
-    #worldMap{
-      width:100%;height:260px;border-radius:18px;overflow:hidden;background:#cfd6dd;
+    .atlas-wrap{
+      width:100%;height:250px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#dbe7f2,#cfddea);
+      border:1px solid rgba(0,0,0,.05);position:relative;
     }
+    .atlas-wrap svg{width:100%;height:100%;display:block}
+    .atlas-ocean{fill:#d9e6f2}
+    .atlas-land{fill:#f6f7f8;stroke:#aeb9c2;stroke-width:3}
+    .atlas-shadow{filter:drop-shadow(0 2px 4px rgba(0,0,0,.12))}
     #detailMap{
-      width:100%;aspect-ratio:9/16;border-radius:18px;overflow:hidden;background:#cfd6dd;
+      width:100%;height:calc(100vh - 240px);min-height:540px;border-radius:18px;overflow:hidden;background:#cfd6dd;
     }
     .map-note{
       padding:10px 4px 2px;color:var(--muted);font-size:12px;line-height:1.4;
@@ -85,10 +90,17 @@
     }
     .menu-btn{
       border:none;background:#102130;color:#d8e4ee;border-radius:14px;
-      padding:12px 8px;cursor:pointer;font-size:12px;font-weight:800;
-      border:1px solid rgba(255,255,255,.05);
+      padding:10px 6px;cursor:pointer;font-size:11px;font-weight:800;
+      border:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+      min-height:62px;
     }
+    .menu-btn .icon{font-size:18px;line-height:1}
     .menu-btn.active{background:#1d4258;color:white}
+    .menu-btn[data-screen="home"] .icon{color:#7cc8ff}
+    .menu-btn[data-screen="add"] .icon{color:#7ee3c4}
+    .menu-btn[data-screen="map"] .icon{color:#ffcf76}
+    .menu-btn[data-screen="records"] .icon{color:#d3a8ff}
+    .menu-btn[data-screen="manage"] .icon{color:#ff9ea1}
     .content-card{padding:16px}
     .section-title{margin:0 0 12px;font-size:18px;font-weight:800}
     .section-sub{margin:-6px 0 14px;font-size:12px;color:var(--muted);line-height:1.4}
@@ -195,17 +207,27 @@
         </div>
 
         <div class="map-card">
-          <div id="worldMap"></div>
+          <div class="atlas-wrap">
+            <svg viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet" class="atlas-shadow" aria-hidden="true">
+              <rect x="0" y="0" width="1000" height="520" class="atlas-ocean"/>
+              <path class="atlas-land" d="M43 113 C70 92, 106 77, 150 72 C199 66, 232 70, 269 92 C302 112, 319 138, 321 166 C323 190, 310 212, 286 225 C254 244, 237 271, 220 301 C202 331, 171 356, 145 365 C121 373, 107 360, 99 334 C89 304, 76 277, 57 255 C34 226, 22 193, 24 163 C25 142, 30 124, 43 113 Z"/>
+              <path class="atlas-land" d="M239 321 C259 307, 290 306, 315 317 C339 328, 352 349, 355 377 C358 405, 351 431, 336 452 C320 474, 295 493, 270 494 C249 494, 231 476, 224 452 C216 425, 209 395, 209 369 C209 348, 218 333, 239 321 Z"/>
+              <path class="atlas-land" d="M385 103 C438 82, 516 72, 618 74 C707 76, 788 89, 852 115 C902 135, 939 163, 959 205 C976 242, 972 281, 943 305 C910 332, 869 342, 825 344 C783 345, 742 341, 706 356 C665 372, 629 395, 579 404 C524 413, 467 405, 430 381 C391 357, 369 320, 355 283 C341 245, 338 202, 347 166 C354 138, 364 114, 385 103 Z"/>
+              <path class="atlas-land" d="M804 376 C836 363, 878 368, 911 387 C939 403, 957 429, 958 455 C959 478, 941 495, 913 500 C876 507, 838 501, 811 483 C789 468, 780 447, 781 421 C782 401, 789 383, 804 376 Z"/>
+              <path class="atlas-land" d="M644 176 C655 168, 667 167, 676 174 C684 183, 686 196, 681 207 C676 217, 665 222, 654 220 C646 218, 640 209, 639 199 C638 190, 639 180, 644 176 Z"/>
+              <path class="atlas-land" d="M702 226 C708 221, 717 221, 723 226 C729 231, 730 241, 726 248 C721 257, 711 261, 702 257 C695 254, 691 245, 692 238 C692 233, 696 228, 702 226 Z"/>
+            </svg>
+          </div>
           <div class="map-note">Bu alan atlas gibi uzak dünya görünümüdür. İşaretli detaylı harita için Harita menüsünü kullan.</div>
         </div>
 
         <div class="menu-card">
           <div class="menu-grid">
-            <button class="menu-btn active" data-screen="home" type="button">Ana</button>
-            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
-            <button class="menu-btn" data-screen="map" type="button">Harita</button>
-            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
-            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
+            <button class="menu-btn active" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
+            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
+            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
+            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
+            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
           </div>
         </div>
 
@@ -241,11 +263,11 @@
 
         <div class="menu-card">
           <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button">Ana</button>
-            <button class="menu-btn active" data-screen="add" type="button">Ekle</button>
-            <button class="menu-btn" data-screen="map" type="button">Harita</button>
-            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
-            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
+            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
+            <button class="menu-btn active" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
+            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
+            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
+            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
           </div>
         </div>
       </div>
@@ -253,26 +275,24 @@
 
     <section id="screen-map" class="screen">
       <div class="wrap">
-        <div class="content-card">
-          <h2 class="section-title">Harita</h2>
-          <p class="section-sub">9:16 dikey harita görünümünde pinler burada gösterilir.</p>
+        <div class="content-card" style="padding:14px;">
+          <h2 class="section-title"><span class="icon">🗺️</span><span>Harita</span></h2>
+          <p class="section-sub">Pinler burada tam sayfa görünümde yer alır.</p>
           <div class="chip-row" style="margin-bottom:12px;">
             <button id="mapViewCityBtn" class="chip active" type="button">Şehir</button>
             <button id="mapViewCountryBtn" class="chip" type="button">Ülke</button>
           </div>
-          <div class="map-card" style="margin-top:0;padding:10px;">
-            <div id="detailMap"></div>
-          </div>
-          <div class="map-note">Bu ekranda pinler işaretli görünür. Ana ekrandaki harita daha genel atlas görünümüdür.</div>
+          <div id="detailMap"></div>
+          <div class="map-note">Şehir ve ülke görünümü arasında geçiş yapabilirsin.</div>
         </div>
 
         <div class="menu-card">
           <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button">Ana</button>
-            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
-            <button class="menu-btn active" data-screen="map" type="button">Harita</button>
-            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
-            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
+            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span><span class="icon">🏠</span><span>Ana</span></span></button>
+            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span><span class="icon">➕</span><span>Ekle</span></span></button>
+            <button class="menu-btn active" data-screen="map" type="button"><span class="icon">🗺️</span><span><span class="icon">🗺️</span><span>Harita</span></span></button>
+            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span><span class="icon">📍</span><span>Kayıtlar</span></span></button>
+            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span><span class="icon">⚙️</span><span>Ayar</span></span></button>
           </div>
         </div>
       </div>
@@ -301,11 +321,11 @@
 
         <div class="menu-card">
           <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button">Ana</button>
-            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
-            <button class="menu-btn" data-screen="map" type="button">Harita</button>
-            <button class="menu-btn active" data-screen="records" type="button">Kayıtlar</button>
-            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
+            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
+            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
+            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
+            <button class="menu-btn active" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
+            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
           </div>
         </div>
       </div>
@@ -321,11 +341,11 @@
 
         <div class="menu-card">
           <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button">Ana</button>
-            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
-            <button class="menu-btn" data-screen="map" type="button">Harita</button>
-            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
-            <button class="menu-btn active" data-screen="manage" type="button">Ayar</button>
+            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
+            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
+            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
+            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
+            <button class="menu-btn active" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
           </div>
         </div>
       </div>
@@ -368,11 +388,9 @@
     let searchTimer = null;
     let viewMode = 'city';
     let activeStatus = '';
-    let worldMarkers = [];
     let detailMarkers = [];
     let activeScreen = 'home';
 
-    const worldMap = L.map('worldMap', { worldCopyJump:true, minZoom:1.5, zoomControl:false }).setView([18, 5], 1.8);
     const detailMap = L.map('detailMap', { worldCopyJump:true, minZoom:2, zoomControl:true }).setView([20, 8], 2);
 
     const tileOptions = {
@@ -381,11 +399,10 @@
       attribution:'&copy; OpenStreetMap &copy; CARTO'
     };
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(worldMap);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(detailMap);
 
-    setTimeout(() => { worldMap.invalidateSize(); detailMap.invalidateSize(); }, 250);
-    window.addEventListener('resize', () => { worldMap.invalidateSize(); detailMap.invalidateSize(); });
+    setTimeout(() => { detailMap.invalidateSize(); }, 250);
+    window.addEventListener('resize', () => { detailMap.invalidateSize(); });
 
     function loadCities() {
       try {
@@ -517,7 +534,7 @@
 
     function fitMap(mapRef, points) {
       if (!points.length) {
-        mapRef.setView([20, 8], mapRef === worldMap ? 1.8 : 2);
+        mapRef.setView([20, 8], 2);
         return;
       }
       if (points.length === 1) {
@@ -525,24 +542,6 @@
         return;
       }
       mapRef.fitBounds(L.latLngBounds(points), { padding:[30,30] });
-    }
-
-    function renderWorldMap() {
-      clearMapMarkers(worldMap, worldMarkers);
-      const points = [];
-      const list = viewMode === 'country' ? getCountryGroups() : getFilteredCities();
-
-      list.forEach(item => {
-        points.push([item.lat, item.lng]);
-        const popup = viewMode === 'country'
-          ? `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br><span>Toplam şehir: ${item.cityCount}</span></div>`
-          : `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br><span>Durum: ${escapeHtml(item.status)}</span></div>`;
-        const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(worldMap).bindPopup(popup);
-        worldMarkers.push(marker);
-      });
-
-      fitMap(worldMap, points);
-      worldMap.setZoom(Math.min(worldMap.getZoom(), 2));
     }
 
     function renderDetailMap() {
@@ -657,10 +656,8 @@
       renderStats();
       renderHomeContent();
       renderRecords();
-      renderWorldMap();
       renderDetailMap();
       updateMenuState();
-      if (activeScreen === 'home') setTimeout(() => worldMap.invalidateSize(), 80);
       if (activeScreen === 'map') setTimeout(() => detailMap.invalidateSize(), 80);
     }
 
@@ -676,7 +673,6 @@
         screen.classList.toggle('active', screen.id === `screen-${name}`);
       });
       updateMenuState();
-      if (name === 'home') setTimeout(() => worldMap.invalidateSize(), 120);
       if (name === 'map') setTimeout(() => detailMap.invalidateSize(), 120);
     }
 
