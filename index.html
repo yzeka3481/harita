@@ -123,7 +123,7 @@
 
     .menu-grid{
       display:grid;
-      grid-template-columns:repeat(5,1fr);
+      grid-template-columns:repeat(4,1fr);
       gap:8px;
     }
     .menu-btn,.bottom-btn{
@@ -294,36 +294,12 @@
     .full-map-top{
       position:absolute;
       top:0;
-      left:0;
       right:0;
       z-index:5;
       padding:calc(16px + var(--safe-top)) 16px 12px;
       display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
+      justify-content:flex-end;
       pointer-events:none;
-    }
-    .full-map-panel{
-      pointer-events:auto;
-      background:rgba(10,24,36,.74);
-      backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:22px;
-      padding:14px;
-      box-shadow:var(--shadow);
-      max-width:255px;
-    }
-    .full-map-panel h2{
-      margin:0;
-      font-size:22px;
-      font-weight:800;
-    }
-    .full-map-panel p{
-      margin:6px 0 0;
-      font-size:12px;
-      line-height:1.45;
-      color:#d7e4ee;
     }
     .full-map-actions{
       display:grid;
@@ -360,6 +336,23 @@
       border-radius:26px;
       padding:14px;
       box-shadow:var(--shadow);
+    }
+
+    .fab-global{
+      position:absolute;
+      right:18px;
+      bottom:98px;
+      z-index:25;
+      width:62px;
+      height:62px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(180deg,#7ee3c4,#4fd4ad);
+      color:#06202b;
+      font-size:32px;
+      font-weight:800;
+      box-shadow:0 18px 30px rgba(79,212,173,.28);
+      cursor:pointer;
     }
 
     .bottom-nav{
@@ -422,15 +415,6 @@
           <div class="map-note">Bu alan atlas gibi uzak dünya görünümüdür. İşaretli detaylı harita için Harita menüsünü kullan.</div>
         </div>
 
-        <div class="menu-card">
-          <div class="menu-grid">
-            <button class="menu-btn active" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
-            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
-            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
-            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
-            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
-          </div>
-        </div>
 
         <div class="content-card">
           <h2 id="homeContentTitle" class="section-title">Son Eklenen Şehirler</h2>
@@ -468,10 +452,6 @@
       <div id="fullMap"></div>
 
       <div class="full-map-top">
-        <div class="full-map-panel">
-          <h2>Harita</h2>
-          <p>Pinler burada tam sayfa görünümde yer alır. Şehir ve ülke görünümü arasında geçiş yapabilirsin.</p>
-        </div>
         <div class="full-map-actions">
           <button id="focusAllBtn" class="full-icon-btn" type="button" title="Hepsini göster">⤢</button>
           <button id="toggleModeBtn" class="full-icon-btn" type="button" title="Görünüm değiştir">🗂️</button>
@@ -521,10 +501,11 @@
       </div>
     </section>
 
+    <button id="fabAdd" class="fab-global" type="button" aria-label="Şehir ekle">＋</button>
+
     <nav class="bottom-nav">
       <div class="bottom-shell">
         <button class="bottom-btn active" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
-        <button class="bottom-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
         <button class="bottom-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
         <button class="bottom-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
         <button class="bottom-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
@@ -563,6 +544,7 @@
     const recordsList = document.getElementById('recordsList');
 
     const clearAllBtn = document.getElementById('clearAllBtn');
+    const fabAdd = document.getElementById('fabAdd');
     const allMenuButtons = document.querySelectorAll('[data-screen]');
 
     let cities = loadCities();
@@ -1085,6 +1067,8 @@
     allMenuButtons.forEach(btn => {
       btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
     });
+
+    fabAdd.addEventListener('click', () => switchScreen('add'));
 
     saveBtn.addEventListener('click', saveCity);
     searchInput.addEventListener('input', renderAll);
