@@ -1,1279 +1,562 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Şehir Haritam</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
-  />
-
-  <style>
-    :root{
-      --bg:#08131d;
-      --panel:#0d1c2a;
-      --panel-2:#112436;
-      --card:#14283b;
-      --line:rgba(255,255,255,.08);
-      --text:#eef5fb;
-      --muted:#9cb0c1;
-      --accent:#50b8ff;
-      --accent-2:#7cf0c2;
-      --danger:#ff6b6b;
-      --shadow:0 18px 40px rgba(0,0,0,.28);
-      --safe-top:env(safe-area-inset-top,0px);
-      --safe-bottom:env(safe-area-inset-bottom,0px);
-    }
-
-    *{box-sizing:border-box}
-    html,body{
-      margin:0;
-      min-height:100%;
-      font-family:Inter,Arial,Helvetica,sans-serif;
-      background:linear-gradient(180deg,#07111a,#0a1722);
-      color:var(--text);
-    }
-    body{
-      display:flex;
-      justify-content:center;
-    }
-
-    .app{
-      width:100%;
-      max-width:430px;
-      min-height:100vh;
-      background:var(--bg);
-      position:relative;
-      overflow:hidden;
-    }
-
-    .screen{
-      display:none;
-      min-height:100vh;
-    }
-    .screen.active{
-      display:block;
-    }
-
-    .map-screen{
-      position:relative;
-      min-height:100vh;
-      background:#d9dee3;
-    }
-
-    #map{
-      position:absolute;
-      inset:0;
-      z-index:1;
-      background:#d9dee3;
-    }
-
-    .map-overlay{
-      position:absolute;
-      inset:0;
-      z-index:5;
-      pointer-events:none;
-      background:
-        linear-gradient(180deg, rgba(8,19,29,.58) 0%, rgba(8,19,29,.12) 18%, rgba(8,19,29,0) 32%),
-        linear-gradient(0deg, rgba(8,19,29,.88) 0%, rgba(8,19,29,.38) 24%, rgba(8,19,29,0) 42%);
-    }
-
-    .topbar{
-      position:absolute;
-      top:0;
-      left:0;
-      right:0;
-      z-index:10;
-      padding:calc(16px + var(--safe-top)) 16px 8px;
-      pointer-events:none;
-    }
-
-    .topbar-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-    }
-
-    .brand-card{
-      pointer-events:auto;
-      background:rgba(10,24,36,.68);
-      backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:22px;
-      padding:14px 14px 12px;
-      box-shadow:var(--shadow);
-      max-width:260px;
-    }
-
-    .brand-title{
-      margin:0;
-      font-size:24px;
-      font-weight:800;
-      letter-spacing:-.4px;
-    }
-
-    .brand-sub{
-      margin:6px 0 0;
-      font-size:12px;
-      line-height:1.45;
-      color:#dbe7f0;
-      opacity:.88;
-    }
-
-    .quick-stats{
-      margin-top:12px;
-      display:flex;
-      gap:8px;
-    }
-
-    .stat-pill{
-      min-width:68px;
-      background:rgba(255,255,255,.07);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:16px;
-      padding:8px 10px;
-      text-align:center;
-    }
-
-    .stat-pill .value{
-      display:block;
-      font-size:18px;
-      font-weight:800;
-      line-height:1;
-      margin-bottom:4px;
-    }
-
-    .stat-pill .label{
-      display:block;
-      font-size:11px;
-      color:#c4d4df;
-    }
-
-    .action-stack{
-      display:grid;
-      gap:10px;
-      pointer-events:auto;
-    }
-
-    .icon-btn{
-      width:50px;
-      height:50px;
-      border:none;
-      border-radius:18px;
-      background:rgba(10,24,36,.72);
-      color:white;
-      font-size:22px;
-      cursor:pointer;
-      backdrop-filter:blur(10px);
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow:var(--shadow);
-    }
-
-    .sheet{
-      position:absolute;
-      left:0;
-      right:0;
-      bottom:0;
-      z-index:12;
-      pointer-events:none;
-      padding:0 12px calc(92px + var(--safe-bottom));
-    }
-
-    .sheet-card{
-      pointer-events:auto;
-      background:rgba(10,24,36,.92);
-      backdrop-filter:blur(18px);
-      border:1px solid rgba(255,255,255,.09);
-      border-radius:30px 30px 24px 24px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-
-    .grabber{
-      width:54px;
-      height:5px;
-      border-radius:999px;
-      background:rgba(255,255,255,.18);
-      margin:10px auto 0;
-    }
-
-    .sheet-header{
-      padding:14px 16px 8px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-
-    .sheet-title{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-    }
-
-    .sheet-sub{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .mode-switch{
-      display:flex;
-      gap:6px;
-      background:rgba(255,255,255,.05);
-      border:1px solid var(--line);
-      padding:4px;
-      border-radius:14px;
-    }
-
-    .mode-btn{
-      border:none;
-      background:transparent;
-      color:#b6c8d5;
-      padding:8px 12px;
-      border-radius:10px;
-      font-size:12px;
-      font-weight:800;
-      cursor:pointer;
-    }
-
-    .mode-btn.active{
-      background:#1b3850;
-      color:white;
-    }
-
-    .search-row{
-      padding:0 16px 12px;
-      display:grid;
-      gap:10px;
-    }
-
-    .input{
-      width:100%;
-      padding:14px 14px;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#102334;
-      color:white;
-      font-size:14px;
-      outline:none;
-    }
-
-    .input::placeholder{
-      color:#7f97aa;
-    }
-
-    .input:focus{
-      border-color:rgba(80,184,255,.6);
-      box-shadow:0 0 0 4px rgba(80,184,255,.12);
-    }
-
-    .chips{
-      display:flex;
-      gap:8px;
-      overflow:auto;
-      padding-bottom:2px;
-      scrollbar-width:none;
-    }
-    .chips::-webkit-scrollbar{display:none}
-
-    .chip{
-      flex:0 0 auto;
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#102334;
-      color:#c1d0db;
-      font-size:12px;
-      font-weight:700;
-      cursor:pointer;
-    }
-
-    .chip.active{
-      background:#1f4765;
-      color:white;
-    }
-
-    .list{
-      max-height:260px;
-      overflow:auto;
-      padding:0 16px 16px;
-      display:grid;
-      gap:10px;
-    }
-
-    .item{
-      background:#13283b;
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:12px;
-    }
-
-    .item strong{
-      display:block;
-      font-size:15px;
-      line-height:1.35;
-      margin-bottom:4px;
-    }
-
-    .meta{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.4;
-      margin-bottom:8px;
-    }
-
-    .tag{
-      display:inline-block;
-      padding:5px 9px;
-      border-radius:999px;
-      background:rgba(80,184,255,.14);
-      color:#9edaff;
-      font-size:11px;
-      font-weight:800;
-      margin-bottom:8px;
-    }
-
-    .note{
-      color:#d9e6ef;
-      font-size:13px;
-      line-height:1.45;
-      margin-bottom:8px;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-    }
-
-    .small-btn{
-      flex:1;
-      border:none;
-      padding:10px 10px;
-      border-radius:12px;
-      cursor:pointer;
-      font-size:12px;
-      font-weight:800;
-      color:white;
-      background:#1d3d57;
-    }
-
-    .small-btn.danger{
-      background:#6d2d37;
-    }
-
-    .empty{
-      padding:18px;
-      border-radius:18px;
-      border:1px dashed rgba(255,255,255,.14);
-      color:var(--muted);
-      text-align:center;
-      font-size:13px;
-      background:rgba(255,255,255,.03);
-    }
-
-    .fab{
-      position:absolute;
-      right:18px;
-      bottom:110px;
-      z-index:14;
-      width:64px;
-      height:64px;
-      border:none;
-      border-radius:999px;
-      cursor:pointer;
-      font-size:30px;
-      color:#07202e;
-      background:linear-gradient(180deg,var(--accent-2),#3fe0b2);
-      box-shadow:0 18px 30px rgba(63,224,178,.28);
-    }
-
-    .bottom-nav{
-      position:absolute;
-      left:0;
-      right:0;
-      bottom:0;
-      z-index:20;
-      padding:10px 12px calc(14px + var(--safe-bottom));
-      background:linear-gradient(180deg, rgba(8,19,29,0), rgba(8,19,29,.94) 28%);
-    }
-
-    .nav-shell{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:8px;
-      background:rgba(10,24,36,.95);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:26px;
-      padding:8px;
-      box-shadow:var(--shadow);
-    }
-
-    .nav-btn{
-      border:none;
-      background:transparent;
-      color:#c1d0db;
-      padding:10px 4px;
-      border-radius:18px;
-      cursor:pointer;
-      font-size:11px;
-      font-weight:800;
-    }
-
-    .nav-btn.active{
-      background:#17354d;
-      color:white;
-    }
-
-    .nav-icon{
-      display:block;
-      font-size:20px;
-      margin-bottom:4px;
-    }
-
-    .panel-screen{
-      min-height:100vh;
-      background:linear-gradient(180deg,#0a1722,#0c1c2a);
-      padding:calc(18px + var(--safe-top)) 16px calc(92px + var(--safe-bottom));
-    }
-
-    .page-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      margin-bottom:16px;
-    }
-
-    .page-head h2{
-      margin:0;
-      font-size:26px;
-      font-weight:800;
-    }
-
-    .page-head p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.45;
-    }
-
-    .page-card{
-      background:#102132;
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:16px;
-      box-shadow:var(--shadow);
-      margin-bottom:14px;
-    }
-
-    .page-card h3{
-      margin:0 0 12px;
-      font-size:16px;
-    }
-
-    .stack{
-      display:grid;
-      gap:10px;
-    }
-
-    .textarea{
-      min-height:94px;
-      resize:vertical;
-    }
-
-    .button{
-      width:100%;
-      border:none;
-      padding:14px 14px;
-      border-radius:16px;
-      cursor:pointer;
-      font-size:14px;
-      font-weight:800;
-      color:white;
-      background:linear-gradient(180deg,#73cbff,#47aef8);
-      box-shadow:0 10px 22px rgba(71,174,248,.24);
-    }
-
-    .button.secondary{
-      background:#19384f;
-      box-shadow:none;
-    }
-
-    .button.danger{
-      background:linear-gradient(180deg,#ff8a8a,#ff6767);
-      box-shadow:0 10px 22px rgba(255,103,103,.2);
-    }
-
-    .helper{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.45;
-    }
-
-    .suggestions{
-      display:none;
-      background:#102334;
-      border:1px solid var(--line);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:var(--shadow);
-      margin-top:-2px;
-    }
-
-    .suggestion-item{
-      padding:11px 14px;
-      border-bottom:1px solid var(--line);
-      cursor:pointer;
-    }
-
-    .suggestion-item:last-child{
-      border-bottom:none;
-    }
-
-    .suggestion-item:hover{
-      background:#16344b;
-    }
-
-    .suggestion-title{
-      display:block;
-      font-size:14px;
-      font-weight:800;
-    }
-
-    .suggestion-sub{
-      display:block;
-      margin-top:2px;
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .flag-marker{
-      width:34px;
-      height:34px;
-      border-radius:999px;
-      background:#fff;
-      border:2px solid #fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:20px;
-      box-shadow:0 6px 18px rgba(0,0,0,.18);
-      position:relative;
-    }
-
-    .flag-marker::after{
-      content:'';
-      position:absolute;
-      width:10px;
-      height:10px;
-      background:#fff;
-      bottom:-4px;
-      left:50%;
-      transform:translateX(-50%) rotate(45deg);
-      z-index:-1;
-    }
-
-    @media (min-width:700px){
-      body{
-        padding:18px;
-      }
-      .app{
-        border-radius:34px;
-        box-shadow:0 26px 60px rgba(0,0,0,.35);
-        overflow:hidden;
-        min-height:calc(100vh - 36px);
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <section id="screen-home" class="screen map-screen active">
-      <div id="map"></div>
-      <div class="map-overlay"></div>
-
-      <div class="topbar">
-        <div class="topbar-row">
-          <div class="brand-card">
-            <h1 class="brand-title">Şehir Haritam</h1>
-            <p class="brand-sub">Gezdiğin yerleri bayrak pinlerle kaydet, ülkeleri tek ekrandan takip et.</p>
-            <div class="quick-stats">
-              <div class="stat-pill">
-                <span id="statCities" class="value">0</span>
-                <span class="label">Şehir</span>
-              </div>
-              <div class="stat-pill">
-                <span id="statCountries" class="value">0</span>
-                <span class="label">Ülke</span>
-              </div>
-              <div class="stat-pill">
-                <span id="statPlanned" class="value">0</span>
-                <span class="label">Plan</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="action-stack">
-            <button id="focusAllBtn" class="icon-btn" type="button" title="Haritayı sığdır">⤢</button>
-            <button id="toggleModeBtn" class="icon-btn" type="button" title="Görünüm değiştir">🗂️</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="sheet">
-        <div class="sheet-card">
-          <div class="grabber"></div>
-          <div class="sheet-header">
-            <div>
-              <h2 id="sheetTitle" class="sheet-title">Son Eklenen Şehirler</h2>
-              <p id="sheetSub" class="sheet-sub">Harita ve liste birlikte güncellenir.</p>
-            </div>
-            <div class="mode-switch">
-              <button id="modeCityBtn" class="mode-btn active" type="button">Şehir</button>
-              <button id="modeCountryBtn" class="mode-btn" type="button">Ülke</button>
-            </div>
-          </div>
-
-          <div class="search-row">
-            <input id="searchInput" class="input" type="text" placeholder="Şehir veya ülke ara" />
-            <div class="chips">
-              <button class="chip active" data-status="">Tümü</button>
-              <button class="chip" data-status="Gezildi">Gezildi</button>
-              <button class="chip" data-status="Planlanıyor">Planlanıyor</button>
-              <button class="chip" data-status="Tekrar gidilecek">Tekrar</button>
-            </div>
-          </div>
-
-          <div id="homeList" class="list"></div>
-        </div>
-      </div>
-
-      <button id="fabAdd" class="fab" type="button">＋</button>
-
-      <nav class="bottom-nav">
-        <div class="nav-shell">
-          <button class="nav-btn active" data-screen="home" type="button"><span class="nav-icon">🏠</span>Ana</button>
-          <button class="nav-btn" data-screen="add" type="button"><span class="nav-icon">➕</span>Ekle</button>
-          <button class="nav-btn" data-screen="records" type="button"><span class="nav-icon">📍</span>Kayıtlar</button>
-          <button class="nav-btn" data-screen="manage" type="button"><span class="nav-icon">⚙️</span>Ayar</button>
-        </div>
-      </nav>
-    </section>
-
-    <section id="screen-add" class="screen panel-screen">
-      <div class="page-head">
-        <div>
-          <h2>Şehir Ekle</h2>
-          <p>Şehir adını yaz. Sistem sana uygun sonuçları bulsun, sen seçip kaydet.</p>
-        </div>
-      </div>
-
-      <div class="page-card">
-        <h3>Yeni Kayıt</h3>
-        <div class="stack">
-          <input id="cityInput" class="input" type="text" placeholder="Örn: Roma, Köln, Tokyo" autocomplete="off" />
-          <div id="suggestions" class="suggestions"></div>
-          <input id="dateInput" class="input" type="date" />
-          <select id="statusInput" class="input">
-            <option value="Gezildi">Gezildi</option>
-            <option value="Planlanıyor">Planlanıyor</option>
-            <option value="Tekrar gidilecek">Tekrar gidilecek</option>
-          </select>
-          <textarea id="noteInput" class="input textarea" placeholder="Kısa not: yemek, anı, favori yer..."></textarea>
-          <div class="helper">Kaydettiğinde ana haritadaki pin otomatik oluşur.</div>
-          <button id="saveBtn" class="button" type="button">Şehri Kaydet</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="screen-records" class="screen panel-screen">
-      <div class="page-head">
-        <div>
-          <h2>Kayıtlar</h2>
-          <p>Şehir veya ülke görünümünde kayıtlarını yönetebilirsin.</p>
-        </div>
-      </div>
-
-      <div class="page-card">
-        <h3 id="recordsTitle">Şehir Kayıtları</h3>
-        <div id="recordsList" class="list" style="max-height:none;padding:0"></div>
-      </div>
-    </section>
-
-    <section id="screen-manage" class="screen panel-screen">
-      <div class="page-head">
-        <div>
-          <h2>Veri Yönetimi</h2>
-          <p>Tüm kayıtları tek adımda temizleyebilirsin.</p>
-        </div>
-      </div>
-
-      <div class="page-card">
-        <h3>Temizleme</h3>
-        <button id="clearAllBtn" class="button danger" type="button">Tümünü Sil</button>
-      </div>
-    </section>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.pw{display:flex;justify-content:center;padding:16px 0 24px;background:transparent;}
+.ph{width:375px;border-radius:40px;border:8px solid #1a1a2e;overflow:hidden;font-family:var(--font-sans);position:relative;}
+.sc{height:720px;display:flex;flex-direction:column;overflow:hidden;background:#0f0f23;}
+.pg{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.pg.hid{display:none;}
+
+.sb{height:48px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 8px;background:#0f0f23;}
+.sb .t{font-size:15px;font-weight:500;color:#fff;}
+.sb .ic{display:flex;gap:5px;align-items:center;}
+.sb .ic span{font-size:13px;color:#fff;}
+
+.hdr{padding:16px 16px 8px;background:#0f0f23;}
+.hdr h1{font-size:24px;font-weight:500;color:#fff;}
+.hdr .sub{font-size:13px;color:#8888aa;margin-top:2px;}
+
+.stats{display:flex;gap:8px;padding:0 16px 12px;}
+.sc-chip{flex:1;background:#1a1a3e;border-radius:14px;padding:12px 8px;text-align:center;border:1px solid #2a2a5a;}
+.sc-chip .n{font-size:22px;font-weight:500;color:#fff;}
+.sc-chip .l{font-size:11px;color:#8888aa;margin-top:2px;}
+
+.seg{display:flex;background:#1a1a3e;border-radius:12px;padding:3px;gap:2px;margin:0 16px 10px;}
+.sb2{flex:1;font-size:13px;padding:8px 0;text-align:center;border-radius:10px;border:none;background:transparent;color:#8888aa;cursor:pointer;font-family:var(--font-sans);}
+.sb2.ac{background:#534AB7;color:#fff;font-weight:500;}
+
+.vt{display:flex;gap:8px;margin:0 16px 12px;}
+.vb{flex:1;font-size:12px;padding:8px;text-align:center;border-radius:10px;border:1px solid #2a2a5a;background:transparent;color:#8888aa;cursor:pointer;font-family:var(--font-sans);}
+.vb.ac{background:#1a1a3e;color:#fff;border-color:#534AB7;}
+
+.ls{flex:1;overflow-y:auto;padding:0 16px;display:flex;flex-direction:column;gap:8px;padding-bottom:90px;}
+
+.cr{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#1a1a3e;border:1px solid #2a2a5a;border-radius:16px;cursor:pointer;}
+.cr:active{border-color:#534AB7;}
+.flag-pin{width:42px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;background:#0f0f23;border:1px solid #2a2a5a;flex-shrink:0;}
+.ci{flex:1;min-width:0;}
+.ci .nm{font-size:15px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci .mt{font-size:12px;color:#8888aa;margin-top:2px;}
+.cr-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.tg{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:500;}
+.tg.v{background:#0d3d2a;color:#4ade80;}
+.tg.w{background:#3d2d0d;color:#fbbf24;}
+.st{font-size:12px;color:#fbbf24;}
+
+.gg{display:flex;gap:8px;margin:0 16px 12px;}
+.gb{flex:1;font-size:12px;padding:9px 8px;text-align:center;border-radius:10px;border:1px solid #2a2a5a;background:#1a1a3e;color:#8888aa;cursor:pointer;font-family:var(--font-sans);}
+.gb.ac{background:#534AB7;color:#fff;border-color:#534AB7;}
+
+.cg{display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1;padding:0 16px 90px;}
+.cg-section{margin-top:4px;}
+.cg-title{font-size:12px;color:#8888aa;font-weight:500;margin-bottom:8px;padding-left:4px;}
+.cg-items{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.cg-card{background:#1a1a3e;border:1px solid #2a2a5a;border-radius:16px;padding:14px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.cg-card .cflag{font-size:28px;line-height:1;}
+.cg-card .cn{font-size:13px;font-weight:500;color:#fff;text-align:center;}
+.cg-card .cc{font-size:11px;color:#8888aa;text-align:center;}
+.cg-card .cs{font-size:11px;color:#fbbf24;}
+
+.ul-section{margin-top:4px;}
+.ul-title{font-size:12px;color:#8888aa;font-weight:500;margin-bottom:8px;padding:0 16px;}
+.ul-items{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;}
+.uc{background:#1a1a3e;border:1px solid #2a2a5a;border-radius:14px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+.uc .uf{font-size:24px;line-height:1;}
+.uc .un{font-size:12px;font-weight:500;color:#fff;text-align:center;}
+.uc .uc2{font-size:10px;color:#8888aa;text-align:center;}
+
+.fab{width:52px;height:52px;border-radius:50%;background:#534AB7;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;position:absolute;bottom:74px;right:20px;}
+.fab svg{width:22px;height:22px;fill:white;}
+
+.bn{height:58px;display:flex;border-top:1px solid #1a1a3e;background:#0f0f23;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;font-family:var(--font-sans);}
+.ni svg{width:20px;height:20px;}
+.ni .nl{font-size:10px;}
+.ni.ac svg{fill:#7F77DD;}
+.ni.ac .nl{color:#7F77DD;font-weight:500;}
+.ni:not(.ac) svg{fill:#555577;}
+.ni:not(.ac) .nl{color:#555577;}
+
+.dh{display:flex;align-items:center;gap:12px;padding:14px 16px 8px;background:#0f0f23;}
+.bk{width:36px;height:36px;border-radius:50%;border:1px solid #2a2a5a;background:#1a1a3e;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.bk svg{width:18px;height:18px;fill:#fff;}
+.dt{font-size:18px;font-weight:500;color:#fff;}
+.ds{font-size:13px;color:#8888aa;}
+
+.mp{margin:0 16px;border-radius:16px;height:150px;background:#0a1628;border:1px solid #2a2a5a;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.mp svg{width:100%;height:100%;}
+
+.db{flex:1;overflow-y:auto;padding:0 16px 90px;}
+.fl{font-size:12px;color:#8888aa;margin-bottom:6px;font-weight:500;margin-top:14px;}
+.fi{width:100%;font-size:14px;padding:11px 13px;border-radius:12px;border:1px solid #2a2a5a;background:#1a1a3e;color:#fff;font-family:var(--font-sans);outline:none;}
+textarea.fi{height:75px;resize:none;line-height:1.5;}
+.tt{display:flex;gap:8px;margin-top:6px;}
+.tb{flex:1;font-size:13px;padding:10px;border-radius:12px;border:1px solid #2a2a5a;background:#1a1a3e;color:#8888aa;cursor:pointer;text-align:center;font-family:var(--font-sans);}
+.tb.ac.v{background:#0d3d2a;border-color:#1D9E75;color:#4ade80;font-weight:500;}
+.tb.ac.w{background:#3d2d0d;border-color:#BA7517;color:#fbbf24;font-weight:500;}
+.sr2{display:flex;gap:6px;margin-top:6px;}
+.st2{font-size:24px;cursor:pointer;opacity:0.2;color:#fbbf24;line-height:1;}
+.st2.on{opacity:1;}
+.sv{margin-top:14px;width:100%;font-size:15px;padding:14px;border-radius:14px;border:none;background:#534AB7;color:white;font-family:var(--font-sans);font-weight:500;cursor:pointer;}
+
+.ah{display:flex;align-items:center;gap:12px;padding:14px 16px 8px;background:#0f0f23;}
+.ab{flex:1;overflow-y:auto;padding:0 16px 80px;}
+.sr-wrap{position:relative;margin-top:6px;}
+.sr-inp{width:100%;font-size:14px;padding:11px 13px;border-radius:12px;border:1px solid #2a2a5a;background:#1a1a3e;color:#fff;font-family:var(--font-sans);outline:none;}
+.sr-inp:focus{border-color:#534AB7;}
+.dd{background:#1a1a3e;border:1px solid #2a2a5a;border-radius:12px;margin-top:4px;overflow:hidden;max-height:200px;overflow-y:auto;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer;border-bottom:1px solid #0f0f23;}
+.dd-item:last-child{border-bottom:none;}
+.dd-item:active{background:#0f0f23;}
+.dd-flag{font-size:20px;width:28px;text-align:center;}
+.dd-info .dd-city{font-size:14px;font-weight:500;color:#fff;}
+.dd-info .dd-country{font-size:12px;color:#8888aa;}
+.dd-empty{padding:12px 13px;font-size:13px;color:#555577;text-align:center;}
+
+.map-pg{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.map-full{flex:1;background:#0a1628;position:relative;overflow:hidden;}
+.map-full svg{width:100%;height:100%;}
+.map-bottom{background:#0f0f23;border-top:1px solid #1a1a3e;padding:10px 16px;max-height:180px;overflow-y:auto;}
+.mr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1a1a3e;cursor:pointer;}
+.mr:last-child{border-bottom:none;}
+.mr-flag{font-size:18px;width:26px;text-align:center;}
+.mr-name{font-size:13px;font-weight:500;color:#fff;flex:1;}
+.mr-country{font-size:12px;color:#8888aa;}
+</style>
+
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;">Şehir haritası mobil uygulama — ülke bayraklı şehir ve ülke görünümlü takip aracı</h2>
+
+<div class="pw">
+<div class="ph">
+<div class="sc" style="position:relative;">
+
+<div class="sb">
+  <span class="t">09:41</span>
+  <div class="ic">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+    <span>100%</span>
   </div>
+</div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script>
-    const STORAGE_KEY = 'travel-map-cities-v2';
+<div id="pg-list" class="pg">
+  <div class="hdr">
+    <h1>Şehir Haritam</h1>
+    <div class="sub" id="main-sub">3 ülke · 5 şehir</div>
+  </div>
+  <div class="stats">
+    <div class="sc-chip"><div class="n" id="sv">3</div><div class="l">Gezilen</div></div>
+    <div class="sc-chip"><div class="n" id="sc2">3</div><div class="l">Ülke</div></div>
+    <div class="sc-chip"><div class="n" id="sw">2</div><div class="l">Listede</div></div>
+  </div>
+  <div class="seg">
+    <button class="sb2 ac" onclick="filt('all',this)">Tümü</button>
+    <button class="sb2" onclick="filt('visited',this)">Gezilen</button>
+    <button class="sb2" onclick="filt('wishlist',this)">Listede</button>
+  </div>
+  <div class="gg">
+    <button class="gb ac" id="vw-city" onclick="setView('city')">Şehir</button>
+    <button class="gb" id="vw-country" onclick="setView('country')">Ülke</button>
+  </div>
+  <div id="city-view" class="ls"></div>
+  <div id="country-view" class="cg" style="display:none;"></div>
+</div>
 
-    const screens = {
-      home: document.getElementById('screen-home'),
-      add: document.getElementById('screen-add'),
-      records: document.getElementById('screen-records'),
-      manage: document.getElementById('screen-manage'),
-    };
+<div id="pg-detail" class="pg hid">
+  <div class="dh">
+    <button class="bk" onclick="showPg('pg-list')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div>
+      <div class="dt" id="d-name">İstanbul</div>
+      <div class="ds" id="d-ctry">Türkiye</div>
+    </div>
+    <div id="d-flag" style="font-size:28px;margin-left:auto;"></div>
+  </div>
+  <div class="mp">
+    <svg viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet">
+      <rect width="320" height="150" fill="#0a1628"/>
+      <ellipse cx="160" cy="75" rx="115" ry="55" fill="#0d2040"/>
+      <ellipse cx="95" cy="85" rx="60" ry="35" fill="#0d2040"/>
+      <ellipse cx="195" cy="65" rx="50" ry="28" fill="#0d2040"/>
+      <ellipse cx="195" cy="100" rx="48" ry="22" fill="#112248"/>
+      <ellipse cx="155" cy="125" rx="88" ry="20" fill="#0a1628"/>
+      <circle id="d-pin-c" cx="175" cy="82" r="8" fill="#7F77DD" stroke="#fff" stroke-width="2"/>
+      <circle id="d-pin-r" cx="175" cy="82" r="16" fill="#7F77DD" fill-opacity="0.2"/>
+      <text id="d-pin-flag" x="175" y="82" font-size="10" text-anchor="middle" dominant-baseline="central"></text>
+      <text id="d-pin-lbl" x="175" y="105" font-size="9" fill="#AFA9EC" text-anchor="middle" font-family="sans-serif" font-weight="500">İstanbul</text>
+    </svg>
+  </div>
+  <div class="db">
+    <div class="fl">Durum</div>
+    <div class="tt">
+      <div class="tb ac v" data-t="visited" onclick="setT('visited',this,'pg-detail')">Gezildi</div>
+      <div class="tb w" data-t="wishlist" onclick="setT('wishlist',this,'pg-detail')">Gidecek listesi</div>
+    </div>
+    <div class="fl">Puan</div>
+    <div class="sr2" id="d-stars">
+      <span class="st2 on" data-v="1">★</span>
+      <span class="st2 on" data-v="2">★</span>
+      <span class="st2 on" data-v="3">★</span>
+      <span class="st2 on" data-v="4">★</span>
+      <span class="st2" data-v="5">★</span>
+    </div>
+    <div class="fl">Ziyaret tarihi</div>
+    <input type="month" class="fi" id="d-date"/>
+    <div class="fl">Notlar</div>
+    <textarea class="fi" id="d-note" placeholder="Bu şehirde neler yaptın..."></textarea>
+    <button class="sv" onclick="saveDet()">Kaydet</button>
+  </div>
+</div>
 
-    const navButtons = document.querySelectorAll('.nav-btn');
-    const focusAllBtn = document.getElementById('focusAllBtn');
-    const toggleModeBtn = document.getElementById('toggleModeBtn');
-    const fabAdd = document.getElementById('fabAdd');
+<div id="pg-map" class="pg hid map-pg">
+  <div class="hdr" style="padding-bottom:10px;"><h1>Harita</h1></div>
+  <div class="map-full">
+    <svg viewBox="0 0 360 310" id="map-svg" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet">
+      <rect width="360" height="310" fill="#0a1628"/>
+      <ellipse cx="180" cy="150" rx="145" ry="100" fill="#0d2040"/>
+      <ellipse cx="115" cy="160" rx="82" ry="58" fill="#0d2040"/>
+      <ellipse cx="232" cy="128" rx="62" ry="44" fill="#0d2040"/>
+      <ellipse cx="234" cy="175" rx="50" ry="26" fill="#112248"/>
+      <ellipse cx="170" cy="218" rx="90" ry="28" fill="#0a1628"/>
+      <ellipse cx="163" cy="62" rx="30" ry="38" fill="#0d2040"/>
+      <ellipse cx="116" cy="83" rx="15" ry="20" fill="#0d2040"/>
+      <g id="map-pins-layer"></g>
+    </svg>
+  </div>
+  <div class="map-bottom" id="map-sheet"></div>
+</div>
 
-    const statCities = document.getElementById('statCities');
-    const statCountries = document.getElementById('statCountries');
-    const statPlanned = document.getElementById('statPlanned');
-
-    const modeCityBtn = document.getElementById('modeCityBtn');
-    const modeCountryBtn = document.getElementById('modeCountryBtn');
-    const sheetTitle = document.getElementById('sheetTitle');
-    const sheetSub = document.getElementById('sheetSub');
-    const homeList = document.getElementById('homeList');
-
-    const searchInput = document.getElementById('searchInput');
-    const chips = document.querySelectorAll('.chip');
-
-    const cityInput = document.getElementById('cityInput');
-    const suggestions = document.getElementById('suggestions');
-    const dateInput = document.getElementById('dateInput');
-    const statusInput = document.getElementById('statusInput');
-    const noteInput = document.getElementById('noteInput');
-    const saveBtn = document.getElementById('saveBtn');
-
-    const recordsTitle = document.getElementById('recordsTitle');
-    const recordsList = document.getElementById('recordsList');
-    const clearAllBtn = document.getElementById('clearAllBtn');
-
-    let cities = loadCities();
-    let selectedPlace = null;
-    let searchTimer = null;
-    let markers = [];
-    let activeScreen = 'home';
-    let viewMode = 'city';
-    let activeStatus = '';
-
-    const map = L.map('map', { worldCopyJump: true, minZoom: 2, zoomControl: false }).setView([20, 8], 2);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
-    }).addTo(map);
-    setTimeout(() => map.invalidateSize(), 300);
-    window.addEventListener('resize', () => map.invalidateSize());
-
-    function loadCities() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      } catch {
-        return [];
-      }
-    }
-
-    function saveCities() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cities));
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text || '';
-      return div.innerHTML;
-    }
-
-    function countryCodeToFlag(code) {
-      if (!code || code.length !== 2) return '📍';
-      return code.toUpperCase().split('').map(char => String.fromCodePoint(127397 + char.charCodeAt(0))).join('');
-    }
-
-    function normalizePlace(item) {
-      const address = item.address || {};
-      const city = address.city || address.town || address.village || address.municipality || item.name || '';
-      const country = address.country || '';
-      const countryCode = (address.country_code || '').toUpperCase();
-
-      return {
-        city,
-        country,
-        countryCode,
-        flag: countryCodeToFlag(countryCode),
-        lat: Number(item.lat),
-        lng: Number(item.lon),
-        displayName: item.display_name || `${city}, ${country}`,
-      };
-    }
-
-    async function searchCities(query) {
-      const encoded = encodeURIComponent(query);
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encoded}`;
-      const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
-      if (!response.ok) throw new Error('Şehir araması yapılamadı.');
-      const data = await response.json();
-      return data.map(normalizePlace).filter(item => item.city && item.country);
-    }
-
-    function renderSuggestions(items) {
-      if (!items.length) {
-        suggestions.innerHTML = '';
-        suggestions.style.display = 'none';
-        return;
-      }
-
-      suggestions.innerHTML = items.map((item, index) => `
-        <div class="suggestion-item" data-index="${index}">
-          <span class="suggestion-title">${escapeHtml(item.flag)} ${escapeHtml(item.city)}</span>
-          <span class="suggestion-sub">${escapeHtml(item.country)}</span>
+<div id="pg-add" class="pg hid">
+  <div class="ah">
+    <button class="bk" onclick="showPg('pg-list')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div class="dt">Şehir ekle</div>
+  </div>
+  <div class="ab">
+    <div class="fl">Şehir ara</div>
+    <div class="sr-wrap">
+      <input type="text" class="sr-inp" id="a-search" placeholder="Şehir adı yaz..." oninput="searchCity(this.value)" autocomplete="off"/>
+      <div class="dd" id="a-dd" style="display:none;"></div>
+    </div>
+    <div id="a-selected" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 13px;background:#112248;border-radius:12px;margin-top:6px;border:1px solid #534AB7;">
+        <span id="a-sel-flag" style="font-size:22px;"></span>
+        <div>
+          <div id="a-sel-city" style="font-size:14px;font-weight:500;color:#fff;"></div>
+          <div id="a-sel-country" style="font-size:12px;color:#8888aa;"></div>
         </div>
-      `).join('');
+      </div>
+    </div>
+    <div class="fl">Durum</div>
+    <div class="tt">
+      <div class="tb ac v" data-t="visited" onclick="setT('visited',this,'pg-add')">Gezildi</div>
+      <div class="tb w" data-t="wishlist" onclick="setT('wishlist',this,'pg-add')">Gidecek listesi</div>
+    </div>
+    <div class="fl">Puan</div>
+    <div class="sr2" id="a-stars">
+      <span class="st2 on" data-v="1">★</span>
+      <span class="st2 on" data-v="2">★</span>
+      <span class="st2 on" data-v="3">★</span>
+      <span class="st2" data-v="4">★</span>
+      <span class="st2" data-v="5">★</span>
+    </div>
+    <div class="fl">Ziyaret tarihi</div>
+    <input type="month" class="fi" id="a-date"/>
+    <div class="fl">Notlar</div>
+    <textarea class="fi" id="a-note" placeholder="İlk izlenimler..."></textarea>
+    <button class="sv" onclick="addCity()">Ekle</button>
+  </div>
+</div>
 
-      suggestions.style.display = 'block';
+<button class="fab" onclick="navTo('pg-add','ni-add')" id="list-fab" style="">
+  <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+</button>
 
-      suggestions.querySelectorAll('.suggestion-item').forEach(el => {
-        el.addEventListener('click', () => {
-          const item = items[Number(el.dataset.index)];
-          selectedPlace = item;
-          cityInput.value = `${item.city}, ${item.country}`;
-          suggestions.innerHTML = '';
-          suggestions.style.display = 'none';
-        });
-      });
+<div class="bn">
+  <button class="ni ac" id="ni-list" onclick="navTo('pg-list','ni-list')">
+    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+    <span class="nl">Liste</span>
+  </button>
+  <button class="ni" id="ni-map" onclick="navTo('pg-map','ni-map')">
+    <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+    <span class="nl">Harita</span>
+  </button>
+  <button class="ni" id="ni-add" onclick="navTo('pg-add','ni-add')">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    <span class="nl">Ekle</span>
+  </button>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+const CITY_DB=[
+  {city:"İstanbul",country:"Türkiye",flag:"🇹🇷",x:234,y:172},
+  {city:"Ankara",country:"Türkiye",flag:"🇹🇷",x:220,y:158},
+  {city:"İzmir",country:"Türkiye",flag:"🇹🇷",x:212,y:168},
+  {city:"Paris",country:"Fransa",flag:"🇫🇷",x:152,y:118},
+  {city:"Lyon",country:"Fransa",flag:"🇫🇷",x:155,y:128},
+  {city:"Marsilya",country:"Fransa",flag:"🇫🇷",x:158,y:135},
+  {city:"Londra",country:"İngiltere",flag:"🇬🇧",x:128,y:90},
+  {city:"Manchester",country:"İngiltere",flag:"🇬🇧",x:122,y:82},
+  {city:"Roma",country:"İtalya",flag:"🇮🇹",x:182,y:152},
+  {city:"Milano",country:"İtalya",flag:"🇮🇹",x:172,y:138},
+  {city:"Venedik",country:"İtalya",flag:"🇮🇹",x:178,y:140},
+  {city:"Floransa",country:"İtalya",flag:"🇮🇹",x:177,y:146},
+  {city:"Berlin",country:"Almanya",flag:"🇩🇪",x:188,y:98},
+  {city:"Münih",country:"Almanya",flag:"🇩🇪",x:185,y:112},
+  {city:"Hamburg",country:"Almanya",flag:"🇩🇪",x:178,y:88},
+  {city:"Amsterdam",country:"Hollanda",flag:"🇳🇱",x:152,y:92},
+  {city:"Rotterdam",country:"Hollanda",flag:"🇳🇱",x:150,y:95},
+  {city:"Barselona",country:"İspanya",flag:"🇪🇸",x:148,y:142},
+  {city:"Madrid",country:"İspanya",flag:"🇪🇸",x:135,y:148},
+  {city:"Sevilla",country:"İspanya",flag:"🇪🇸",x:128,y:158},
+  {city:"Atina",country:"Yunanistan",flag:"🇬🇷",x:210,y:172},
+  {city:"Selanik",country:"Yunanistan",flag:"🇬🇷",x:202,y:162},
+  {city:"Viyana",country:"Avusturya",flag:"🇦🇹",x:192,y:118},
+  {city:"Prag",country:"Çekya",flag:"🇨🇿",x:188,y:106},
+  {city:"Budapeşte",country:"Macaristan",flag:"🇭🇺",x:198,y:115},
+  {city:"Varşova",country:"Polonya",flag:"🇵🇱",x:200,y:95},
+  {city:"Stokholm",country:"İsveç",flag:"🇸🇪",x:175,y:62},
+  {city:"Kopenhag",country:"Danimarka",flag:"🇩🇰",x:165,y:75},
+  {city:"Oslo",country:"Norveç",flag:"🇳🇴",x:158,y:66},
+  {city:"Helsinki",country:"Finlandiya",flag:"🇫🇮",x:195,y:60},
+  {city:"Lizbon",country:"Portekiz",flag:"🇵🇹",x:118,y:155},
+  {city:"Porto",country:"Portekiz",flag:"🇵🇹",x:118,y:148},
+  {city:"Brüksel",country:"Belçika",flag:"🇧🇪",x:152,y:100},
+  {city:"Zürih",country:"İsviçre",flag:"🇨🇭",x:165,y:122},
+  {city:"Cenevre",country:"İsviçre",flag:"🇨🇭",x:160,y:125},
+  {city:"Dubai",country:"BAE",flag:"🇦🇪",x:268,y:188},
+  {city:"Abu Dabi",country:"BAE",flag:"🇦🇪",x:265,y:192},
+  {city:"Kahire",country:"Mısır",flag:"🇪🇬",x:218,y:188},
+  {city:"Tokyo",country:"Japonya",flag:"🇯🇵",x:318,y:132},
+  {city:"Osaka",country:"Japonya",flag:"🇯🇵",x:314,y:138},
+  {city:"New York",country:"ABD",flag:"🇺🇸",x:62,y:122},
+  {city:"Los Angeles",country:"ABD",flag:"🇺🇸",x:38,y:138},
+  {city:"Miami",country:"ABD",flag:"🇺🇸",x:68,y:148},
+  {city:"Chicago",country:"ABD",flag:"🇺🇸",x:58,y:118},
+  {city:"Bangkok",country:"Tayland",flag:"🇹🇭",x:292,y:175},
+  {city:"Singapur",country:"Singapur",flag:"🇸🇬",x:298,y:188},
+  {city:"Bali",country:"Endonezya",flag:"🇮🇩",x:305,y:198},
+  {city:"Moskova",country:"Rusya",flag:"🇷🇺",x:222,y:78},
+  {city:"St. Petersburg",country:"Rusya",flag:"🇷🇺",x:210,y:68},
+  {city:"Kyoto",country:"Japonya",flag:"🇯🇵",x:316,y:135},
+];
+
+let cities=[
+  {id:1,city:"İstanbul",country:"Türkiye",flag:"🇹🇷",type:"visited",note:"Boğaz turu harikaydı.",date:"2024-06",stars:5,x:234,y:172},
+  {id:2,city:"Paris",country:"Fransa",flag:"🇫🇷",type:"visited",note:"Eyfel'de gün batımı.",date:"2023-09",stars:4,x:152,y:118},
+  {id:3,city:"Roma",country:"İtalya",flag:"🇮🇹",type:"visited",note:"Colosseum etkileyiciydi.",date:"2022-07",stars:5,x:182,y:152},
+  {id:4,city:"Berlin",country:"Almanya",flag:"🇩🇪",type:"wishlist",note:"",date:"",stars:0,x:188,y:98},
+  {id:5,city:"Amsterdam",country:"Hollanda",flag:"🇳🇱",type:"wishlist",note:"Kanalları görmek istiyorum.",date:"",stars:0,x:152,y:92},
+];
+let nid=6;
+let filt_=all="all";
+let view="city";
+let selId=1;
+let selCityDb=null;
+let addType_="visited";
+
+function showPg(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.add('hid'));
+  document.getElementById(id).classList.remove('hid');
+  const fab=document.getElementById('list-fab');
+  fab.style.display=(id==='pg-list')?'flex':'none';
+  if(id==='pg-map') renderMapPins();
+  if(id==='pg-list') renderAll();
+}
+
+function navTo(pg,ni){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('ac'));
+  document.getElementById(ni).classList.add('ac');
+  showPg(pg);
+}
+
+function filt(f,el){
+  filt_=f;
+  document.querySelectorAll('.sb2').forEach(b=>b.classList.remove('ac'));
+  el.classList.add('ac');
+  renderAll();
+}
+
+function setView(v){
+  view=v;
+  document.getElementById('vw-city').classList.toggle('ac',v==='city');
+  document.getElementById('vw-country').classList.toggle('ac',v==='country');
+  document.getElementById('city-view').style.display=v==='city'?'flex':'none';
+  document.getElementById('country-view').style.display=v==='country'?'flex':'none';
+  renderAll();
+}
+
+function filtered(){
+  return filt_==='all'?cities:cities.filter(c=>c.type===filt_);
+}
+
+function renderAll(){
+  renderCityList();
+  renderCountryView();
+  updateStats();
+}
+
+function renderCityList(){
+  const el=document.getElementById('city-view');
+  el.innerHTML='';
+  filtered().forEach(c=>{
+    const d=document.createElement('div');
+    d.className='cr';
+    d.onclick=()=>openDetail(c.id);
+    const st=c.stars>0?'★'.repeat(c.stars):'';
+    d.innerHTML=`<div class="flag-pin">${c.flag}</div>
+    <div class="ci"><div class="nm">${c.city}</div><div class="mt">${c.country}${c.date?' · '+c.date.replace('-','/'):''}${c.note?' · '+c.note.substring(0,22)+(c.note.length>22?'…':''):''}</div></div>
+    <div class="cr-right"><span class="tg ${c.type==='visited'?'v':'w'}">${c.type==='visited'?'Gezildi':'Listede'}</span>${st?`<span class="st">${st}</span>`:''}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderCountryView(){
+  const el=document.getElementById('country-view');
+  el.innerHTML='';
+  const f=filtered();
+  const byCountry={};
+  f.forEach(c=>{if(!byCountry[c.country])byCountry[c.country]={flag:c.flag,visited:[],wishlist:[]};byCountry[c.country][c.type==='visited'?'visited':'wishlist'].push(c);});
+  
+  const sec=document.createElement('div');
+  sec.className='cg-section';
+  const itemsDiv=document.createElement('div');
+  itemsDiv.className='cg-items';
+  
+  Object.entries(byCountry).forEach(([country,data])=>{
+    const all2=[...data.visited,...data.wishlist];
+    const avgStars=all2.filter(c=>c.stars>0).reduce((a,c)=>a+c.stars,0)/Math.max(1,all2.filter(c=>c.stars>0).length);
+    const card=document.createElement('div');
+    card.className='cg-card';
+    card.onclick=()=>{filt_=all2[0].type;filt('all',document.querySelector('.sb2'));setView('city');};
+    card.innerHTML=`<div class="cflag">${data.flag}</div>
+    <div class="cn">${country}</div>
+    <div class="cc">${all2.length} şehir · ${data.visited.length} gezildi</div>
+    ${avgStars>0?`<div class="cs">${'★'.repeat(Math.round(avgStars))}</div>`:''}`;
+    itemsDiv.appendChild(card);
+  });
+  sec.appendChild(itemsDiv);
+  el.appendChild(sec);
+}
+
+function updateStats(){
+  const v=cities.filter(c=>c.type==='visited');
+  const countries=[...new Set(v.map(c=>c.country))];
+  document.getElementById('sv').textContent=v.length;
+  document.getElementById('sc2').textContent=countries.length;
+  document.getElementById('sw').textContent=cities.filter(c=>c.type==='wishlist').length;
+  document.getElementById('main-sub').textContent=`${countries.length} ülke · ${cities.length} şehir`;
+}
+
+function openDetail(id){
+  selId=id;
+  const c=cities.find(x=>x.id===id);
+  document.getElementById('d-name').textContent=c.city;
+  document.getElementById('d-ctry').textContent=c.country;
+  document.getElementById('d-flag').textContent=c.flag;
+  document.getElementById('d-note').value=c.note;
+  document.getElementById('d-date').value=c.date;
+  document.getElementById('d-pin-lbl').textContent=c.city;
+  document.getElementById('d-pin-flag').textContent=c.flag;
+  document.getElementById('d-pin-c').setAttribute('fill','transparent');
+  document.getElementById('d-pin-r').setAttribute('fill','transparent');
+  document.querySelectorAll('#pg-detail .tb').forEach(b=>b.classList.toggle('ac',b.dataset.t===c.type));
+  setStars('d-stars',c.stars);
+  showPg('pg-detail');
+}
+
+function setT(t,el,pg){
+  document.querySelectorAll('#'+pg+' .tb').forEach(b=>b.classList.remove('ac'));
+  el.classList.add('ac');
+  if(pg==='pg-add') addType_=t;
+}
+
+function setStars(cid,val){
+  const c=document.getElementById(cid);
+  c.querySelectorAll('.st2').forEach(s=>s.classList.toggle('on',parseInt(s.dataset.v)<=val));
+  c.dataset.val=val;
+}
+
+function getStars(cid){return parseInt(document.getElementById(cid).dataset.val)||0;}
+
+function saveDet(){
+  const c=cities.find(x=>x.id===selId);
+  const at=document.querySelector('#pg-detail .tb.ac');
+  if(at) c.type=at.dataset.t;
+  c.note=document.getElementById('d-note').value;
+  c.date=document.getElementById('d-date').value;
+  c.stars=getStars('d-stars');
+  showPg('pg-list');
+}
+
+function searchCity(q){
+  const dd=document.getElementById('a-dd');
+  if(!q||q.length<1){dd.style.display='none';return;}
+  const r=CITY_DB.filter(c=>c.city.toLowerCase().includes(q.toLowerCase())||c.country.toLowerCase().includes(q.toLowerCase())).slice(0,6);
+  if(!r.length){dd.style.display='block';dd.innerHTML='<div class="dd-empty">Şehir bulunamadı</div>';return;}
+  dd.style.display='block';
+  dd.innerHTML=r.map(c=>`<div class="dd-item" onclick="selectCity(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+    <span class="dd-flag">${c.flag}</span>
+    <div class="dd-info"><div class="dd-city">${c.city}</div><div class="dd-country">${c.country}</div></div>
+  </div>`).join('');
+}
+
+function selectCity(c){
+  selCityDb=c;
+  document.getElementById('a-search').value=c.city;
+  document.getElementById('a-dd').style.display='none';
+  const sel=document.getElementById('a-selected');
+  sel.style.display='block';
+  document.getElementById('a-sel-flag').textContent=c.flag;
+  document.getElementById('a-sel-city').textContent=c.city;
+  document.getElementById('a-sel-country').textContent=c.country;
+}
+
+function addCity(){
+  if(!selCityDb) return;
+  const exists=cities.find(c=>c.city===selCityDb.city);
+  if(exists){openDetail(exists.id);return;}
+  const at=document.querySelector('#pg-add .tb.ac');
+  const c={id:nid++,...selCityDb,type:at?at.dataset.t:'visited',note:document.getElementById('a-note').value,date:document.getElementById('a-date').value,stars:getStars('a-stars')};
+  cities.push(c);
+  selCityDb=null;
+  document.getElementById('a-search').value='';
+  document.getElementById('a-selected').style.display='none';
+  document.getElementById('a-note').value='';
+  document.getElementById('a-date').value='';
+  setStars('a-stars',3);
+  navTo('pg-list','ni-list');
+}
+
+function renderMapPins(){
+  const layer=document.getElementById('map-pins-layer');
+  const sheet=document.getElementById('map-sheet');
+  layer.innerHTML='';
+  sheet.innerHTML='';
+  cities.forEach(c=>{
+    if(c.x&&c.y){
+      const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.style.cursor='pointer';
+      g.onclick=()=>openDetail(c.id);
+      const ring=c.type==='visited'?'#4ade80':'#fbbf24';
+      g.innerHTML=`<circle cx="${c.x}" cy="${c.y}" r="11" fill="#0f0f23" stroke="${ring}" stroke-width="1.5"/>
+      <text x="${c.x}" y="${c.y}" font-size="11" text-anchor="middle" dominant-baseline="central">${c.flag}</text>
+      <text x="${c.x}" y="${c.y+17}" font-size="7.5" fill="${ring}" text-anchor="middle" font-family="sans-serif" font-weight="500">${c.city}</text>`;
+      layer.appendChild(g);
     }
+    const r=document.createElement('div');
+    r.className='mr';
+    r.onclick=()=>openDetail(c.id);
+    r.innerHTML=`<span class="mr-flag">${c.flag}</span><span class="mr-name">${c.city}</span><span class="mr-country">${c.country}</span>`;
+    sheet.appendChild(r);
+  });
+}
 
-    function getFilteredCities() {
-      const q = searchInput.value.trim().toLowerCase();
-      return cities.filter(item => {
-        const okSearch = !q || item.city.toLowerCase().includes(q) || item.country.toLowerCase().includes(q);
-        const okStatus = !activeStatus || item.status === activeStatus;
-        return okSearch && okStatus;
-      });
-    }
-
-    function getCountryGroups() {
-      const groups = new Map();
-      getFilteredCities().forEach(item => {
-        const key = `${item.country}__${item.countryCode || ''}`;
-        if (!groups.has(key)) {
-          groups.set(key, {
-            id: key,
-            country: item.country,
-            countryCode: item.countryCode,
-            flag: item.flag,
-            lat: item.lat,
-            lng: item.lng,
-            cities: [],
-            statuses: new Set(),
-          });
-        }
-        const group = groups.get(key);
-        group.cities.push(item);
-        group.statuses.add(item.status);
-      });
-
-      return Array.from(groups.values()).map(group => ({
-        ...group,
-        cityCount: group.cities.length,
-        statuses: Array.from(group.statuses)
-      }));
-    }
-
-    function createFlagIcon(flag) {
-      return L.divIcon({
-        className: '',
-        html: `<div class="flag-marker">${escapeHtml(flag)}</div>`,
-        iconSize: [34, 40],
-        iconAnchor: [17, 38],
-        popupAnchor: [0, -34]
-      });
-    }
-
-    function clearMarkers() {
-      markers.forEach(marker => map.removeLayer(marker));
-      markers = [];
-    }
-
-    function renderMap() {
-      clearMarkers();
-
-      if (viewMode === 'country') {
-        const countries = getCountryGroups();
-        countries.forEach(item => {
-          const popup = `
-            <div>
-              <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br>
-              <span>Toplam şehir: ${item.cityCount}</span><br>
-              <span>Şehirler: ${escapeHtml(item.cities.map(c => c.city).join(', '))}</span>
-            </div>
-          `;
-          const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
-            .addTo(map)
-            .bindPopup(popup);
-          markers.push(marker);
-        });
-
-        fitMapToCurrent();
-        return;
-      }
-
-      getFilteredCities().forEach(item => {
-        const popup = `
-          <div>
-            <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br>
-            <span>Durum: ${escapeHtml(item.status)}</span><br>
-            ${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}
-            ${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}
-          </div>
-        `;
-        const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
-          .addTo(map)
-          .bindPopup(popup);
-        markers.push(marker);
-      });
-
-      fitMapToCurrent();
-    }
-
-    function fitMapToCurrent() {
-      const points = viewMode === 'country'
-        ? getCountryGroups().map(item => [item.lat, item.lng])
-        : getFilteredCities().map(item => [item.lat, item.lng]);
-
-      if (!points.length) {
-        map.setView([20, 8], 2);
-        return;
-      }
-      if (points.length === 1) {
-        map.setView(points[0], 5);
-        return;
-      }
-      map.fitBounds(L.latLngBounds(points), { padding: [40, 40] });
-    }
-
-    function renderStats() {
-      statCities.textContent = cities.length;
-      statCountries.textContent = new Set(cities.map(item => item.country.toLowerCase())).size;
-      statPlanned.textContent = cities.filter(item => item.status === 'Planlanıyor').length;
-    }
-
-    function renderModeUi() {
-      const country = viewMode === 'country';
-      modeCityBtn.classList.toggle('active', !country);
-      modeCountryBtn.classList.toggle('active', country);
-      sheetTitle.textContent = country ? 'Ülke Görünümü' : 'Son Eklenen Şehirler';
-      sheetSub.textContent = country ? 'Aynı ülkedeki şehirler tek kayıtta birleşir.' : 'Haritada gördüğün yerlerin son eklenenleri burada.';
-    }
-
-    function renderHomeList() {
-      if (viewMode === 'country') {
-        const countries = getCountryGroups().slice(0, 4);
-        if (!countries.length) {
-          homeList.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
-          return;
-        }
-
-        homeList.innerHTML = countries.map(item => `
-          <div class="item">
-            <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong>
-            <span class="meta">Toplam şehir: ${item.cityCount}</span>
-            <div class="tag">${escapeHtml(item.statuses.join(' • '))}</div>
-            <div class="note">${escapeHtml(item.cities.map(city => city.city).join(', '))}</div>
-          </div>
-        `).join('');
-        return;
-      }
-
-      const latest = getFilteredCities().slice(0, 4);
-      if (!latest.length) {
-        homeList.innerHTML = '<div class="empty">Henüz şehir eklenmedi.</div>';
-        return;
-      }
-
-      homeList.innerHTML = latest.map(item => `
-        <div class="item">
-          <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
-          <span class="meta">${item.date || 'Tarih yok'} • ${escapeHtml(item.displayName || '')}</span>
-          <div class="tag">${escapeHtml(item.status)}</div>
-          ${item.note ? `<div class="note">${escapeHtml(item.note)}</div>` : ''}
-        </div>
-      `).join('');
-    }
-
-    function renderRecords() {
-      if (viewMode === 'country') {
-        const countries = getCountryGroups();
-        recordsTitle.textContent = `Ülke Kayıtları (${countries.length})`;
-        if (!countries.length) {
-          recordsList.innerHTML = '<div class="empty">Henüz ülke kaydı yok.</div>';
-          return;
-        }
-
-        recordsList.innerHTML = countries.map(item => `
-          <div class="item">
-            <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong>
-            <span class="meta">Toplam şehir: ${item.cityCount}</span>
-            <div class="tag">${escapeHtml(item.statuses.join(' • '))}</div>
-            <div class="note">${escapeHtml(item.cities.map(city => city.city).join(', '))}</div>
-            <div class="actions">
-              <button class="small-btn" data-action="focus-country" data-id="${item.id}" type="button">Haritada Göster</button>
-              <button class="small-btn danger" data-action="delete-country" data-id="${item.id}" type="button">Ülkeyi Sil</button>
-            </div>
-          </div>
-        `).join('');
-        return;
-      }
-
-      const list = getFilteredCities();
-      recordsTitle.textContent = `Şehir Kayıtları (${list.length})`;
-      if (!list.length) {
-        recordsList.innerHTML = '<div class="empty">Henüz şehir kaydı yok.</div>';
-        return;
-      }
-
-      recordsList.innerHTML = list.map(item => `
-        <div class="item">
-          <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
-          <span class="meta">${item.date || 'Tarih yok'} • ${escapeHtml(item.displayName || '')}</span>
-          <div class="tag">${escapeHtml(item.status)}</div>
-          ${item.note ? `<div class="note">${escapeHtml(item.note)}</div>` : ''}
-          <div class="actions">
-            <button class="small-btn" data-action="focus-city" data-id="${item.id}" type="button">Haritada Göster</button>
-            <button class="small-btn danger" data-action="delete-city" data-id="${item.id}" type="button">Sil</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderAll() {
-      renderStats();
-      renderModeUi();
-      renderHomeList();
-      renderRecords();
-      renderMap();
-      if (activeScreen === 'home') {
-        setTimeout(() => map.invalidateSize(), 80);
-      }
-    }
-
-    function switchScreen(name) {
-      activeScreen = name;
-      Object.entries(screens).forEach(([key, el]) => el.classList.toggle('active', key === name));
-      navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === name));
-      if (name === 'home') {
-        setTimeout(() => map.invalidateSize(), 120);
-      }
-    }
-
-    async function saveCity() {
-      const raw = cityInput.value.trim();
-      if (!raw) {
-        alert('Lütfen şehir adı gir.');
-        return;
-      }
-
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Ekleniyor...';
-
-      try {
-        let place = selectedPlace;
-        if (!place) {
-          const results = await searchCities(raw);
-          if (!results.length) throw new Error('Şehir bulunamadı.');
-          place = results[0];
-        }
-
-        cities.unshift({
-          id: crypto.randomUUID(),
-          city: place.city,
-          country: place.country,
-          countryCode: place.countryCode,
-          flag: place.flag,
-          lat: place.lat,
-          lng: place.lng,
-          displayName: place.displayName,
-          date: dateInput.value,
-          status: statusInput.value,
-          note: noteInput.value.trim(),
-        });
-
-        saveCities();
-        cityInput.value = '';
-        dateInput.value = '';
-        statusInput.value = 'Gezildi';
-        noteInput.value = '';
-        selectedPlace = null;
-        suggestions.innerHTML = '';
-        suggestions.style.display = 'none';
-
-        renderAll();
-        switchScreen('home');
-      } catch (error) {
-        alert(error.message || 'Kayıt eklenemedi.');
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Şehri Kaydet';
-      }
-    }
-
-    function focusCity(id) {
-      const item = cities.find(city => city.id === id);
-      if (!item) return;
-      switchScreen('home');
-      setTimeout(() => {
-        map.setView([item.lat, item.lng], 6);
-        markers.find(marker => {
-          const pos = marker.getLatLng();
-          if (pos.lat === item.lat && pos.lng === item.lng) {
-            marker.openPopup();
-            return true;
-          }
-          return false;
-        });
-      }, 120);
-    }
-
-    function deleteCity(id) {
-      if (!confirm('Bu şehri silmek istiyor musun?')) return;
-      cities = cities.filter(item => item.id !== id);
-      saveCities();
-      renderAll();
-    }
-
-    function focusCountry(id) {
-      const item = getCountryGroups().find(country => country.id === id);
-      if (!item) return;
-      switchScreen('home');
-      setTimeout(() => {
-        map.setView([item.lat, item.lng], 5);
-        markers.find(marker => {
-          const pos = marker.getLatLng();
-          if (pos.lat === item.lat && pos.lng === item.lng) {
-            marker.openPopup();
-            return true;
-          }
-          return false;
-        });
-      }, 120);
-    }
-
-    function deleteCountry(id) {
-      if (!confirm('Bu ülkeye ait tüm kayıtlar silinsin mi?')) return;
-      cities = cities.filter(item => `${item.country}__${item.countryCode || ''}` !== id);
-      saveCities();
-      renderAll();
-    }
-
-    function clearAll() {
-      if (!confirm('Tüm şehirler silinsin mi?')) return;
-      cities = [];
-      localStorage.removeItem(STORAGE_KEY);
-      renderAll();
-    }
-
-    cityInput.addEventListener('input', () => {
-      selectedPlace = null;
-      const value = cityInput.value.trim();
-      clearTimeout(searchTimer);
-
-      if (value.length < 2) {
-        suggestions.innerHTML = '';
-        suggestions.style.display = 'none';
-        return;
-      }
-
-      searchTimer = setTimeout(async () => {
-        try {
-          const results = await searchCities(value);
-          renderSuggestions(results);
-        } catch {
-          suggestions.innerHTML = '';
-          suggestions.style.display = 'none';
-        }
-      }, 350);
-    });
-
-    cityInput.addEventListener('keydown', async event => {
-      if (event.key !== 'Enter') return;
-      event.preventDefault();
-      const value = cityInput.value.trim();
-      if (!value || selectedPlace) return;
-      try {
-        const results = await searchCities(value);
-        if (results.length) {
-          selectedPlace = results[0];
-          cityInput.value = `${results[0].city}, ${results[0].country}`;
-          suggestions.innerHTML = '';
-          suggestions.style.display = 'none';
-        }
-      } catch {}
-    });
-
-    document.addEventListener('click', event => {
-      if (!event.target.closest('#cityInput') && !event.target.closest('#suggestions')) {
-        suggestions.style.display = 'none';
-      }
-    });
-
-    searchInput.addEventListener('input', renderAll);
-
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        activeStatus = chip.dataset.status;
-        chips.forEach(c => c.classList.toggle('active', c === chip));
-        renderAll();
-      });
-    });
-
-    modeCityBtn.addEventListener('click', () => {
-      viewMode = 'city';
-      renderAll();
-    });
-
-    modeCountryBtn.addEventListener('click', () => {
-      viewMode = 'country';
-      renderAll();
-    });
-
-    toggleModeBtn.addEventListener('click', () => {
-      viewMode = viewMode === 'city' ? 'country' : 'city';
-      renderAll();
-    });
-
-    focusAllBtn.addEventListener('click', fitMapToCurrent);
-
-    navButtons.forEach(btn => {
-      btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
-    });
-
-    fabAdd.addEventListener('click', () => switchScreen('add'));
-    saveBtn.addEventListener('click', saveCity);
-    clearAllBtn.addEventListener('click', clearAll);
-
-    recordsList.addEventListener('click', event => {
-      const button = event.target.closest('button[data-action]');
-      if (!button) return;
-      const action = button.dataset.action;
-      const id = button.dataset.id;
-      if (action === 'focus-city') focusCity(id);
-      if (action === 'delete-city') deleteCity(id);
-      if (action === 'focus-country') focusCountry(id);
-      if (action === 'delete-country') deleteCountry(id);
-    });
-
-    renderAll();
-  </script>
-</body>
-</html>
+document.getElementById('d-stars').dataset.val=4;
+document.getElementById('a-stars').dataset.val=3;
+document.querySelectorAll('#d-stars .st2').forEach(s=>s.onclick=()=>setStars('d-stars',parseInt(s.dataset.v)));
+document.querySelectorAll('#a-stars .st2').forEach(s=>s.onclick=()=>setStars('a-stars',parseInt(s.dataset.v)));
+document.getElementById('list-fab').style.display='flex';
+renderAll();
+</script>
