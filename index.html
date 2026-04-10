@@ -4,20 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Şehir Haritam</title>
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-
   <style>
     :root{
       --bg:#0d1b26;
       --panel:#132633;
+      --panel-2:#182f3f;
       --line:rgba(255,255,255,.09);
       --text:#eef5fb;
       --muted:#9bb0bf;
       --accent:#4db6ff;
       --danger:#ff7b7b;
       --shadow:0 16px 32px rgba(0,0,0,.24);
+      --safe-bottom:env(safe-area-inset-bottom, 0px);
+      --safe-top:env(safe-area-inset-top, 0px);
     }
+
     *{box-sizing:border-box}
     html,body{
       margin:0;
@@ -30,13 +32,28 @@
     .app{
       width:100%;
       max-width:430px;
-      min-height:100vh;
+      height:100vh;
       background:var(--bg);
       position:relative;
       overflow:hidden;
     }
-    .screen{display:none;min-height:100vh;padding-bottom:24px}
+
+    .screen{
+      display:none;
+      position:absolute;
+      inset:0;
+      overflow:auto;
+      padding-bottom:92px;
+      background:linear-gradient(180deg,#08131b,#0c1a25);
+    }
     .screen.active{display:block}
+
+    .screen.map-full{
+      padding-bottom:86px;
+      overflow:hidden;
+      background:#d8dde2;
+    }
+
     .hero{
       position:relative;
       height:220px;
@@ -57,126 +74,320 @@
       font-size:28px;font-weight:800;letter-spacing:-.4px;
       text-shadow:0 2px 14px rgba(0,0,0,.38);
     }
+
     .wrap{padding:16px}
     .stats-grid{
       display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;
     }
     .stat-card{
-      background:var(--panel);border:1px solid var(--line);border-radius:18px;
-      padding:12px 8px;text-align:center;box-shadow:var(--shadow);
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px 8px;
+      text-align:center;
+      box-shadow:var(--shadow);
     }
     .stat-card .label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
     .stat-card .value{font-size:26px;font-weight:800;line-height:1}
+
     .map-card,.menu-card,.content-card{
-      margin-top:14px;background:var(--panel);border:1px solid var(--line);
-      border-radius:22px;padding:10px;box-shadow:var(--shadow);
+      margin-top:14px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:10px;
+      box-shadow:var(--shadow);
     }
-    .atlas-wrap{
-      width:100%;height:250px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#dbe7f2,#cfddea);
-      border:1px solid rgba(0,0,0,.05);position:relative;
+
+    #homeMap{
+      width:100%;
+      height:255px;
+      border-radius:18px;
+      overflow:hidden;
+      background:#d4dbe2;
     }
-    .atlas-wrap svg{width:100%;height:100%;display:block}
-    .atlas-ocean{fill:#d9e6f2}
-    .atlas-land{fill:#f6f7f8;stroke:#aeb9c2;stroke-width:3}
-    .atlas-shadow{filter:drop-shadow(0 2px 4px rgba(0,0,0,.12))}
-    #detailMap{
-      width:100%;height:calc(100vh - 240px);min-height:540px;border-radius:18px;overflow:hidden;background:#cfd6dd;
+
+    #fullMap{
+      position:absolute;
+      inset:0;
+      z-index:1;
+      background:#d4dbe2;
     }
+
     .map-note{
-      padding:10px 4px 2px;color:var(--muted);font-size:12px;line-height:1.4;
+      padding:10px 4px 2px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
     }
+
     .menu-grid{
-      display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:8px;
     }
-    .menu-btn{
-      border:none;background:#102130;color:#d8e4ee;border-radius:14px;
-      padding:10px 6px;cursor:pointer;font-size:11px;font-weight:800;
-      border:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    .menu-btn,.bottom-btn{
+      border:none;
+      background:#102130;
+      color:#d8e4ee;
+      border-radius:14px;
+      padding:10px 6px;
+      cursor:pointer;
+      font-size:11px;
+      font-weight:800;
+      border:1px solid rgba(255,255,255,.05);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
       min-height:62px;
     }
-    .menu-btn .icon{font-size:18px;line-height:1}
-    .menu-btn.active{background:#1d4258;color:white}
-    .menu-btn[data-screen="home"] .icon{color:#7cc8ff}
-    .menu-btn[data-screen="add"] .icon{color:#7ee3c4}
-    .menu-btn[data-screen="map"] .icon{color:#ffcf76}
-    .menu-btn[data-screen="records"] .icon{color:#d3a8ff}
-    .menu-btn[data-screen="manage"] .icon{color:#ff9ea1}
+    .menu-btn .icon,.bottom-btn .icon{font-size:18px;line-height:1}
+    .menu-btn.active,.bottom-btn.active{background:#1d4258;color:white}
+    .menu-btn[data-screen="home"] .icon,.bottom-btn[data-screen="home"] .icon{color:#7cc8ff}
+    .menu-btn[data-screen="add"] .icon,.bottom-btn[data-screen="add"] .icon{color:#7ee3c4}
+    .menu-btn[data-screen="map"] .icon,.bottom-btn[data-screen="map"] .icon{color:#ffcf76}
+    .menu-btn[data-screen="records"] .icon,.bottom-btn[data-screen="records"] .icon{color:#d3a8ff}
+    .menu-btn[data-screen="manage"] .icon,.bottom-btn[data-screen="manage"] .icon{color:#ff9ea1}
+
     .content-card{padding:16px}
     .section-title{margin:0 0 12px;font-size:18px;font-weight:800}
     .section-sub{margin:-6px 0 14px;font-size:12px;color:var(--muted);line-height:1.4}
+
     .stack{display:grid;gap:10px}
     .input,.select,.textarea,.button{
-      width:100%;padding:13px 14px;border-radius:16px;border:1px solid var(--line);
-      background:#102130;color:white;font-size:14px;outline:none;
+      width:100%;
+      padding:13px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#102130;
+      color:white;
+      font-size:14px;
+      outline:none;
     }
     .input::placeholder,.textarea::placeholder{color:#7f97a9}
     .input:focus,.select:focus,.textarea:focus{
-      border-color:rgba(77,182,255,.6);box-shadow:0 0 0 4px rgba(77,182,255,.12);
+      border-color:rgba(77,182,255,.6);
+      box-shadow:0 0 0 4px rgba(77,182,255,.12);
     }
     .textarea{min-height:92px;resize:vertical}
     .button{
-      border:none;background:linear-gradient(180deg,#67c6ff,#45aef6);
-      font-weight:800;cursor:pointer;box-shadow:0 10px 20px rgba(69,174,246,.24);
+      border:none;
+      background:linear-gradient(180deg,#67c6ff,#45aef6);
+      font-weight:800;
+      cursor:pointer;
+      box-shadow:0 10px 20px rgba(69,174,246,.24);
     }
     .button.danger{
       background:linear-gradient(180deg,#ff9a9a,#ff6d6d);
       box-shadow:0 10px 20px rgba(255,109,109,.18);
     }
     .helper{color:var(--muted);font-size:12px;line-height:1.45}
+
     .search-wrap{position:relative}
     .suggestions{
-      display:none;margin-top:-2px;background:#102130;border:1px solid var(--line);
-      border-radius:18px;overflow:hidden;box-shadow:var(--shadow);
+      display:none;
+      margin-top:-2px;
+      background:#102130;
+      border:1px solid var(--line);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
     }
     .suggestion-item{padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer}
     .suggestion-item:last-child{border-bottom:none}
     .suggestion-item:hover{background:#173145}
     .suggestion-title{display:block;font-size:14px;font-weight:800}
     .suggestion-sub{display:block;margin-top:2px;color:var(--muted);font-size:12px}
+
     .chip-row{
-      display:flex;gap:8px;overflow:auto;padding-bottom:2px;scrollbar-width:none;
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      padding-bottom:2px;
+      scrollbar-width:none;
     }
     .chip-row::-webkit-scrollbar{display:none}
     .chip{
-      flex:0 0 auto;border:none;background:#102130;color:#bfd0dc;border-radius:999px;
-      padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer;
+      flex:0 0 auto;
+      border:none;
+      background:#102130;
+      color:#bfd0dc;
+      border-radius:999px;
+      padding:9px 12px;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
       border:1px solid rgba(255,255,255,.05);
     }
     .chip.active{background:#1d4258;color:white}
+
     .list{display:grid;gap:10px}
     .item{
-      background:#102130;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:12px;
+      background:#102130;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:18px;
+      padding:12px;
     }
     .item strong{display:block;font-size:15px;line-height:1.35;margin-bottom:4px}
     .meta{display:block;font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:8px}
     .tag{
-      display:inline-block;padding:5px 9px;border-radius:999px;background:rgba(77,182,255,.14);
-      color:#9cd8ff;font-size:11px;font-weight:800;margin-bottom:8px;
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:999px;
+      background:rgba(77,182,255,.14);
+      color:#9cd8ff;
+      font-size:11px;
+      font-weight:800;
+      margin-bottom:8px;
     }
     .note{font-size:13px;color:#d9e5ef;line-height:1.45;margin-bottom:8px}
     .actions{display:flex;gap:8px}
     .small-btn{
-      flex:1;border:none;border-radius:12px;padding:10px 10px;cursor:pointer;
-      background:#1b3b4f;color:white;font-size:12px;font-weight:800;
+      flex:1;
+      border:none;
+      border-radius:12px;
+      padding:10px 10px;
+      cursor:pointer;
+      background:#1b3b4f;
+      color:white;
+      font-size:12px;
+      font-weight:800;
     }
     .small-btn.danger{background:#73333d}
     .empty{
-      padding:18px;border-radius:18px;border:1px dashed rgba(255,255,255,.12);
-      text-align:center;color:var(--muted);background:rgba(255,255,255,.02);font-size:13px;
+      padding:18px;
+      border-radius:18px;
+      border:1px dashed rgba(255,255,255,.12);
+      text-align:center;
+      color:var(--muted);
+      background:rgba(255,255,255,.02);
+      font-size:13px;
     }
+
     .flag-marker{
-      width:34px;height:34px;border-radius:999px;background:#fff;border:2px solid #fff;
-      display:flex;align-items:center;justify-content:center;font-size:20px;
-      box-shadow:0 6px 18px rgba(0,0,0,.18);position:relative;
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      background:#fff;
+      border:2px solid #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      box-shadow:0 6px 18px rgba(0,0,0,.18);
+      position:relative;
     }
     .flag-marker::after{
-      content:'';position:absolute;width:10px;height:10px;background:#fff;bottom:-4px;left:50%;
-      transform:translateX(-50%) rotate(45deg);z-index:-1;
+      content:'';
+      position:absolute;
+      width:10px;
+      height:10px;
+      background:#fff;
+      bottom:-4px;
+      left:50%;
+      transform:translateX(-50%) rotate(45deg);
+      z-index:-1;
     }
+
+    .full-map-top{
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      z-index:5;
+      padding:calc(16px + var(--safe-top)) 16px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      pointer-events:none;
+    }
+    .full-map-panel{
+      pointer-events:auto;
+      background:rgba(10,24,36,.74);
+      backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:22px;
+      padding:14px;
+      box-shadow:var(--shadow);
+      max-width:255px;
+    }
+    .full-map-panel h2{
+      margin:0;
+      font-size:22px;
+      font-weight:800;
+    }
+    .full-map-panel p{
+      margin:6px 0 0;
+      font-size:12px;
+      line-height:1.45;
+      color:#d7e4ee;
+    }
+    .full-map-actions{
+      display:grid;
+      gap:10px;
+      pointer-events:auto;
+    }
+    .full-icon-btn{
+      width:48px;
+      height:48px;
+      border:none;
+      border-radius:18px;
+      background:rgba(10,24,36,.74);
+      backdrop-filter:blur(12px);
+      color:white;
+      font-size:20px;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+    }
+    .full-map-bottom{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:5;
+      padding:14px 16px calc(96px + var(--safe-bottom));
+      pointer-events:none;
+    }
+    .full-map-sheet{
+      pointer-events:auto;
+      background:rgba(10,24,36,.82);
+      backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:26px;
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+
+    .bottom-nav{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:20;
+      padding:10px 12px calc(14px + var(--safe-bottom));
+      background:linear-gradient(180deg, rgba(8,19,29,0), rgba(8,19,29,.95) 28%);
+    }
+    .bottom-shell{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:8px;
+      background:rgba(10,24,36,.95);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:24px;
+      padding:8px;
+      box-shadow:var(--shadow);
+    }
+
     @media (min-width:700px){
       body{padding:18px}
       .app{
-        border-radius:28px;overflow:hidden;box-shadow:0 24px 56px rgba(0,0,0,.34);
+        border-radius:28px;
+        overflow:hidden;
+        box-shadow:0 24px 56px rgba(0,0,0,.34);
         min-height:calc(100vh - 36px);
       }
     }
@@ -207,17 +418,7 @@
         </div>
 
         <div class="map-card">
-          <div class="atlas-wrap">
-            <svg viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet" class="atlas-shadow" aria-hidden="true">
-              <rect x="0" y="0" width="1000" height="520" class="atlas-ocean"/>
-              <path class="atlas-land" d="M43 113 C70 92, 106 77, 150 72 C199 66, 232 70, 269 92 C302 112, 319 138, 321 166 C323 190, 310 212, 286 225 C254 244, 237 271, 220 301 C202 331, 171 356, 145 365 C121 373, 107 360, 99 334 C89 304, 76 277, 57 255 C34 226, 22 193, 24 163 C25 142, 30 124, 43 113 Z"/>
-              <path class="atlas-land" d="M239 321 C259 307, 290 306, 315 317 C339 328, 352 349, 355 377 C358 405, 351 431, 336 452 C320 474, 295 493, 270 494 C249 494, 231 476, 224 452 C216 425, 209 395, 209 369 C209 348, 218 333, 239 321 Z"/>
-              <path class="atlas-land" d="M385 103 C438 82, 516 72, 618 74 C707 76, 788 89, 852 115 C902 135, 939 163, 959 205 C976 242, 972 281, 943 305 C910 332, 869 342, 825 344 C783 345, 742 341, 706 356 C665 372, 629 395, 579 404 C524 413, 467 405, 430 381 C391 357, 369 320, 355 283 C341 245, 338 202, 347 166 C354 138, 364 114, 385 103 Z"/>
-              <path class="atlas-land" d="M804 376 C836 363, 878 368, 911 387 C939 403, 957 429, 958 455 C959 478, 941 495, 913 500 C876 507, 838 501, 811 483 C789 468, 780 447, 781 421 C782 401, 789 383, 804 376 Z"/>
-              <path class="atlas-land" d="M644 176 C655 168, 667 167, 676 174 C684 183, 686 196, 681 207 C676 217, 665 222, 654 220 C646 218, 640 209, 639 199 C638 190, 639 180, 644 176 Z"/>
-              <path class="atlas-land" d="M702 226 C708 221, 717 221, 723 226 C729 231, 730 241, 726 248 C721 257, 711 261, 702 257 C695 254, 691 245, 692 238 C692 233, 696 228, 702 226 Z"/>
-            </svg>
-          </div>
+          <div id="homeMap"></div>
           <div class="map-note">Bu alan atlas gibi uzak dünya görünümüdür. İşaretli detaylı harita için Harita menüsünü kullan.</div>
         </div>
 
@@ -260,39 +461,28 @@
             <button id="saveBtn" class="button" type="button">Şehri Kaydet</button>
           </div>
         </div>
-
-        <div class="menu-card">
-          <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
-            <button class="menu-btn active" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
-            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
-            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
-            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
-          </div>
-        </div>
       </div>
     </section>
 
-    <section id="screen-map" class="screen">
-      <div class="wrap">
-        <div class="content-card" style="padding:14px;">
-          <h2 class="section-title"><span class="icon">🗺️</span><span>Harita</span></h2>
-          <p class="section-sub">Pinler burada tam sayfa görünümde yer alır.</p>
-          <div class="chip-row" style="margin-bottom:12px;">
+    <section id="screen-map" class="screen map-full">
+      <div id="fullMap"></div>
+
+      <div class="full-map-top">
+        <div class="full-map-panel">
+          <h2>Harita</h2>
+          <p>Pinler burada tam sayfa görünümde yer alır. Şehir ve ülke görünümü arasında geçiş yapabilirsin.</p>
+        </div>
+        <div class="full-map-actions">
+          <button id="focusAllBtn" class="full-icon-btn" type="button" title="Hepsini göster">⤢</button>
+          <button id="toggleModeBtn" class="full-icon-btn" type="button" title="Görünüm değiştir">🗂️</button>
+        </div>
+      </div>
+
+      <div class="full-map-bottom">
+        <div class="full-map-sheet">
+          <div class="chip-row">
             <button id="mapViewCityBtn" class="chip active" type="button">Şehir</button>
             <button id="mapViewCountryBtn" class="chip" type="button">Ülke</button>
-          </div>
-          <div id="detailMap"></div>
-          <div class="map-note">Şehir ve ülke görünümü arasında geçiş yapabilirsin.</div>
-        </div>
-
-        <div class="menu-card">
-          <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span><span class="icon">🏠</span><span>Ana</span></span></button>
-            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span><span class="icon">➕</span><span>Ekle</span></span></button>
-            <button class="menu-btn active" data-screen="map" type="button"><span class="icon">🗺️</span><span><span class="icon">🗺️</span><span>Harita</span></span></button>
-            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span><span class="icon">📍</span><span>Kayıtlar</span></span></button>
-            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span><span class="icon">⚙️</span><span>Ayar</span></span></button>
           </div>
         </div>
       </div>
@@ -318,16 +508,6 @@
           </div>
           <div id="recordsList" class="list"></div>
         </div>
-
-        <div class="menu-card">
-          <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
-            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
-            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
-            <button class="menu-btn active" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
-            <button class="menu-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -338,23 +518,23 @@
           <p class="section-sub">Tüm kayıtları tek adımda temizleyebilirsin.</p>
           <button id="clearAllBtn" class="button danger" type="button">Tümünü Sil</button>
         </div>
-
-        <div class="menu-card">
-          <div class="menu-grid">
-            <button class="menu-btn" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
-            <button class="menu-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
-            <button class="menu-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
-            <button class="menu-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
-            <button class="menu-btn active" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
-          </div>
-        </div>
       </div>
     </section>
+
+    <nav class="bottom-nav">
+      <div class="bottom-shell">
+        <button class="bottom-btn active" data-screen="home" type="button"><span class="icon">🏠</span><span>Ana</span></button>
+        <button class="bottom-btn" data-screen="add" type="button"><span class="icon">➕</span><span>Ekle</span></button>
+        <button class="bottom-btn" data-screen="map" type="button"><span class="icon">🗺️</span><span>Harita</span></button>
+        <button class="bottom-btn" data-screen="records" type="button"><span class="icon">📍</span><span>Kayıtlar</span></button>
+        <button class="bottom-btn" data-screen="manage" type="button"><span class="icon">⚙️</span><span>Ayar</span></button>
+      </div>
+    </nav>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    const STORAGE_KEY = 'travel-map-layout-v2';
+    const STORAGE_KEY = 'travel-map-layout-v4';
 
     const statCountry = document.getElementById('statCountry');
     const statCity = document.getElementById('statCity');
@@ -373,6 +553,8 @@
 
     const mapViewCityBtn = document.getElementById('mapViewCityBtn');
     const mapViewCountryBtn = document.getElementById('mapViewCountryBtn');
+    const focusAllBtn = document.getElementById('focusAllBtn');
+    const toggleModeBtn = document.getElementById('toggleModeBtn');
 
     const viewCityBtn = document.getElementById('viewCityBtn');
     const viewCountryBtn = document.getElementById('viewCountryBtn');
@@ -381,17 +563,16 @@
     const recordsList = document.getElementById('recordsList');
 
     const clearAllBtn = document.getElementById('clearAllBtn');
-    const menuButtons = document.querySelectorAll('.menu-btn');
+    const allMenuButtons = document.querySelectorAll('[data-screen]');
 
     let cities = loadCities();
     let selectedPlace = null;
     let searchTimer = null;
     let viewMode = 'city';
     let activeStatus = '';
-    let detailMarkers = [];
+    let homeMarkers = [];
+    let fullMarkers = [];
     let activeScreen = 'home';
-
-    const detailMap = L.map('detailMap', { worldCopyJump:true, minZoom:2, zoomControl:true }).setView([20, 8], 2);
 
     const tileOptions = {
       subdomains:'abcd',
@@ -399,10 +580,32 @@
       attribution:'&copy; OpenStreetMap &copy; CARTO'
     };
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(detailMap);
+    const homeMap = L.map('homeMap', {
+      worldCopyJump:true,
+      minZoom:1.5,
+      maxZoom:2.2,
+      zoomControl:false,
+      dragging:false,
+      scrollWheelZoom:false,
+      doubleClickZoom:false,
+      boxZoom:false,
+      keyboard:false,
+      tap:false,
+      touchZoom:false
+    }).setView([18, 5], 1.8);
 
-    setTimeout(() => { detailMap.invalidateSize(); }, 250);
-    window.addEventListener('resize', () => { detailMap.invalidateSize(); });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(homeMap);
+
+    const fullMap = L.map('fullMap', {
+      worldCopyJump:true,
+      minZoom:2,
+      zoomControl:true
+    }).setView([20, 8], 2);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(fullMap);
+
+    setTimeout(() => { homeMap.invalidateSize(); fullMap.invalidateSize(); }, 250);
+    window.addEventListener('resize', () => { homeMap.invalidateSize(); fullMap.invalidateSize(); });
 
     function loadCities() {
       try {
@@ -532,20 +735,40 @@
       listRef.length = 0;
     }
 
-    function fitMap(mapRef, points) {
+    function fitMap(mapRef, points, home=false) {
       if (!points.length) {
-        mapRef.setView([20, 8], 2);
+        mapRef.setView([20, 8], home ? 1.8 : 2);
         return;
       }
       if (points.length === 1) {
-        mapRef.setView(points[0], 5);
+        mapRef.setView(points[0], home ? 2 : 5);
         return;
       }
       mapRef.fitBounds(L.latLngBounds(points), { padding:[30,30] });
+      if (home) {
+        mapRef.setZoom(Math.min(mapRef.getZoom(), 2));
+      }
     }
 
-    function renderDetailMap() {
-      clearMapMarkers(detailMap, detailMarkers);
+    function renderHomeMap() {
+      clearMapMarkers(homeMap, homeMarkers);
+      const points = [];
+      const list = viewMode === 'country' ? getCountryGroups() : getFilteredCities();
+
+      list.forEach(item => {
+        points.push([item.lat, item.lng]);
+        const marker = L.marker([item.lat, item.lng], {
+          icon:createFlagIcon(item.flag || '📍'),
+          interactive:false
+        }).addTo(homeMap);
+        homeMarkers.push(marker);
+      });
+
+      fitMap(homeMap, points, true);
+    }
+
+    function renderFullMap() {
+      clearMapMarkers(fullMap, fullMarkers);
       const points = [];
       const list = viewMode === 'country' ? getCountryGroups() : getFilteredCities();
 
@@ -554,11 +777,11 @@
         const popup = viewMode === 'country'
           ? `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br><span>Toplam şehir: ${item.cityCount}</span><br><span>Şehirler: ${escapeHtml(item.cities.map(c => c.city).join(', '))}</span></div>`
           : `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br><span>Durum: ${escapeHtml(item.status)}</span><br>${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}</div>`;
-        const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(detailMap).bindPopup(popup);
-        detailMarkers.push(marker);
+        const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(fullMap).bindPopup(popup);
+        fullMarkers.push(marker);
       });
 
-      fitMap(detailMap, points);
+      fitMap(fullMap, points, false);
     }
 
     function renderStats() {
@@ -656,13 +879,15 @@
       renderStats();
       renderHomeContent();
       renderRecords();
-      renderDetailMap();
+      renderHomeMap();
+      renderFullMap();
       updateMenuState();
-      if (activeScreen === 'map') setTimeout(() => detailMap.invalidateSize(), 80);
+      if (activeScreen === 'home') setTimeout(() => homeMap.invalidateSize(), 80);
+      if (activeScreen === 'map') setTimeout(() => fullMap.invalidateSize(), 80);
     }
 
     function updateMenuState() {
-      menuButtons.forEach(btn => {
+      allMenuButtons.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.screen === activeScreen);
       });
     }
@@ -673,7 +898,8 @@
         screen.classList.toggle('active', screen.id === `screen-${name}`);
       });
       updateMenuState();
-      if (name === 'map') setTimeout(() => detailMap.invalidateSize(), 120);
+      if (name === 'home') setTimeout(() => homeMap.invalidateSize(), 120);
+      if (name === 'map') setTimeout(() => fullMap.invalidateSize(), 120);
     }
 
     async function saveCity() {
@@ -734,8 +960,8 @@
       renderAll();
       switchScreen('map');
       setTimeout(() => {
-        detailMap.setView([item.lat, item.lng], 6);
-        detailMarkers.find(marker => {
+        fullMap.setView([item.lat, item.lng], 6);
+        fullMarkers.find(marker => {
           const pos = marker.getLatLng();
           if (pos.lat === item.lat && pos.lng === item.lng) {
             marker.openPopup();
@@ -760,7 +986,7 @@
       renderAll();
       switchScreen('map');
       setTimeout(() => {
-        detailMap.setView([item.lat, item.lng], 5);
+        fullMap.setView([item.lat, item.lng], 5);
       }, 120);
     }
 
@@ -850,7 +1076,13 @@
       renderAll();
     });
 
-    menuButtons.forEach(btn => {
+    focusAllBtn.addEventListener('click', renderAll);
+    toggleModeBtn.addEventListener('click', () => {
+      viewMode = viewMode === 'city' ? 'country' : 'city';
+      renderAll();
+    });
+
+    allMenuButtons.forEach(btn => {
       btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
     });
 
