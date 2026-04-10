@@ -5,28 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Şehir Haritam</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 
   <style>
     :root{
       --bg:#0d1b26;
       --panel:#132633;
-      --panel-2:#182f3f;
       --line:rgba(255,255,255,.09);
       --text:#eef5fb;
       --muted:#9bb0bf;
       --accent:#4db6ff;
-      --accent-2:#79e6c1;
       --danger:#ff7b7b;
       --shadow:0 16px 32px rgba(0,0,0,.24);
-      --safe-top:env(safe-area-inset-top, 0px);
-      --safe-bottom:env(safe-area-inset-bottom, 0px);
     }
-
     *{box-sizing:border-box}
     html,body{
       margin:0;
@@ -35,11 +26,7 @@
       background:linear-gradient(180deg,#08131b,#0c1a25);
       color:var(--text);
     }
-    body{
-      display:flex;
-      justify-content:center;
-    }
-
+    body{display:flex;justify-content:center}
     .app{
       width:100%;
       max-width:430px;
@@ -48,16 +35,8 @@
       position:relative;
       overflow:hidden;
     }
-
-    .screen{
-      display:none;
-      min-height:100vh;
-      padding-bottom:88px;
-    }
-    .screen.active{
-      display:block;
-    }
-
+    .screen{display:none;min-height:100vh;padding-bottom:24px}
+    .screen.active{display:block}
     .hero{
       position:relative;
       height:220px;
@@ -69,368 +48,123 @@
       overflow:hidden;
       box-shadow:var(--shadow);
     }
-
     .hero-overlay{
-      position:absolute;
-      inset:0;
+      position:absolute;inset:0;
       background:linear-gradient(180deg, rgba(3,10,16,.18), rgba(3,10,16,.34) 58%, rgba(3,10,16,.62));
     }
-
     .hero-title{
-      position:absolute;
-      left:18px;
-      bottom:18px;
-      z-index:2;
-      margin:0;
-      font-size:28px;
-      font-weight:800;
-      letter-spacing:-.4px;
+      position:absolute;left:18px;bottom:18px;z-index:2;margin:0;
+      font-size:28px;font-weight:800;letter-spacing:-.4px;
       text-shadow:0 2px 14px rgba(0,0,0,.38);
     }
-
-    .wrap{
-      padding:16px;
-    }
-
+    .wrap{padding:16px}
     .stats-grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      margin-top:14px;
+      display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;
     }
-
     .stat-card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:12px 8px;
-      text-align:center;
-      box-shadow:var(--shadow);
+      background:var(--panel);border:1px solid var(--line);border-radius:18px;
+      padding:12px 8px;text-align:center;box-shadow:var(--shadow);
     }
-
-    .stat-card .label{
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:6px;
-      display:block;
+    .stat-card .label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+    .stat-card .value{font-size:26px;font-weight:800;line-height:1}
+    .map-card,.menu-card,.content-card{
+      margin-top:14px;background:var(--panel);border:1px solid var(--line);
+      border-radius:22px;padding:10px;box-shadow:var(--shadow);
     }
-
-    .stat-card .value{
-      font-size:26px;
-      font-weight:800;
-      line-height:1;
-    }
-
-    .map-card{
-      margin-top:14px;
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:10px;
-      box-shadow:var(--shadow);
-    }
-
     #worldMap{
-      width:100%;
-      height:260px;
-      border-radius:18px;
-      overflow:hidden;
-      background:#cfd6dd;
+      width:100%;height:260px;border-radius:18px;overflow:hidden;background:#cfd6dd;
     }
-
+    #detailMap{
+      width:100%;aspect-ratio:9/16;border-radius:18px;overflow:hidden;background:#cfd6dd;
+    }
     .map-note{
-      padding:10px 4px 2px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.4;
+      padding:10px 4px 2px;color:var(--muted);font-size:12px;line-height:1.4;
     }
-
-    .menu-card{
-      margin-top:14px;
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:8px;
-      box-shadow:var(--shadow);
-    }
-
     .menu-grid{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:8px;
+      display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
     }
-
     .menu-btn{
-      border:none;
-      background:#102130;
-      color:#d8e4ee;
-      border-radius:14px;
-      padding:12px 8px;
-      cursor:pointer;
-      font-size:12px;
-      font-weight:800;
+      border:none;background:#102130;color:#d8e4ee;border-radius:14px;
+      padding:12px 8px;cursor:pointer;font-size:12px;font-weight:800;
       border:1px solid rgba(255,255,255,.05);
     }
-
-    .menu-btn.active{
-      background:#1d4258;
-      color:white;
-    }
-
-    .content-card{
-      margin-top:14px;
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:16px;
-      box-shadow:var(--shadow);
-    }
-
-    .section-title{
-      margin:0 0 12px;
-      font-size:18px;
-      font-weight:800;
-    }
-
-    .section-sub{
-      margin:-6px 0 14px;
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.4;
-    }
-
-    .stack{
-      display:grid;
-      gap:10px;
-    }
-
+    .menu-btn.active{background:#1d4258;color:white}
+    .content-card{padding:16px}
+    .section-title{margin:0 0 12px;font-size:18px;font-weight:800}
+    .section-sub{margin:-6px 0 14px;font-size:12px;color:var(--muted);line-height:1.4}
+    .stack{display:grid;gap:10px}
     .input,.select,.textarea,.button{
-      width:100%;
-      padding:13px 14px;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#102130;
-      color:white;
-      font-size:14px;
-      outline:none;
+      width:100%;padding:13px 14px;border-radius:16px;border:1px solid var(--line);
+      background:#102130;color:white;font-size:14px;outline:none;
     }
-
-    .input::placeholder,.textarea::placeholder{
-      color:#7f97a9;
-    }
-
+    .input::placeholder,.textarea::placeholder{color:#7f97a9}
     .input:focus,.select:focus,.textarea:focus{
-      border-color:rgba(77,182,255,.6);
-      box-shadow:0 0 0 4px rgba(77,182,255,.12);
+      border-color:rgba(77,182,255,.6);box-shadow:0 0 0 4px rgba(77,182,255,.12);
     }
-
-    .textarea{
-      min-height:92px;
-      resize:vertical;
-    }
-
+    .textarea{min-height:92px;resize:vertical}
     .button{
-      border:none;
-      background:linear-gradient(180deg,#67c6ff,#45aef6);
-      font-weight:800;
-      cursor:pointer;
-      box-shadow:0 10px 20px rgba(69,174,246,.24);
+      border:none;background:linear-gradient(180deg,#67c6ff,#45aef6);
+      font-weight:800;cursor:pointer;box-shadow:0 10px 20px rgba(69,174,246,.24);
     }
-
-    .button.secondary{
-      background:#1b3b4f;
-      box-shadow:none;
-    }
-
     .button.danger{
       background:linear-gradient(180deg,#ff9a9a,#ff6d6d);
       box-shadow:0 10px 20px rgba(255,109,109,.18);
     }
-
-    .helper{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.45;
-    }
-
-    .search-wrap{
-      position:relative;
-    }
-
+    .helper{color:var(--muted);font-size:12px;line-height:1.45}
+    .search-wrap{position:relative}
     .suggestions{
-      display:none;
-      margin-top:-2px;
-      background:#102130;
-      border:1px solid var(--line);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:var(--shadow);
+      display:none;margin-top:-2px;background:#102130;border:1px solid var(--line);
+      border-radius:18px;overflow:hidden;box-shadow:var(--shadow);
     }
-
-    .suggestion-item{
-      padding:11px 14px;
-      border-bottom:1px solid var(--line);
-      cursor:pointer;
-    }
-
-    .suggestion-item:last-child{
-      border-bottom:none;
-    }
-
-    .suggestion-item:hover{
-      background:#173145;
-    }
-
-    .suggestion-title{
-      display:block;
-      font-size:14px;
-      font-weight:800;
-    }
-
-    .suggestion-sub{
-      display:block;
-      margin-top:2px;
-      color:var(--muted);
-      font-size:12px;
-    }
-
+    .suggestion-item{padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+    .suggestion-item:last-child{border-bottom:none}
+    .suggestion-item:hover{background:#173145}
+    .suggestion-title{display:block;font-size:14px;font-weight:800}
+    .suggestion-sub{display:block;margin-top:2px;color:var(--muted);font-size:12px}
     .chip-row{
-      display:flex;
-      gap:8px;
-      overflow:auto;
-      padding-bottom:2px;
-      scrollbar-width:none;
+      display:flex;gap:8px;overflow:auto;padding-bottom:2px;scrollbar-width:none;
     }
     .chip-row::-webkit-scrollbar{display:none}
-
     .chip{
-      flex:0 0 auto;
-      border:none;
-      background:#102130;
-      color:#bfd0dc;
-      border-radius:999px;
-      padding:9px 12px;
-      font-size:12px;
-      font-weight:800;
-      cursor:pointer;
+      flex:0 0 auto;border:none;background:#102130;color:#bfd0dc;border-radius:999px;
+      padding:9px 12px;font-size:12px;font-weight:800;cursor:pointer;
       border:1px solid rgba(255,255,255,.05);
     }
-
-    .chip.active{
-      background:#1d4258;
-      color:white;
-    }
-
-    .list{
-      display:grid;
-      gap:10px;
-    }
-
+    .chip.active{background:#1d4258;color:white}
+    .list{display:grid;gap:10px}
     .item{
-      background:#102130;
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:18px;
-      padding:12px;
+      background:#102130;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:12px;
     }
-
-    .item strong{
-      display:block;
-      font-size:15px;
-      line-height:1.35;
-      margin-bottom:4px;
-    }
-
-    .meta{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.4;
-      margin-bottom:8px;
-    }
-
+    .item strong{display:block;font-size:15px;line-height:1.35;margin-bottom:4px}
+    .meta{display:block;font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:8px}
     .tag{
-      display:inline-block;
-      padding:5px 9px;
-      border-radius:999px;
-      background:rgba(77,182,255,.14);
-      color:#9cd8ff;
-      font-size:11px;
-      font-weight:800;
-      margin-bottom:8px;
+      display:inline-block;padding:5px 9px;border-radius:999px;background:rgba(77,182,255,.14);
+      color:#9cd8ff;font-size:11px;font-weight:800;margin-bottom:8px;
     }
-
-    .note{
-      font-size:13px;
-      color:#d9e5ef;
-      line-height:1.45;
-      margin-bottom:8px;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-    }
-
+    .note{font-size:13px;color:#d9e5ef;line-height:1.45;margin-bottom:8px}
+    .actions{display:flex;gap:8px}
     .small-btn{
-      flex:1;
-      border:none;
-      border-radius:12px;
-      padding:10px 10px;
-      cursor:pointer;
-      background:#1b3b4f;
-      color:white;
-      font-size:12px;
-      font-weight:800;
+      flex:1;border:none;border-radius:12px;padding:10px 10px;cursor:pointer;
+      background:#1b3b4f;color:white;font-size:12px;font-weight:800;
     }
-
-    .small-btn.danger{
-      background:#73333d;
-    }
-
+    .small-btn.danger{background:#73333d}
     .empty{
-      padding:18px;
-      border-radius:18px;
-      border:1px dashed rgba(255,255,255,.12);
-      text-align:center;
-      color:var(--muted);
-      background:rgba(255,255,255,.02);
-      font-size:13px;
+      padding:18px;border-radius:18px;border:1px dashed rgba(255,255,255,.12);
+      text-align:center;color:var(--muted);background:rgba(255,255,255,.02);font-size:13px;
     }
-
     .flag-marker{
-      width:34px;
-      height:34px;
-      border-radius:999px;
-      background:#fff;
-      border:2px solid #fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:20px;
-      box-shadow:0 6px 18px rgba(0,0,0,.18);
-      position:relative;
+      width:34px;height:34px;border-radius:999px;background:#fff;border:2px solid #fff;
+      display:flex;align-items:center;justify-content:center;font-size:20px;
+      box-shadow:0 6px 18px rgba(0,0,0,.18);position:relative;
     }
-
     .flag-marker::after{
-      content:'';
-      position:absolute;
-      width:10px;
-      height:10px;
-      background:#fff;
-      bottom:-4px;
-      left:50%;
-      transform:translateX(-50%) rotate(45deg);
-      z-index:-1;
+      content:'';position:absolute;width:10px;height:10px;background:#fff;bottom:-4px;left:50%;
+      transform:translateX(-50%) rotate(45deg);z-index:-1;
     }
-
     @media (min-width:700px){
-      body{
-        padding:18px;
-      }
+      body{padding:18px}
       .app{
-        border-radius:28px;
-        overflow:hidden;
-        box-shadow:0 24px 56px rgba(0,0,0,.34);
+        border-radius:28px;overflow:hidden;box-shadow:0 24px 56px rgba(0,0,0,.34);
         min-height:calc(100vh - 36px);
       }
     }
@@ -462,13 +196,14 @@
 
         <div class="map-card">
           <div id="worldMap"></div>
-          <div class="map-note">Siyah-beyaz dünya haritası üstünde şehirlerin bayrak pinlerle gösterilir.</div>
+          <div class="map-note">Bu alan atlas gibi uzak dünya görünümüdür. İşaretli detaylı harita için Harita menüsünü kullan.</div>
         </div>
 
         <div class="menu-card">
           <div class="menu-grid">
             <button class="menu-btn active" data-screen="home" type="button">Ana</button>
             <button class="menu-btn" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn" data-screen="map" type="button">Harita</button>
             <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
             <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
           </div>
@@ -499,7 +234,7 @@
               <option value="Tekrar gidilecek">Tekrar gidilecek</option>
             </select>
             <textarea id="noteInput" class="textarea" placeholder="Kısa not: anı, yemek, favori yer..."></textarea>
-            <div class="helper">Kaydettiğinde ana ekrandaki dünya haritası ve kayıt listesi otomatik güncellenir.</div>
+            <div class="helper">Kaydettiğinde ana ekrandaki atlas görünümü ve Harita ekranı otomatik güncellenir.</div>
             <button id="saveBtn" class="button" type="button">Şehri Kaydet</button>
           </div>
         </div>
@@ -508,6 +243,34 @@
           <div class="menu-grid">
             <button class="menu-btn" data-screen="home" type="button">Ana</button>
             <button class="menu-btn active" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn" data-screen="map" type="button">Harita</button>
+            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
+            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-map" class="screen">
+      <div class="wrap">
+        <div class="content-card">
+          <h2 class="section-title">Harita</h2>
+          <p class="section-sub">9:16 dikey harita görünümünde pinler burada gösterilir.</p>
+          <div class="chip-row" style="margin-bottom:12px;">
+            <button id="mapViewCityBtn" class="chip active" type="button">Şehir</button>
+            <button id="mapViewCountryBtn" class="chip" type="button">Ülke</button>
+          </div>
+          <div class="map-card" style="margin-top:0;padding:10px;">
+            <div id="detailMap"></div>
+          </div>
+          <div class="map-note">Bu ekranda pinler işaretli görünür. Ana ekrandaki harita daha genel atlas görünümüdür.</div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-grid">
+            <button class="menu-btn" data-screen="home" type="button">Ana</button>
+            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn active" data-screen="map" type="button">Harita</button>
             <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
             <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
           </div>
@@ -540,6 +303,7 @@
           <div class="menu-grid">
             <button class="menu-btn" data-screen="home" type="button">Ana</button>
             <button class="menu-btn" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn" data-screen="map" type="button">Harita</button>
             <button class="menu-btn active" data-screen="records" type="button">Kayıtlar</button>
             <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
           </div>
@@ -559,6 +323,7 @@
           <div class="menu-grid">
             <button class="menu-btn" data-screen="home" type="button">Ana</button>
             <button class="menu-btn" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn" data-screen="map" type="button">Harita</button>
             <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
             <button class="menu-btn active" data-screen="manage" type="button">Ayar</button>
           </div>
@@ -569,7 +334,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    const STORAGE_KEY = 'travel-map-layout-v1';
+    const STORAGE_KEY = 'travel-map-layout-v2';
 
     const statCountry = document.getElementById('statCountry');
     const statCity = document.getElementById('statCity');
@@ -586,6 +351,9 @@
     const noteInput = document.getElementById('noteInput');
     const saveBtn = document.getElementById('saveBtn');
 
+    const mapViewCityBtn = document.getElementById('mapViewCityBtn');
+    const mapViewCountryBtn = document.getElementById('mapViewCountryBtn');
+
     const viewCityBtn = document.getElementById('viewCityBtn');
     const viewCountryBtn = document.getElementById('viewCountryBtn');
     const searchInput = document.getElementById('searchInput');
@@ -600,17 +368,24 @@
     let searchTimer = null;
     let viewMode = 'city';
     let activeStatus = '';
-    let markers = [];
+    let worldMarkers = [];
+    let detailMarkers = [];
     let activeScreen = 'home';
 
-    const worldMap = L.map('worldMap', { worldCopyJump:true, minZoom:2, zoomControl:false }).setView([20, 8], 2);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    const worldMap = L.map('worldMap', { worldCopyJump:true, minZoom:1.5, zoomControl:false }).setView([18, 5], 1.8);
+    const detailMap = L.map('detailMap', { worldCopyJump:true, minZoom:2, zoomControl:true }).setView([20, 8], 2);
+
+    const tileOptions = {
       subdomains:'abcd',
       maxZoom:19,
       attribution:'&copy; OpenStreetMap &copy; CARTO'
-    }).addTo(worldMap);
-    setTimeout(() => worldMap.invalidateSize(), 250);
-    window.addEventListener('resize', () => worldMap.invalidateSize());
+    };
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(worldMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(detailMap);
+
+    setTimeout(() => { worldMap.invalidateSize(); detailMap.invalidateSize(); }, 250);
+    window.addEventListener('resize', () => { worldMap.invalidateSize(); detailMap.invalidateSize(); });
 
     function loadCities() {
       try {
@@ -648,7 +423,7 @@
         flag: countryCodeToFlag(countryCode),
         lat: Number(item.lat),
         lng: Number(item.lon),
-        displayName: item.display_name || `${city}, ${country}`,
+        displayName: item.display_name || `${city}, ${country}`
       };
     }
 
@@ -689,7 +464,7 @@
     }
 
     function getFilteredCities() {
-      const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      const q = searchInput.value.trim().toLowerCase();
       return cities.filter(item => {
         const okSearch = !q || item.city.toLowerCase().includes(q) || item.country.toLowerCase().includes(q);
         const okStatus = !activeStatus || item.status === activeStatus;
@@ -735,60 +510,56 @@
       });
     }
 
-    function clearMarkers() {
-      markers.forEach(marker => worldMap.removeLayer(marker));
-      markers = [];
+    function clearMapMarkers(mapRef, listRef) {
+      listRef.forEach(marker => mapRef.removeLayer(marker));
+      listRef.length = 0;
     }
 
-    function fitMap() {
-      const points = viewMode === 'country'
-        ? getCountryGroups().map(item => [item.lat, item.lng])
-        : getFilteredCities().map(item => [item.lat, item.lng]);
-
+    function fitMap(mapRef, points) {
       if (!points.length) {
-        worldMap.setView([20, 8], 2);
+        mapRef.setView([20, 8], mapRef === worldMap ? 1.8 : 2);
         return;
       }
-
       if (points.length === 1) {
-        worldMap.setView(points[0], 5);
+        mapRef.setView(points[0], 5);
         return;
       }
-
-      worldMap.fitBounds(L.latLngBounds(points), { padding:[30,30] });
+      mapRef.fitBounds(L.latLngBounds(points), { padding:[30,30] });
     }
 
-    function renderMap() {
-      clearMarkers();
+    function renderWorldMap() {
+      clearMapMarkers(worldMap, worldMarkers);
+      const points = [];
+      const list = viewMode === 'country' ? getCountryGroups() : getFilteredCities();
 
-      if (viewMode === 'country') {
-        getCountryGroups().forEach(item => {
-          const popup = `
-            <div>
-              <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br>
-              <span>Toplam şehir: ${item.cityCount}</span><br>
-              <span>Şehirler: ${escapeHtml(item.cities.map(c => c.city).join(', '))}</span>
-            </div>
-          `;
-          const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(worldMap).bindPopup(popup);
-          markers.push(marker);
-        });
-      } else {
-        getFilteredCities().forEach(item => {
-          const popup = `
-            <div>
-              <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br>
-              <span>Durum: ${escapeHtml(item.status)}</span><br>
-              ${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}
-              ${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}
-            </div>
-          `;
-          const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(worldMap).bindPopup(popup);
-          markers.push(marker);
-        });
-      }
+      list.forEach(item => {
+        points.push([item.lat, item.lng]);
+        const popup = viewMode === 'country'
+          ? `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br><span>Toplam şehir: ${item.cityCount}</span></div>`
+          : `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br><span>Durum: ${escapeHtml(item.status)}</span></div>`;
+        const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(worldMap).bindPopup(popup);
+        worldMarkers.push(marker);
+      });
 
-      fitMap();
+      fitMap(worldMap, points);
+      worldMap.setZoom(Math.min(worldMap.getZoom(), 2));
+    }
+
+    function renderDetailMap() {
+      clearMapMarkers(detailMap, detailMarkers);
+      const points = [];
+      const list = viewMode === 'country' ? getCountryGroups() : getFilteredCities();
+
+      list.forEach(item => {
+        points.push([item.lat, item.lng]);
+        const popup = viewMode === 'country'
+          ? `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br><span>Toplam şehir: ${item.cityCount}</span><br><span>Şehirler: ${escapeHtml(item.cities.map(c => c.city).join(', '))}</span></div>`
+          : `<div><strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br><span>Durum: ${escapeHtml(item.status)}</span><br>${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}</div>`;
+        const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(detailMap).bindPopup(popup);
+        detailMarkers.push(marker);
+      });
+
+      fitMap(detailMap, points);
     }
 
     function renderStats() {
@@ -802,12 +573,10 @@
         const countries = getCountryGroups().slice(0, 4);
         homeContentTitle.textContent = 'Ülke Özeti';
         homeContentSub.textContent = 'Aynı ülkedeki şehirler tek satırda birleşir.';
-
         if (!countries.length) {
           homeContent.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
           return;
         }
-
         homeContent.innerHTML = countries.map(item => `
           <div class="item">
             <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong>
@@ -822,12 +591,10 @@
       const latest = cities.slice(0, 4);
       homeContentTitle.textContent = 'Son Eklenen Şehirler';
       homeContentSub.textContent = 'Haritadaki görünümle senkron çalışan liste.';
-
       if (!latest.length) {
         homeContent.innerHTML = '<div class="empty">Henüz şehir eklenmedi.</div>';
         return;
       }
-
       homeContent.innerHTML = latest.map(item => `
         <div class="item">
           <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
@@ -841,16 +608,16 @@
     function renderRecords() {
       viewCityBtn.classList.toggle('active', viewMode === 'city');
       viewCountryBtn.classList.toggle('active', viewMode === 'country');
+      mapViewCityBtn.classList.toggle('active', viewMode === 'city');
+      mapViewCountryBtn.classList.toggle('active', viewMode === 'country');
 
       if (viewMode === 'country') {
         const countries = getCountryGroups();
         recordsTitle.textContent = `Ülke Kayıtları (${countries.length})`;
-
         if (!countries.length) {
           recordsList.innerHTML = '<div class="empty">Henüz ülke kaydı yok.</div>';
           return;
         }
-
         recordsList.innerHTML = countries.map(item => `
           <div class="item">
             <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong>
@@ -868,12 +635,10 @@
 
       const list = getFilteredCities();
       recordsTitle.textContent = `Şehir Kayıtları (${list.length})`;
-
       if (!list.length) {
         recordsList.innerHTML = '<div class="empty">Henüz şehir kaydı yok.</div>';
         return;
       }
-
       recordsList.innerHTML = list.map(item => `
         <div class="item">
           <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
@@ -892,11 +657,11 @@
       renderStats();
       renderHomeContent();
       renderRecords();
-      renderMap();
+      renderWorldMap();
+      renderDetailMap();
       updateMenuState();
-      if (activeScreen === 'home') {
-        setTimeout(() => worldMap.invalidateSize(), 80);
-      }
+      if (activeScreen === 'home') setTimeout(() => worldMap.invalidateSize(), 80);
+      if (activeScreen === 'map') setTimeout(() => detailMap.invalidateSize(), 80);
     }
 
     function updateMenuState() {
@@ -911,9 +676,8 @@
         screen.classList.toggle('active', screen.id === `screen-${name}`);
       });
       updateMenuState();
-      if (name === 'home') {
-        setTimeout(() => worldMap.invalidateSize(), 120);
-      }
+      if (name === 'home') setTimeout(() => worldMap.invalidateSize(), 120);
+      if (name === 'map') setTimeout(() => detailMap.invalidateSize(), 120);
     }
 
     async function saveCity() {
@@ -971,11 +735,11 @@
       const item = cities.find(city => city.id === id);
       if (!item) return;
       viewMode = 'city';
-      switchScreen('home');
       renderAll();
+      switchScreen('map');
       setTimeout(() => {
-        worldMap.setView([item.lat, item.lng], 6);
-        markers.find(marker => {
+        detailMap.setView([item.lat, item.lng], 6);
+        detailMarkers.find(marker => {
           const pos = marker.getLatLng();
           if (pos.lat === item.lat && pos.lng === item.lng) {
             marker.openPopup();
@@ -997,10 +761,10 @@
       const item = getCountryGroups().find(country => country.id === id);
       if (!item) return;
       viewMode = 'country';
-      switchScreen('home');
       renderAll();
+      switchScreen('map');
       setTimeout(() => {
-        worldMap.setView([item.lat, item.lng], 5);
+        detailMap.setView([item.lat, item.lng], 5);
       }, 120);
     }
 
@@ -1076,6 +840,16 @@
     });
 
     viewCountryBtn.addEventListener('click', () => {
+      viewMode = 'country';
+      renderAll();
+    });
+
+    mapViewCityBtn.addEventListener('click', () => {
+      viewMode = 'city';
+      renderAll();
+    });
+
+    mapViewCountryBtn.addEventListener('click', () => {
       viewMode = 'country';
       renderAll();
     });
