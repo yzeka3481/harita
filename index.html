@@ -44,7 +44,7 @@
     .app{
       width:100%;
       max-width:430px;
-      min-height:100vh;
+      height:100vh;
       background:var(--bg);
       position:relative;
       overflow:hidden;
@@ -52,16 +52,20 @@
 
     .screen{
       display:none;
-      min-height:100vh;
+      position:absolute;
+      inset:0;
+      overflow:auto;
+      padding-bottom:96px;
     }
     .screen.active{
       display:block;
     }
 
     .map-screen{
-      position:relative;
-      min-height:100vh;
+      position:absolute;
+      inset:0;
       background:#d9dee3;
+      padding-bottom:0;
     }
 
     #map{
@@ -381,7 +385,7 @@
       position:absolute;
       right:18px;
       bottom:110px;
-      z-index:14;
+      z-index:31;
       width:64px;
       height:64px;
       border:none;
@@ -398,9 +402,10 @@
       left:0;
       right:0;
       bottom:0;
-      z-index:20;
+      z-index:30;
       padding:10px 12px calc(14px + var(--safe-bottom));
-      background:linear-gradient(180deg, rgba(8,19,29,0), rgba(8,19,29,.94) 28%);
+      background:linear-gradient(180deg, rgba(8,19,29,0), rgba(8,19,29,.96) 28%);
+      pointer-events:auto;
     }
 
     .nav-shell{
@@ -437,9 +442,8 @@
     }
 
     .panel-screen{
-      min-height:100vh;
       background:linear-gradient(180deg,#0a1722,#0c1c2a);
-      padding:calc(18px + var(--safe-top)) 16px calc(92px + var(--safe-bottom));
+      padding:calc(18px + var(--safe-top)) 16px calc(110px + var(--safe-bottom));
     }
 
     .page-head{
