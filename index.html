@@ -13,19 +13,18 @@
 
   <style>
     :root{
-      --bg:#08131d;
-      --panel:#0d1c2a;
-      --panel-2:#112436;
-      --card:#14283b;
-      --line:rgba(255,255,255,.08);
+      --bg:#0d1b26;
+      --panel:#132633;
+      --panel-2:#182f3f;
+      --line:rgba(255,255,255,.09);
       --text:#eef5fb;
-      --muted:#9cb0c1;
-      --accent:#50b8ff;
-      --accent-2:#7cf0c2;
-      --danger:#ff6b6b;
-      --shadow:0 18px 40px rgba(0,0,0,.28);
-      --safe-top:env(safe-area-inset-top,0px);
-      --safe-bottom:env(safe-area-inset-bottom,0px);
+      --muted:#9bb0bf;
+      --accent:#4db6ff;
+      --accent-2:#79e6c1;
+      --danger:#ff7b7b;
+      --shadow:0 16px 32px rgba(0,0,0,.24);
+      --safe-top:env(safe-area-inset-top, 0px);
+      --safe-bottom:env(safe-area-inset-bottom, 0px);
     }
 
     *{box-sizing:border-box}
@@ -33,7 +32,7 @@
       margin:0;
       min-height:100%;
       font-family:Inter,Arial,Helvetica,sans-serif;
-      background:linear-gradient(180deg,#07111a,#0a1722);
+      background:linear-gradient(180deg,#08131b,#0c1a25);
       color:var(--text);
     }
     body{
@@ -44,7 +43,7 @@
     .app{
       width:100%;
       max-width:430px;
-      height:100vh;
+      min-height:100vh;
       background:var(--bg);
       position:relative;
       overflow:hidden;
@@ -52,433 +51,152 @@
 
     .screen{
       display:none;
-      position:absolute;
-      inset:0;
-      overflow:auto;
-      padding-bottom:96px;
+      min-height:100vh;
+      padding-bottom:88px;
     }
     .screen.active{
       display:block;
     }
 
-    .map-screen{
-      position:absolute;
-      inset:0;
-      background:#d9dee3;
-      padding-bottom:0;
-    }
-
-    #map{
-      position:absolute;
-      inset:0;
-      z-index:1;
-      background:#d9dee3;
-    }
-
-    .map-overlay{
-      position:absolute;
-      inset:0;
-      z-index:5;
-      pointer-events:none;
+    .hero{
+      position:relative;
+      height:220px;
       background:
-        linear-gradient(180deg, rgba(8,19,29,.58) 0%, rgba(8,19,29,.12) 18%, rgba(8,19,29,0) 32%),
-        linear-gradient(0deg, rgba(8,19,29,.88) 0%, rgba(8,19,29,.38) 24%, rgba(8,19,29,0) 42%);
-    }
-
-    .topbar{
-      position:absolute;
-      top:0;
-      left:0;
-      right:0;
-      z-index:10;
-      padding:calc(16px + var(--safe-top)) 16px 8px;
-      pointer-events:none;
-    }
-
-    .topbar-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-    }
-
-    .brand-card{
-      pointer-events:auto;
-      background:rgba(10,24,36,.68);
-      backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:22px;
-      padding:14px 14px 12px;
+        linear-gradient(180deg, rgba(5,12,18,.18), rgba(5,12,18,.18)),
+        url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+      border-bottom-left-radius:22px;
+      border-bottom-right-radius:22px;
+      overflow:hidden;
       box-shadow:var(--shadow);
-      max-width:260px;
     }
 
-    .brand-title{
+    .hero-overlay{
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(3,10,16,.18), rgba(3,10,16,.34) 58%, rgba(3,10,16,.62));
+    }
+
+    .hero-title{
+      position:absolute;
+      left:18px;
+      bottom:18px;
+      z-index:2;
       margin:0;
-      font-size:24px;
+      font-size:28px;
       font-weight:800;
       letter-spacing:-.4px;
+      text-shadow:0 2px 14px rgba(0,0,0,.38);
     }
 
-    .brand-sub{
-      margin:6px 0 0;
-      font-size:12px;
-      line-height:1.45;
-      color:#dbe7f0;
-      opacity:.88;
+    .wrap{
+      padding:16px;
     }
 
-    .quick-stats{
-      margin-top:12px;
-      display:flex;
-      gap:8px;
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:14px;
     }
 
-    .stat-pill{
-      min-width:68px;
-      background:rgba(255,255,255,.07);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:16px;
-      padding:8px 10px;
+    .stat-card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px 8px;
       text-align:center;
+      box-shadow:var(--shadow);
     }
 
-    .stat-pill .value{
+    .stat-card .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
       display:block;
-      font-size:18px;
+    }
+
+    .stat-card .value{
+      font-size:26px;
       font-weight:800;
       line-height:1;
-      margin-bottom:4px;
     }
 
-    .stat-pill .label{
-      display:block;
-      font-size:11px;
-      color:#c4d4df;
-    }
-
-    .action-stack{
-      display:grid;
-      gap:10px;
-      pointer-events:auto;
-    }
-
-    .icon-btn{
-      width:50px;
-      height:50px;
-      border:none;
-      border-radius:18px;
-      background:rgba(10,24,36,.72);
-      color:white;
-      font-size:22px;
-      cursor:pointer;
-      backdrop-filter:blur(10px);
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow:var(--shadow);
-    }
-
-    .sheet{
-      position:absolute;
-      left:0;
-      right:0;
-      bottom:0;
-      z-index:12;
-      pointer-events:none;
-      padding:0 12px calc(92px + var(--safe-bottom));
-    }
-
-    .sheet-card{
-      pointer-events:auto;
-      background:rgba(10,24,36,.92);
-      backdrop-filter:blur(18px);
-      border:1px solid rgba(255,255,255,.09);
-      border-radius:30px 30px 24px 24px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-
-    .grabber{
-      width:54px;
-      height:5px;
-      border-radius:999px;
-      background:rgba(255,255,255,.18);
-      margin:10px auto 0;
-    }
-
-    .sheet-header{
-      padding:14px 16px 8px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-
-    .sheet-title{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-    }
-
-    .sheet-sub{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .mode-switch{
-      display:flex;
-      gap:6px;
-      background:rgba(255,255,255,.05);
+    .map-card{
+      margin-top:14px;
+      background:var(--panel);
       border:1px solid var(--line);
-      padding:4px;
-      border-radius:14px;
+      border-radius:22px;
+      padding:10px;
+      box-shadow:var(--shadow);
     }
 
-    .mode-btn{
-      border:none;
-      background:transparent;
-      color:#b6c8d5;
-      padding:8px 12px;
-      border-radius:10px;
-      font-size:12px;
-      font-weight:800;
-      cursor:pointer;
-    }
-
-    .mode-btn.active{
-      background:#1b3850;
-      color:white;
-    }
-
-    .search-row{
-      padding:0 16px 12px;
-      display:grid;
-      gap:10px;
-    }
-
-    .input{
+    #worldMap{
       width:100%;
-      padding:14px 14px;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#102334;
-      color:white;
-      font-size:14px;
-      outline:none;
-    }
-
-    .input::placeholder{
-      color:#7f97aa;
-    }
-
-    .input:focus{
-      border-color:rgba(80,184,255,.6);
-      box-shadow:0 0 0 4px rgba(80,184,255,.12);
-    }
-
-    .chips{
-      display:flex;
-      gap:8px;
-      overflow:auto;
-      padding-bottom:2px;
-      scrollbar-width:none;
-    }
-    .chips::-webkit-scrollbar{display:none}
-
-    .chip{
-      flex:0 0 auto;
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#102334;
-      color:#c1d0db;
-      font-size:12px;
-      font-weight:700;
-      cursor:pointer;
-    }
-
-    .chip.active{
-      background:#1f4765;
-      color:white;
-    }
-
-    .list{
-      max-height:260px;
-      overflow:auto;
-      padding:0 16px 16px;
-      display:grid;
-      gap:10px;
-    }
-
-    .item{
-      background:#13283b;
-      border:1px solid var(--line);
+      height:260px;
       border-radius:18px;
-      padding:12px;
+      overflow:hidden;
+      background:#cfd6dd;
     }
 
-    .item strong{
-      display:block;
-      font-size:15px;
-      line-height:1.35;
-      margin-bottom:4px;
-    }
-
-    .meta{
-      display:block;
+    .map-note{
+      padding:10px 4px 2px;
       color:var(--muted);
       font-size:12px;
       line-height:1.4;
-      margin-bottom:8px;
     }
 
-    .tag{
-      display:inline-block;
-      padding:5px 9px;
-      border-radius:999px;
-      background:rgba(80,184,255,.14);
-      color:#9edaff;
-      font-size:11px;
-      font-weight:800;
-      margin-bottom:8px;
-    }
-
-    .note{
-      color:#d9e6ef;
-      font-size:13px;
-      line-height:1.45;
-      margin-bottom:8px;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-    }
-
-    .small-btn{
-      flex:1;
-      border:none;
-      padding:10px 10px;
-      border-radius:12px;
-      cursor:pointer;
-      font-size:12px;
-      font-weight:800;
-      color:white;
-      background:#1d3d57;
-    }
-
-    .small-btn.danger{
-      background:#6d2d37;
-    }
-
-    .empty{
-      padding:18px;
-      border-radius:18px;
-      border:1px dashed rgba(255,255,255,.14);
-      color:var(--muted);
-      text-align:center;
-      font-size:13px;
-      background:rgba(255,255,255,.03);
-    }
-
-    .fab{
-      position:absolute;
-      right:18px;
-      bottom:110px;
-      z-index:31;
-      width:64px;
-      height:64px;
-      border:none;
-      border-radius:999px;
-      cursor:pointer;
-      font-size:30px;
-      color:#07202e;
-      background:linear-gradient(180deg,var(--accent-2),#3fe0b2);
-      box-shadow:0 18px 30px rgba(63,224,178,.28);
-    }
-
-    .bottom-nav{
-      position:absolute;
-      left:0;
-      right:0;
-      bottom:0;
-      z-index:30;
-      padding:10px 12px calc(14px + var(--safe-bottom));
-      background:linear-gradient(180deg, rgba(8,19,29,0), rgba(8,19,29,.96) 28%);
-      pointer-events:auto;
-    }
-
-    .nav-shell{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:8px;
-      background:rgba(10,24,36,.95);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:26px;
+    .menu-card{
+      margin-top:14px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:20px;
       padding:8px;
       box-shadow:var(--shadow);
     }
 
-    .nav-btn{
-      border:none;
-      background:transparent;
-      color:#c1d0db;
-      padding:10px 4px;
-      border-radius:18px;
-      cursor:pointer;
-      font-size:11px;
-      font-weight:800;
+    .menu-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
     }
 
-    .nav-btn.active{
-      background:#17354d;
+    .menu-btn{
+      border:none;
+      background:#102130;
+      color:#d8e4ee;
+      border-radius:14px;
+      padding:12px 8px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .menu-btn.active{
+      background:#1d4258;
       color:white;
     }
 
-    .nav-icon{
-      display:block;
-      font-size:20px;
-      margin-bottom:4px;
+    .content-card{
+      margin-top:14px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:16px;
+      box-shadow:var(--shadow);
     }
 
-    .panel-screen{
-      background:linear-gradient(180deg,#0a1722,#0c1c2a);
-      padding:calc(18px + var(--safe-top)) 16px calc(110px + var(--safe-bottom));
-    }
-
-    .page-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      margin-bottom:16px;
-    }
-
-    .page-head h2{
-      margin:0;
-      font-size:26px;
+    .section-title{
+      margin:0 0 12px;
+      font-size:18px;
       font-weight:800;
     }
 
-    .page-head p{
-      margin:6px 0 0;
+    .section-sub{
+      margin:-6px 0 14px;
+      font-size:12px;
       color:var(--muted);
-      font-size:13px;
-      line-height:1.45;
-    }
-
-    .page-card{
-      background:#102132;
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:16px;
-      box-shadow:var(--shadow);
-      margin-bottom:14px;
-    }
-
-    .page-card h3{
-      margin:0 0 12px;
-      font-size:16px;
+      line-height:1.4;
     }
 
     .stack{
@@ -486,32 +204,47 @@
       gap:10px;
     }
 
+    .input,.select,.textarea,.button{
+      width:100%;
+      padding:13px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#102130;
+      color:white;
+      font-size:14px;
+      outline:none;
+    }
+
+    .input::placeholder,.textarea::placeholder{
+      color:#7f97a9;
+    }
+
+    .input:focus,.select:focus,.textarea:focus{
+      border-color:rgba(77,182,255,.6);
+      box-shadow:0 0 0 4px rgba(77,182,255,.12);
+    }
+
     .textarea{
-      min-height:94px;
+      min-height:92px;
       resize:vertical;
     }
 
     .button{
-      width:100%;
       border:none;
-      padding:14px 14px;
-      border-radius:16px;
-      cursor:pointer;
-      font-size:14px;
+      background:linear-gradient(180deg,#67c6ff,#45aef6);
       font-weight:800;
-      color:white;
-      background:linear-gradient(180deg,#73cbff,#47aef8);
-      box-shadow:0 10px 22px rgba(71,174,248,.24);
+      cursor:pointer;
+      box-shadow:0 10px 20px rgba(69,174,246,.24);
     }
 
     .button.secondary{
-      background:#19384f;
+      background:#1b3b4f;
       box-shadow:none;
     }
 
     .button.danger{
-      background:linear-gradient(180deg,#ff8a8a,#ff6767);
-      box-shadow:0 10px 22px rgba(255,103,103,.2);
+      background:linear-gradient(180deg,#ff9a9a,#ff6d6d);
+      box-shadow:0 10px 20px rgba(255,109,109,.18);
     }
 
     .helper{
@@ -520,14 +253,18 @@
       line-height:1.45;
     }
 
+    .search-wrap{
+      position:relative;
+    }
+
     .suggestions{
       display:none;
-      background:#102334;
+      margin-top:-2px;
+      background:#102130;
       border:1px solid var(--line);
       border-radius:18px;
       overflow:hidden;
       box-shadow:var(--shadow);
-      margin-top:-2px;
     }
 
     .suggestion-item{
@@ -541,7 +278,7 @@
     }
 
     .suggestion-item:hover{
-      background:#16344b;
+      background:#173145;
     }
 
     .suggestion-title{
@@ -555,6 +292,109 @@
       margin-top:2px;
       color:var(--muted);
       font-size:12px;
+    }
+
+    .chip-row{
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      padding-bottom:2px;
+      scrollbar-width:none;
+    }
+    .chip-row::-webkit-scrollbar{display:none}
+
+    .chip{
+      flex:0 0 auto;
+      border:none;
+      background:#102130;
+      color:#bfd0dc;
+      border-radius:999px;
+      padding:9px 12px;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .chip.active{
+      background:#1d4258;
+      color:white;
+    }
+
+    .list{
+      display:grid;
+      gap:10px;
+    }
+
+    .item{
+      background:#102130;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:18px;
+      padding:12px;
+    }
+
+    .item strong{
+      display:block;
+      font-size:15px;
+      line-height:1.35;
+      margin-bottom:4px;
+    }
+
+    .meta{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.4;
+      margin-bottom:8px;
+    }
+
+    .tag{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:999px;
+      background:rgba(77,182,255,.14);
+      color:#9cd8ff;
+      font-size:11px;
+      font-weight:800;
+      margin-bottom:8px;
+    }
+
+    .note{
+      font-size:13px;
+      color:#d9e5ef;
+      line-height:1.45;
+      margin-bottom:8px;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+    }
+
+    .small-btn{
+      flex:1;
+      border:none;
+      border-radius:12px;
+      padding:10px 10px;
+      cursor:pointer;
+      background:#1b3b4f;
+      color:white;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .small-btn.danger{
+      background:#73333d;
+    }
+
+    .empty{
+      padding:18px;
+      border-radius:18px;
+      border:1px dashed rgba(255,255,255,.12);
+      text-align:center;
+      color:var(--muted);
+      background:rgba(255,255,255,.02);
+      font-size:13px;
     }
 
     .flag-marker{
@@ -588,9 +428,9 @@
         padding:18px;
       }
       .app{
-        border-radius:34px;
-        box-shadow:0 26px 60px rgba(0,0,0,.35);
+        border-radius:28px;
         overflow:hidden;
+        box-shadow:0 24px 56px rgba(0,0,0,.34);
         min-height:calc(100vh - 36px);
       }
     }
@@ -598,163 +438,146 @@
 </head>
 <body>
   <div class="app">
-    <section id="screen-home" class="screen map-screen active">
-      <div id="map"></div>
-      <div class="map-overlay"></div>
+    <section id="screen-home" class="screen active">
+      <div class="hero">
+        <div class="hero-overlay"></div>
+        <h1 class="hero-title">Şehir Haritam</h1>
+      </div>
 
-      <div class="topbar">
-        <div class="topbar-row">
-          <div class="brand-card">
-            <h1 class="brand-title">Şehir Haritam</h1>
-            <p class="brand-sub">Gezdiğin yerleri bayrak pinlerle kaydet, ülkeleri tek ekrandan takip et.</p>
-            <div class="quick-stats">
-              <div class="stat-pill">
-                <span id="statCities" class="value">0</span>
-                <span class="label">Şehir</span>
-              </div>
-              <div class="stat-pill">
-                <span id="statCountries" class="value">0</span>
-                <span class="label">Ülke</span>
-              </div>
-              <div class="stat-pill">
-                <span id="statPlanned" class="value">0</span>
-                <span class="label">Plan</span>
-              </div>
-            </div>
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="label">Ülke</span>
+            <span id="statCountry" class="value">0</span>
           </div>
+          <div class="stat-card">
+            <span class="label">Şehir</span>
+            <span id="statCity" class="value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">Plan</span>
+            <span id="statPlan" class="value">0</span>
+          </div>
+        </div>
 
-          <div class="action-stack">
-            <button id="focusAllBtn" class="icon-btn" type="button" title="Haritayı sığdır">⤢</button>
-            <button id="toggleModeBtn" class="icon-btn" type="button" title="Görünüm değiştir">🗂️</button>
+        <div class="map-card">
+          <div id="worldMap"></div>
+          <div class="map-note">Siyah-beyaz dünya haritası üstünde şehirlerin bayrak pinlerle gösterilir.</div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-grid">
+            <button class="menu-btn active" data-screen="home" type="button">Ana</button>
+            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
+            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h2 id="homeContentTitle" class="section-title">Son Eklenen Şehirler</h2>
+          <p id="homeContentSub" class="section-sub">Haritadaki görünümle senkron çalışan liste.</p>
+          <div id="homeContent" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-add" class="screen">
+      <div class="wrap">
+        <div class="content-card">
+          <h2 class="section-title">Şehir Ekle</h2>
+          <p class="section-sub">Şehir adını yaz. Sistem sana uygun sonucu bulsun ve kaydetsin.</p>
+          <div class="stack">
+            <div class="search-wrap">
+              <input id="cityInput" class="input" type="text" placeholder="Örn: Roma, Köln, Tokyo" autocomplete="off" />
+              <div id="suggestions" class="suggestions"></div>
+            </div>
+            <input id="dateInput" class="input" type="date" />
+            <select id="statusInput" class="select">
+              <option value="Gezildi">Gezildi</option>
+              <option value="Planlanıyor">Planlanıyor</option>
+              <option value="Tekrar gidilecek">Tekrar gidilecek</option>
+            </select>
+            <textarea id="noteInput" class="textarea" placeholder="Kısa not: anı, yemek, favori yer..."></textarea>
+            <div class="helper">Kaydettiğinde ana ekrandaki dünya haritası ve kayıt listesi otomatik güncellenir.</div>
+            <button id="saveBtn" class="button" type="button">Şehri Kaydet</button>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-grid">
+            <button class="menu-btn" data-screen="home" type="button">Ana</button>
+            <button class="menu-btn active" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
+            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="sheet">
-        <div class="sheet-card">
-          <div class="grabber"></div>
-          <div class="sheet-header">
-            <div>
-              <h2 id="sheetTitle" class="sheet-title">Son Eklenen Şehirler</h2>
-              <p id="sheetSub" class="sheet-sub">Harita ve liste birlikte güncellenir.</p>
+    <section id="screen-records" class="screen">
+      <div class="wrap">
+        <div class="content-card">
+          <h2 id="recordsTitle" class="section-title">Şehir Kayıtları</h2>
+          <p class="section-sub">Şehir veya ülke bazlı görünümü seçip kayıtlarını yönetebilirsin.</p>
+          <div class="stack" style="margin-bottom:12px;">
+            <div class="chip-row">
+              <button id="viewCityBtn" class="chip active" type="button">Şehir</button>
+              <button id="viewCountryBtn" class="chip" type="button">Ülke</button>
             </div>
-            <div class="mode-switch">
-              <button id="modeCityBtn" class="mode-btn active" type="button">Şehir</button>
-              <button id="modeCountryBtn" class="mode-btn" type="button">Ülke</button>
-            </div>
-          </div>
-
-          <div class="search-row">
             <input id="searchInput" class="input" type="text" placeholder="Şehir veya ülke ara" />
-            <div class="chips">
+            <div class="chip-row">
               <button class="chip active" data-status="">Tümü</button>
               <button class="chip" data-status="Gezildi">Gezildi</button>
               <button class="chip" data-status="Planlanıyor">Planlanıyor</button>
               <button class="chip" data-status="Tekrar gidilecek">Tekrar</button>
             </div>
           </div>
-
-          <div id="homeList" class="list"></div>
+          <div id="recordsList" class="list"></div>
         </div>
-      </div>
 
-      <button id="fabAdd" class="fab" type="button">＋</button>
-
-    </section>
-
-    <section id="screen-add" class="screen panel-screen">
-      <div class="page-head">
-        <div>
-          <h2>Şehir Ekle</h2>
-          <p>Şehir adını yaz. Sistem sana uygun sonuçları bulsun, sen seçip kaydet.</p>
-        </div>
-      </div>
-
-      <div class="page-card">
-        <h3>Yeni Kayıt</h3>
-        <div class="stack">
-          <input id="cityInput" class="input" type="text" placeholder="Örn: Roma, Köln, Tokyo" autocomplete="off" />
-          <div id="suggestions" class="suggestions"></div>
-          <input id="dateInput" class="input" type="date" />
-          <select id="statusInput" class="input">
-            <option value="Gezildi">Gezildi</option>
-            <option value="Planlanıyor">Planlanıyor</option>
-            <option value="Tekrar gidilecek">Tekrar gidilecek</option>
-          </select>
-          <textarea id="noteInput" class="input textarea" placeholder="Kısa not: yemek, anı, favori yer..."></textarea>
-          <div class="helper">Kaydettiğinde ana haritadaki pin otomatik oluşur.</div>
-          <button id="saveBtn" class="button" type="button">Şehri Kaydet</button>
+        <div class="menu-card">
+          <div class="menu-grid">
+            <button class="menu-btn" data-screen="home" type="button">Ana</button>
+            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn active" data-screen="records" type="button">Kayıtlar</button>
+            <button class="menu-btn" data-screen="manage" type="button">Ayar</button>
+          </div>
         </div>
       </div>
     </section>
 
-    <section id="screen-records" class="screen panel-screen">
-      <div class="page-head">
-        <div>
-          <h2>Kayıtlar</h2>
-          <p>Şehir veya ülke görünümünde kayıtlarını yönetebilirsin.</p>
+    <section id="screen-manage" class="screen">
+      <div class="wrap">
+        <div class="content-card">
+          <h2 class="section-title">Veri Yönetimi</h2>
+          <p class="section-sub">Tüm kayıtları tek adımda temizleyebilirsin.</p>
+          <button id="clearAllBtn" class="button danger" type="button">Tümünü Sil</button>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-grid">
+            <button class="menu-btn" data-screen="home" type="button">Ana</button>
+            <button class="menu-btn" data-screen="add" type="button">Ekle</button>
+            <button class="menu-btn" data-screen="records" type="button">Kayıtlar</button>
+            <button class="menu-btn active" data-screen="manage" type="button">Ayar</button>
+          </div>
         </div>
       </div>
-
-      <div class="page-card">
-        <h3 id="recordsTitle">Şehir Kayıtları</h3>
-        <div id="recordsList" class="list" style="max-height:none;padding:0"></div>
-      </div>
     </section>
-
-    <section id="screen-manage" class="screen panel-screen">
-      <div class="page-head">
-        <div>
-          <h2>Veri Yönetimi</h2>
-          <p>Tüm kayıtları tek adımda temizleyebilirsin.</p>
-        </div>
-      </div>
-
-      <div class="page-card">
-        <h3>Temizleme</h3>
-        <button id="clearAllBtn" class="button danger" type="button">Tümünü Sil</button>
-      </div>
-    </section>
-
-    <nav class="bottom-nav">
-      <div class="nav-shell">
-        <button class="nav-btn active" data-screen="home" type="button"><span class="nav-icon">🏠</span>Ana</button>
-        <button class="nav-btn" data-screen="add" type="button"><span class="nav-icon">➕</span>Ekle</button>
-        <button class="nav-btn" data-screen="records" type="button"><span class="nav-icon">📍</span>Kayıtlar</button>
-        <button class="nav-btn" data-screen="manage" type="button"><span class="nav-icon">⚙️</span>Ayar</button>
-      </div>
-    </nav>
-
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    const STORAGE_KEY = 'travel-map-cities-v2';
+    const STORAGE_KEY = 'travel-map-layout-v1';
 
-    const screens = {
-      home: document.getElementById('screen-home'),
-      add: document.getElementById('screen-add'),
-      records: document.getElementById('screen-records'),
-      manage: document.getElementById('screen-manage'),
-    };
+    const statCountry = document.getElementById('statCountry');
+    const statCity = document.getElementById('statCity');
+    const statPlan = document.getElementById('statPlan');
 
-    const navButtons = document.querySelectorAll('.nav-btn');
-    const focusAllBtn = document.getElementById('focusAllBtn');
-    const toggleModeBtn = document.getElementById('toggleModeBtn');
-    const fabAdd = document.getElementById('fabAdd');
-
-    const statCities = document.getElementById('statCities');
-    const statCountries = document.getElementById('statCountries');
-    const statPlanned = document.getElementById('statPlanned');
-
-    const modeCityBtn = document.getElementById('modeCityBtn');
-    const modeCountryBtn = document.getElementById('modeCountryBtn');
-    const sheetTitle = document.getElementById('sheetTitle');
-    const sheetSub = document.getElementById('sheetSub');
-    const homeList = document.getElementById('homeList');
-
-    const searchInput = document.getElementById('searchInput');
-    const chips = document.querySelectorAll('.chip');
+    const homeContentTitle = document.getElementById('homeContentTitle');
+    const homeContentSub = document.getElementById('homeContentSub');
+    const homeContent = document.getElementById('homeContent');
 
     const cityInput = document.getElementById('cityInput');
     const suggestions = document.getElementById('suggestions');
@@ -763,26 +586,31 @@
     const noteInput = document.getElementById('noteInput');
     const saveBtn = document.getElementById('saveBtn');
 
+    const viewCityBtn = document.getElementById('viewCityBtn');
+    const viewCountryBtn = document.getElementById('viewCountryBtn');
+    const searchInput = document.getElementById('searchInput');
     const recordsTitle = document.getElementById('recordsTitle');
     const recordsList = document.getElementById('recordsList');
+
     const clearAllBtn = document.getElementById('clearAllBtn');
+    const menuButtons = document.querySelectorAll('.menu-btn');
 
     let cities = loadCities();
     let selectedPlace = null;
     let searchTimer = null;
-    let markers = [];
-    let activeScreen = 'home';
     let viewMode = 'city';
     let activeStatus = '';
+    let markers = [];
+    let activeScreen = 'home';
 
-    const map = L.map('map', { worldCopyJump: true, minZoom: 2, zoomControl: false }).setView([20, 8], 2);
+    const worldMap = L.map('worldMap', { worldCopyJump:true, minZoom:2, zoomControl:false }).setView([20, 8], 2);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
-    }).addTo(map);
-    setTimeout(() => map.invalidateSize(), 300);
-    window.addEventListener('resize', () => map.invalidateSize());
+      subdomains:'abcd',
+      maxZoom:19,
+      attribution:'&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(worldMap);
+    setTimeout(() => worldMap.invalidateSize(), 250);
+    window.addEventListener('resize', () => worldMap.invalidateSize());
 
     function loadCities() {
       try {
@@ -804,7 +632,7 @@
 
     function countryCodeToFlag(code) {
       if (!code || code.length !== 2) return '📍';
-      return code.toUpperCase().split('').map(char => String.fromCodePoint(127397 + char.charCodeAt(0))).join('');
+      return code.toUpperCase().split('').map(ch => String.fromCodePoint(127397 + ch.charCodeAt(0))).join('');
     }
 
     function normalizePlace(item) {
@@ -827,7 +655,7 @@
     async function searchCities(query) {
       const encoded = encodeURIComponent(query);
       const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encoded}`;
-      const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      const response = await fetch(url, { headers: { 'Accept':'application/json' } });
       if (!response.ok) throw new Error('Şehir araması yapılamadı.');
       const data = await response.json();
       return data.map(normalizePlace).filter(item => item.city && item.country);
@@ -861,7 +689,7 @@
     }
 
     function getFilteredCities() {
-      const q = searchInput.value.trim().toLowerCase();
+      const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
       return cities.filter(item => {
         const okSearch = !q || item.city.toLowerCase().includes(q) || item.country.toLowerCase().includes(q);
         const okStatus = !activeStatus || item.status === activeStatus;
@@ -875,14 +703,14 @@
         const key = `${item.country}__${item.countryCode || ''}`;
         if (!groups.has(key)) {
           groups.set(key, {
-            id: key,
-            country: item.country,
-            countryCode: item.countryCode,
-            flag: item.flag,
-            lat: item.lat,
-            lng: item.lng,
-            cities: [],
-            statuses: new Set(),
+            id:key,
+            country:item.country,
+            countryCode:item.countryCode,
+            flag:item.flag,
+            lat:item.lat,
+            lng:item.lng,
+            cities:[],
+            statuses:new Set()
           });
         }
         const group = groups.get(key);
@@ -892,32 +720,49 @@
 
       return Array.from(groups.values()).map(group => ({
         ...group,
-        cityCount: group.cities.length,
-        statuses: Array.from(group.statuses)
+        cityCount:group.cities.length,
+        statuses:Array.from(group.statuses)
       }));
     }
 
     function createFlagIcon(flag) {
       return L.divIcon({
-        className: '',
-        html: `<div class="flag-marker">${escapeHtml(flag)}</div>`,
-        iconSize: [34, 40],
-        iconAnchor: [17, 38],
-        popupAnchor: [0, -34]
+        className:'',
+        html:`<div class="flag-marker">${escapeHtml(flag)}</div>`,
+        iconSize:[34,40],
+        iconAnchor:[17,38],
+        popupAnchor:[0,-34]
       });
     }
 
     function clearMarkers() {
-      markers.forEach(marker => map.removeLayer(marker));
+      markers.forEach(marker => worldMap.removeLayer(marker));
       markers = [];
+    }
+
+    function fitMap() {
+      const points = viewMode === 'country'
+        ? getCountryGroups().map(item => [item.lat, item.lng])
+        : getFilteredCities().map(item => [item.lat, item.lng]);
+
+      if (!points.length) {
+        worldMap.setView([20, 8], 2);
+        return;
+      }
+
+      if (points.length === 1) {
+        worldMap.setView(points[0], 5);
+        return;
+      }
+
+      worldMap.fitBounds(L.latLngBounds(points), { padding:[30,30] });
     }
 
     function renderMap() {
       clearMarkers();
 
       if (viewMode === 'country') {
-        const countries = getCountryGroups();
-        countries.forEach(item => {
+        getCountryGroups().forEach(item => {
           const popup = `
             <div>
               <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong><br>
@@ -925,73 +770,45 @@
               <span>Şehirler: ${escapeHtml(item.cities.map(c => c.city).join(', '))}</span>
             </div>
           `;
-          const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
-            .addTo(map)
-            .bindPopup(popup);
+          const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(worldMap).bindPopup(popup);
           markers.push(marker);
         });
-
-        fitMapToCurrent();
-        return;
+      } else {
+        getFilteredCities().forEach(item => {
+          const popup = `
+            <div>
+              <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br>
+              <span>Durum: ${escapeHtml(item.status)}</span><br>
+              ${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}
+              ${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}
+            </div>
+          `;
+          const marker = L.marker([item.lat, item.lng], { icon:createFlagIcon(item.flag || '📍') }).addTo(worldMap).bindPopup(popup);
+          markers.push(marker);
+        });
       }
 
-      getFilteredCities().forEach(item => {
-        const popup = `
-          <div>
-            <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong><br>
-            <span>Durum: ${escapeHtml(item.status)}</span><br>
-            ${item.date ? `<span>Tarih: ${escapeHtml(item.date)}</span><br>` : ''}
-            ${item.note ? `<span>Not: ${escapeHtml(item.note)}</span>` : ''}
-          </div>
-        `;
-        const marker = L.marker([item.lat, item.lng], { icon: createFlagIcon(item.flag || '📍') })
-          .addTo(map)
-          .bindPopup(popup);
-        markers.push(marker);
-      });
-
-      fitMapToCurrent();
-    }
-
-    function fitMapToCurrent() {
-      const points = viewMode === 'country'
-        ? getCountryGroups().map(item => [item.lat, item.lng])
-        : getFilteredCities().map(item => [item.lat, item.lng]);
-
-      if (!points.length) {
-        map.setView([20, 8], 2);
-        return;
-      }
-      if (points.length === 1) {
-        map.setView(points[0], 5);
-        return;
-      }
-      map.fitBounds(L.latLngBounds(points), { padding: [40, 40] });
+      fitMap();
     }
 
     function renderStats() {
-      statCities.textContent = cities.length;
-      statCountries.textContent = new Set(cities.map(item => item.country.toLowerCase())).size;
-      statPlanned.textContent = cities.filter(item => item.status === 'Planlanıyor').length;
+      statCountry.textContent = new Set(cities.map(item => item.country.toLowerCase())).size;
+      statCity.textContent = cities.length;
+      statPlan.textContent = cities.filter(item => item.status === 'Planlanıyor').length;
     }
 
-    function renderModeUi() {
-      const country = viewMode === 'country';
-      modeCityBtn.classList.toggle('active', !country);
-      modeCountryBtn.classList.toggle('active', country);
-      sheetTitle.textContent = country ? 'Ülke Görünümü' : 'Son Eklenen Şehirler';
-      sheetSub.textContent = country ? 'Aynı ülkedeki şehirler tek kayıtta birleşir.' : 'Haritada gördüğün yerlerin son eklenenleri burada.';
-    }
-
-    function renderHomeList() {
+    function renderHomeContent() {
       if (viewMode === 'country') {
         const countries = getCountryGroups().slice(0, 4);
+        homeContentTitle.textContent = 'Ülke Özeti';
+        homeContentSub.textContent = 'Aynı ülkedeki şehirler tek satırda birleşir.';
+
         if (!countries.length) {
-          homeList.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
+          homeContent.innerHTML = '<div class="empty">Henüz gösterilecek ülke yok.</div>';
           return;
         }
 
-        homeList.innerHTML = countries.map(item => `
+        homeContent.innerHTML = countries.map(item => `
           <div class="item">
             <strong>${escapeHtml(item.flag)} ${escapeHtml(item.country)}</strong>
             <span class="meta">Toplam şehir: ${item.cityCount}</span>
@@ -1002,13 +819,16 @@
         return;
       }
 
-      const latest = getFilteredCities().slice(0, 4);
+      const latest = cities.slice(0, 4);
+      homeContentTitle.textContent = 'Son Eklenen Şehirler';
+      homeContentSub.textContent = 'Haritadaki görünümle senkron çalışan liste.';
+
       if (!latest.length) {
-        homeList.innerHTML = '<div class="empty">Henüz şehir eklenmedi.</div>';
+        homeContent.innerHTML = '<div class="empty">Henüz şehir eklenmedi.</div>';
         return;
       }
 
-      homeList.innerHTML = latest.map(item => `
+      homeContent.innerHTML = latest.map(item => `
         <div class="item">
           <strong>${escapeHtml(item.flag)} ${escapeHtml(item.city)}, ${escapeHtml(item.country)}</strong>
           <span class="meta">${item.date || 'Tarih yok'} • ${escapeHtml(item.displayName || '')}</span>
@@ -1019,9 +839,13 @@
     }
 
     function renderRecords() {
+      viewCityBtn.classList.toggle('active', viewMode === 'city');
+      viewCountryBtn.classList.toggle('active', viewMode === 'country');
+
       if (viewMode === 'country') {
         const countries = getCountryGroups();
         recordsTitle.textContent = `Ülke Kayıtları (${countries.length})`;
+
         if (!countries.length) {
           recordsList.innerHTML = '<div class="empty">Henüz ülke kaydı yok.</div>';
           return;
@@ -1044,6 +868,7 @@
 
       const list = getFilteredCities();
       recordsTitle.textContent = `Şehir Kayıtları (${list.length})`;
+
       if (!list.length) {
         recordsList.innerHTML = '<div class="empty">Henüz şehir kaydı yok.</div>';
         return;
@@ -1065,21 +890,29 @@
 
     function renderAll() {
       renderStats();
-      renderModeUi();
-      renderHomeList();
+      renderHomeContent();
       renderRecords();
       renderMap();
+      updateMenuState();
       if (activeScreen === 'home') {
-        setTimeout(() => map.invalidateSize(), 80);
+        setTimeout(() => worldMap.invalidateSize(), 80);
       }
+    }
+
+    function updateMenuState() {
+      menuButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.screen === activeScreen);
+      });
     }
 
     function switchScreen(name) {
       activeScreen = name;
-      Object.entries(screens).forEach(([key, el]) => el.classList.toggle('active', key === name));
-      navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === name));
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.toggle('active', screen.id === `screen-${name}`);
+      });
+      updateMenuState();
       if (name === 'home') {
-        setTimeout(() => map.invalidateSize(), 120);
+        setTimeout(() => worldMap.invalidateSize(), 120);
       }
     }
 
@@ -1112,7 +945,7 @@
           displayName: place.displayName,
           date: dateInput.value,
           status: statusInput.value,
-          note: noteInput.value.trim(),
+          note: noteInput.value.trim()
         });
 
         saveCities();
@@ -1137,9 +970,11 @@
     function focusCity(id) {
       const item = cities.find(city => city.id === id);
       if (!item) return;
+      viewMode = 'city';
       switchScreen('home');
+      renderAll();
       setTimeout(() => {
-        map.setView([item.lat, item.lng], 6);
+        worldMap.setView([item.lat, item.lng], 6);
         markers.find(marker => {
           const pos = marker.getLatLng();
           if (pos.lat === item.lat && pos.lng === item.lng) {
@@ -1161,17 +996,11 @@
     function focusCountry(id) {
       const item = getCountryGroups().find(country => country.id === id);
       if (!item) return;
+      viewMode = 'country';
       switchScreen('home');
+      renderAll();
       setTimeout(() => {
-        map.setView([item.lat, item.lng], 5);
-        markers.find(marker => {
-          const pos = marker.getLatLng();
-          if (pos.lat === item.lat && pos.lng === item.lng) {
-            marker.openPopup();
-            return true;
-          }
-          return false;
-        });
+        worldMap.setView([item.lat, item.lng], 5);
       }, 120);
     }
 
@@ -1228,44 +1057,35 @@
     });
 
     document.addEventListener('click', event => {
-      if (!event.target.closest('#cityInput') && !event.target.closest('#suggestions')) {
+      if (!event.target.closest('.search-wrap')) {
         suggestions.style.display = 'none';
       }
     });
 
-    searchInput.addEventListener('input', renderAll);
-
-    chips.forEach(chip => {
+    document.querySelectorAll('.chip[data-status]').forEach(chip => {
       chip.addEventListener('click', () => {
         activeStatus = chip.dataset.status;
-        chips.forEach(c => c.classList.toggle('active', c === chip));
+        document.querySelectorAll('.chip[data-status]').forEach(c => c.classList.toggle('active', c === chip));
         renderAll();
       });
     });
 
-    modeCityBtn.addEventListener('click', () => {
+    viewCityBtn.addEventListener('click', () => {
       viewMode = 'city';
       renderAll();
     });
 
-    modeCountryBtn.addEventListener('click', () => {
+    viewCountryBtn.addEventListener('click', () => {
       viewMode = 'country';
       renderAll();
     });
 
-    toggleModeBtn.addEventListener('click', () => {
-      viewMode = viewMode === 'city' ? 'country' : 'city';
-      renderAll();
-    });
-
-    focusAllBtn.addEventListener('click', fitMapToCurrent);
-
-    navButtons.forEach(btn => {
+    menuButtons.forEach(btn => {
       btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
     });
 
-    fabAdd.addEventListener('click', () => switchScreen('add'));
     saveBtn.addEventListener('click', saveCity);
+    searchInput.addEventListener('input', renderAll);
     clearAllBtn.addEventListener('click', clearAll);
 
     recordsList.addEventListener('click', event => {
