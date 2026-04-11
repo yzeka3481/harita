@@ -454,25 +454,24 @@
 
     .flag-grid{
       display:grid;
-      grid-template-columns:repeat(24, 1fr);
+      grid-template-columns:repeat(24, minmax(0, 1fr));
       gap:4px;
     }
 
     .flag-item{
       width:100%;
       aspect-ratio:1/1;
-      border-radius:50%;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:12px;
+      font-size:11px;
+      border-radius:50%;
       background:rgba(255,255,255,.04);
       border:1px solid rgba(255,255,255,.05);
       filter:grayscale(1);
       opacity:.22;
       transform:scale(.95);
       transition:all .15s ease;
-      user-select:none;
     }
 
     .flag-item.visited{
