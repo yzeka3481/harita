@@ -8,10 +8,10 @@
   <style>
     :root{color-scheme:dark;--bg:#142640;--panel:#213a5b;--panel2:#2a4a70;--line:#4f7398;--text:#f0f7ff;--muted:#c6d9ef;--primary:#61b0ff;--primary2:#3d8fe8;--tabh:68px}
     *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(circle at 10% -10%,#6faee8,transparent 42%),radial-gradient(circle at 90% -20%,#67c8bb,transparent 38%),linear-gradient(180deg,#153154,#112743 50%,#10223b);color:var(--text);font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh}
+    body{margin:0;background:radial-gradient(circle at 10% -10%,#6faee8,transparent 42%),radial-gradient(circle at 90% -20%,#67c8bb,transparent 38%),linear-gradient(180deg,#153154,#112743 50%,#10223b);color:var(--text);font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh;overflow-x:hidden}
     body.modal-open{overflow:hidden;height:100vh}
     .app{max-width:500px;margin:0 auto;height:100vh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow:hidden}
-    .screen{display:none;padding:14px;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}.screen.active{display:block}
+    .screen{display:none;padding:14px;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;overscroll-behavior-x:none;touch-action:pan-y}.screen.active{display:block}
     .card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;margin-bottom:12px;box-shadow:0 8px 20px rgba(13,24,41,.25)}
     .card h2{margin:0 0 10px;font-size:16px}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
     .control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
@@ -422,6 +422,7 @@
     let globeDragging = false;
     let globeLastX = 0;
     let globeLastY = 0;
+    let globeAutoResumeAt = 0;
     let exploreMap;
     let exploreWorldLayer;
     let exploreMarkerLayer;
@@ -539,6 +540,7 @@
         globeDragging = true;
         globeLastX = e.clientX;
         globeLastY = e.clientY;
+        globeAutoResumeAt = Number.POSITIVE_INFINITY;
         if (container.setPointerCapture) container.setPointerCapture(e.pointerId);
       });
       container.addEventListener("pointermove", e => {
@@ -549,16 +551,17 @@
         globeLastY = e.clientY;
 
         if (globeMesh) {
-          globeMesh.rotation.y += dx * 0.006;
-          globeMesh.rotation.x = Math.max(-0.72, Math.min(0.72, globeMesh.rotation.x + dy * 0.0038));
+          globeMesh.rotation.y += dx * 0.0105;
+          globeMesh.rotation.x = Math.max(-0.52, Math.min(0.52, globeMesh.rotation.x + dy * 0.0042));
         } else {
-          globeLon += dx * 0.34;
-          globeLat = Math.max(-55, Math.min(55, globeLat - dy * 0.2));
+          globeLon += dx * 0.56;
+          globeLat = Math.max(-42, Math.min(42, globeLat - dy * 0.26));
           drawFallbackGlobeFrame();
         }
       });
       const endDrag = e => {
         globeDragging = false;
+        globeAutoResumeAt = Date.now() + 800;
         if (container.releasePointerCapture && e && e.pointerId != null) {
           try { container.releasePointerCapture(e.pointerId); } catch {}
         }
@@ -585,11 +588,12 @@
 
     function animateHomeGlobe() {
       globeAnimationId = requestAnimationFrame(animateHomeGlobe);
+      const canAutoSpin = !globeDragging && Date.now() >= globeAutoResumeAt;
       if (globeRenderer && globeScene && globeCamera && globeMesh) {
-        if (!globeDragging) globeMesh.rotation.y += 0.0042;
+        if (canAutoSpin) globeMesh.rotation.y += 0.0038;
         globeRenderer.render(globeScene, globeCamera);
       } else if (globeFallbackCtx && globeFallbackCanvas) {
-        if (!globeDragging) globeLon += 0.32;
+        if (canAutoSpin) globeLon += 0.28;
         if (globeLon > 180) globeLon -= 360;
         drawFallbackGlobeFrame();
       }
