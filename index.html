@@ -728,6 +728,7 @@
 
     function initGlobe() {
       if (globe) return globe;
+      if (typeof Globe === 'undefined') return null;
       globe = Globe()(document.getElementById('fullGlobe'))
         .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
         .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
@@ -755,9 +756,12 @@
       mapModeToggle.classList.toggle('active', mode === '3d');
       if (mode === '2d') {
         setTimeout(() => fullMap2d.invalidateSize(), 120);
-      } else {
+      } else if (typeof Globe !== 'undefined') {
         initGlobe();
-        setTimeout(() => initGlobe().pointOfView({ lat: 20, lng: 8, altitude: 2.0 }, 0), 50);
+        setTimeout(() => {
+          const g = initGlobe();
+          if (g) g.pointOfView({ lat: 20, lng: 8, altitude: 2.0 }, 0);
+        }, 50);
       }
     }
 
@@ -1004,6 +1008,7 @@
 
 
     function renderGlobe() {
+      if (typeof Globe === 'undefined') return;
       const list = viewMode === 'country' ? getCountryGroups() : getFilteredCities();
       globePoints = list.map(item => ({
         lat: item.lat,
@@ -1140,6 +1145,7 @@
       `).join('');
     }
 
+    
     function renderAll() {
       renderStats();
       renderFlagCollection();
@@ -1147,13 +1153,59 @@
       renderRecords();
       renderHomeMap();
       renderFullMap();
-      renderGlobe();
+      try { renderGlobe(); } catch (e) {};
       updateMenuState();
-      if (activeScreen === 'map') setTimeout(() => { if (mapDimension === '2d') fullMap2d.invalidateSize(); else initGlobe(); }, 80);
+      if (activeScreen === 'map') {
+        setTimeout(() => {
+          if (mapDimension === '2d') {
+            fullMap2d.invalidateSize();
+          } else {
+            initGlobe();
+          }
+        }, 80);
+      }
     }
 
     function updateMenuState() {
-      allMenuButtons.forEach(btn => {
+  
+    document.addEventListener('click', event => {
+      const navBtn = event.target.closest('.menu-btn[data-screen], .bottom-btn[data-screen]');
+      if (navBtn) {
+        event.preventDefault();
+        const target = navBtn.dataset.screen;
+        if (target) switchScreen(target);
+        return;
+      }
+      const addBtn = event.target.closest('#fabAdd');
+      if (addBtn) {
+        event.preventDefault();
+        switchScreen('add');
+      }
+    });
+
+    allMenuButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.screen === activeScreen);
+      });
+    }
+
+    function switchScreen(name) {
+      activeScreen = name;
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.toggle('active', screen.id === `screen-${name}`);
+      });
+      updateMenuState();
+      if (name === 'map') {
+        setTimeout(() => {
+          if (mapDimension === '2d') {
+            fullMap2d.invalidateSize();
+          } else {
+            initGlobe();
+          }
+        }, 120);
+      }
+    }
+
+    allMenuButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         const target = btn.dataset.screen;
         if (target) switchScreen(target);
@@ -1177,6 +1229,8 @@
       if (action === 'delete-country') deleteCountry(id);
     });
 
+    setMapDimension('2d');
+    switchScreen('home');
     renderAll();
   </script>
 </body>
