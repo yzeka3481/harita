@@ -371,7 +371,7 @@
 
     function initMaps() {
       exploreMap = L.map("exploreMap", {
-        zoomControl: false, attributionControl: false, worldCopyJump: true, minZoom: 2.35, maxZoom: 5,
+        zoomControl: false, attributionControl: false, worldCopyJump: true, minZoom: 2.35, maxZoom: 7,
         inertia: false
       }).setView([22, 10], 2.35);
       L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
@@ -398,19 +398,21 @@
     }
 
     function enforceVerticalBounds() {
-      const fixedLat = 22;
+      const minLat = -58;
+      const maxLat = 82;
       const clamp = () => {
         if (isLockingMap) return;
         const c = exploreMap.getCenter();
-        if (Math.abs(c.lat - fixedLat) > 0.0001) {
+        const clampedLat = Math.max(minLat, Math.min(maxLat, c.lat));
+        if (Math.abs(c.lat - clampedLat) > 0.0001) {
           isLockingMap = true;
-          exploreMap.panTo([fixedLat, c.lng], { animate: false });
+          exploreMap.panTo([clampedLat, c.lng], { animate: false });
           isLockingMap = false;
         }
       };
-      exploreMap.setView([fixedLat, 10], Math.max(2.35, exploreMap.getZoom()), { animate: false });
       exploreMap.on("move", clamp);
       exploreMap.on("zoomend", clamp);
+      clamp();
     }
 
     function bindEvents() {
@@ -1140,13 +1142,12 @@
       if (!points.length) {
         exploreMap.setView([22, 10], 2.35);
       } else if (points.length === 1) {
-        exploreMap.setView([22, points[0][1]], 4.2);
+        const singleLat = Math.max(-58, Math.min(82, points[0][0]));
+        exploreMap.setView([singleLat, points[0][1]], 5.2);
       } else {
         exploreMap.fitBounds(points, { padding: [20, 20] });
-        if (exploreMap.getZoom() > 4.5) exploreMap.setZoom(4.5);
+        if (exploreMap.getZoom() > 6.2) exploreMap.setZoom(6.2);
         if (exploreMap.getZoom() < 2.35) exploreMap.setZoom(2.35);
-        const c = exploreMap.getCenter();
-        exploreMap.setView([22, c.lng], exploreMap.getZoom(), { animate: false });
       }
     }
 
