@@ -1493,25 +1493,25 @@
 
     function getSummaryStats(year) {
       const travelled = records.filter(item => isTravelled(item.status));
-      const uniqueCities = new Set(travelled.map(item => (item.city || "").trim().toLowerCase() + "|" + (item.country || "").trim().toLowerCase()).filter(v => v !== "|"));
-      const uniqueCountries = new Set(travelled.map(item => (item.country || "").trim().toLowerCase()).filter(Boolean));
       const yearTrips = travelled
         .filter(item => getRecordYear(item) === year)
         .sort((a, b) => getRecordTime(a) - getRecordTime(b));
+      const uniqueCities = new Set(yearTrips.map(item => (item.city || "").trim().toLowerCase() + "|" + (item.country || "").trim().toLowerCase()).filter(v => v !== "|"));
+      const uniqueCountries = new Set(yearTrips.map(item => (item.country || "").trim().toLowerCase()).filter(Boolean));
       const yearKm = Math.round(calculateRouteKm(yearTrips));
       const countryCount = {};
-      travelled.forEach(item => {
+      yearTrips.forEach(item => {
         if (!item.country) return;
         const key = item.country.trim();
         countryCount[key] = (countryCount[key] || 0) + 1;
       });
       const topCountry = Object.entries(countryCount).sort((a, b) => b[1] - a[1])[0];
-      const totalBudget = travelled.reduce((sum, item) => sum + (Number(item.budget) > 0 ? Number(item.budget) : 0), 0);
-      const totalDays = travelled.reduce((sum, item) => sum + (Number(item.tripDays) > 0 ? Number(item.tripDays) : 0), 0);
+      const totalBudget = yearTrips.reduce((sum, item) => sum + (Number(item.budget) > 0 ? Number(item.budget) : 0), 0);
+      const totalDays = yearTrips.reduce((sum, item) => sum + (Number(item.tripDays) > 0 ? Number(item.tripDays) : 0), 0);
       return {
         yearKm,
         yearTrips: yearTrips.length,
-        totalTrips: travelled.length,
+        totalTrips: yearTrips.length,
         uniqueCities: uniqueCities.size,
         uniqueCountries: uniqueCountries.size,
         topCountry: topCountry ? (topCountry[0] + " (" + topCountry[1] + ")") : "",
