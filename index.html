@@ -1514,24 +1514,10 @@
     }
 
     function setHeroDefaultPassport() {
-      const seed = Math.floor(Date.now() / 86400000);
-      const candidates = [
-        "https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=1600&q=80",
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80",
-        "https://source.unsplash.com/1600x900/?passport,travel,map,camera",
-        "https://loremflickr.com/1600/900/passport,travel,map",
-        "https://picsum.photos/seed/passport-" + seed + "/1600/900"
-      ];
-      let i = 0;
-      const tryNext = () => {
-        if (i >= candidates.length) return;
-        els.heroImage.style.opacity = "0.72";
-        els.heroImage.style.objectPosition = "center center";
-        els.heroImage.src = candidates[i];
-        i += 1;
-      };
-      els.heroImage.onerror = tryNext;
-      tryNext();
+      els.heroImage.onerror = null;
+      els.heroImage.style.opacity = "0.72";
+      els.heroImage.style.objectPosition = "center center";
+      els.heroImage.src = "./hero-default.jpg";
     }
 
     function renderHomeGlobe() {
