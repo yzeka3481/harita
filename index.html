@@ -102,20 +102,20 @@
     #homeMap{
       width:100%;
       height:220px;
-      border-radius:14px;
+      border-radius:0;
       overflow:hidden;
       background:transparent;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:2px;
+      padding:0;
     }
     #homeMapImage{
       width:100%;
       height:100%;
       object-fit:contain;
       display:block;
-      border-radius:14px;
+      border-radius:0;
       background:transparent;
     }
 
@@ -162,7 +162,7 @@
       line-height:1.15;
     }
     .menu-btn .icon,.bottom-btn .icon{
-      font-size:18px;
+      font-size:13px;
       line-height:1;
       display:block;
       margin:0 auto;
@@ -176,7 +176,7 @@
     .menu-btn[data-screen="manage"] .icon,.bottom-btn[data-screen="manage"] .icon{color:#ff9ea1}
 
     .content-card{padding:16px}
-    .section-title{margin:0 0 12px;font-size:18px;font-weight:800}
+    .section-title{margin:0 0 12px;font-size:13px;font-weight:800}
     .section-sub{margin:-6px 0 14px;font-size:12px;color:var(--muted);line-height:1.4}
 
     .stack{display:grid;gap:10px}
@@ -301,7 +301,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:20px;
+      font-size:14px;
       box-shadow:0 6px 18px rgba(0,0,0,.18);
       position:relative;
     }
@@ -317,40 +317,13 @@
       z-index:-1;
     }
 
-    .full-map-top{
-      position:absolute;
-      top:0;
-      right:0;
-      z-index:5;
-      padding:calc(16px + var(--safe-top)) 16px 12px;
-      display:flex;
-      justify-content:flex-end;
-      pointer-events:none;
-    }
-    .full-map-actions{
-      display:grid;
-      gap:10px;
-      pointer-events:auto;
-    }
-    .full-icon-btn{
-      width:48px;
-      height:48px;
-      border:none;
-      border-radius:18px;
-      background:rgba(10,24,36,.74);
-      backdrop-filter:blur(12px);
-      color:white;
-      font-size:20px;
-      cursor:pointer;
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow:var(--shadow);
-    }
+    
     .full-map-bottom{
       position:absolute;
       left:16px;
       right:96px;
-      bottom:98px;
-      z-index:5;
+      bottom:110px;
+      z-index:26;
       pointer-events:none;
       display:flex;
       align-items:center;
@@ -368,8 +341,8 @@
     .fab-global{
       position:absolute;
       right:18px;
-      bottom:98px;
-      z-index:25;
+      bottom:110px;
+      z-index:27;
       width:62px;
       height:62px;
       border:none;
@@ -424,7 +397,7 @@
 
     .flag-collection-title{
       margin:0;
-      font-size:18px;
+      font-size:13px;
       font-weight:800;
     }
 
@@ -465,7 +438,8 @@
       align-items:center;
       justify-content:center;
       font-size:11px;
-      border-radius:50%;
+      border-radius:999px;
+      overflow:hidden;
       background:rgba(255,255,255,.04);
       border:1px solid rgba(255,255,255,.05);
       filter:grayscale(1);
@@ -478,9 +452,11 @@
       filter:none;
       opacity:1;
       transform:scale(1);
-      background:rgba(255,255,255,.08);
-      border-color:rgba(255,255,255,.12);
+      background:rgba(255,255,255,.10);
+      border-color:rgba(255,255,255,.14);
       box-shadow:0 8px 18px rgba(0,0,0,.18);
+      border-radius:999px;
+      aspect-ratio:1/1;
     }
 
 
@@ -493,7 +469,14 @@
         min-height:calc(100vh - 36px);
       }
     }
-  </style>
+  
+.flag-marker-small{
+  font-size:13px;
+  line-height:1;
+  transform:translate(-50%,-50%);
+}
+
+</style>
 </head>
 <body>
   <div class="app">
@@ -574,13 +557,6 @@
     <section id="screen-map" class="screen map-full">
       <div id="fullMap"></div>
 
-      <div class="full-map-top">
-        <div class="full-map-actions">
-          <button id="focusAllBtn" class="full-icon-btn" type="button" title="Hepsini göster">⤢</button>
-          <button id="toggleModeBtn" class="full-icon-btn" type="button" title="Görünüm değiştir">🗂️</button>
-        </div>
-      </div>
-
       <div class="full-map-bottom">
         <div class="full-map-sheet">
           <div class="chip-row">
@@ -660,8 +636,6 @@
 
     const mapViewCityBtn = document.getElementById('mapViewCityBtn');
     const mapViewCountryBtn = document.getElementById('mapViewCountryBtn');
-    const focusAllBtn = document.getElementById('focusAllBtn');
-    const toggleModeBtn = document.getElementById('toggleModeBtn');
 
     const viewCityBtn = document.getElementById('viewCityBtn');
     const viewCountryBtn = document.getElementById('viewCountryBtn');
@@ -691,11 +665,16 @@
 
     const fullMap = L.map('fullMap', {
       worldCopyJump:true,
-      minZoom:2,
+      minZoom:2.2,
+      maxZoom:5,
+      maxBounds:[[-60,-180],[80,180]],
+      maxBoundsViscosity:1.0,
       zoomControl:true
-    }).setView([20, 8], 2);
+    }).setView([20, 8], 2.25);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(fullMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom:19, attribution:'©OpenStreetMap, ©Carto'});
+// previous
+// L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(fullMap);
 
     setTimeout(() => { fullMap.invalidateSize(); }, 250);
     window.addEventListener('resize', () => { fullMap.invalidateSize(); });
@@ -830,16 +809,18 @@
 
     function fitMap(mapRef, points, home=false) {
       if (!points.length) {
-        mapRef.setView([20, 8], home ? 1.8 : 2);
+        mapRef.setView([20, 8], home ? 1.8 : 2.25);
         return;
       }
       if (points.length === 1) {
-        mapRef.setView(points[0], home ? 2 : 5);
+        mapRef.setView(points[0], home ? 2 : 3.4);
         return;
       }
-      mapRef.fitBounds(L.latLngBounds(points), { padding:[30,30] });
+      mapRef.fitBounds(L.latLngBounds(points), { padding:[24,24] });
       if (home) {
         mapRef.setZoom(Math.min(mapRef.getZoom(), 2));
+      } else {
+        mapRef.setZoom(Math.min(mapRef.getZoom(), 3.6));
       }
     }
 
@@ -1146,7 +1127,7 @@
       renderAll();
       switchScreen('map');
       setTimeout(() => {
-        fullMap.setView([item.lat, item.lng], 6);
+        fullMap.setView([item.lat, item.lng], 3.6);
         fullMarkers.find(marker => {
           const pos = marker.getLatLng();
           if (pos.lat === item.lat && pos.lng === item.lng) {
@@ -1172,7 +1153,7 @@
       renderAll();
       switchScreen('map');
       setTimeout(() => {
-        fullMap.setView([item.lat, item.lng], 5);
+        fullMap.setView([item.lat, item.lng], 3.5);
       }, 120);
     }
 
@@ -1259,12 +1240,6 @@
 
     mapViewCountryBtn.addEventListener('click', () => {
       viewMode = 'country';
-      renderAll();
-    });
-
-    focusAllBtn.addEventListener('click', renderAll);
-    toggleModeBtn.addEventListener('click', () => {
-      viewMode = viewMode === 'city' ? 'country' : 'city';
       renderAll();
     });
 
