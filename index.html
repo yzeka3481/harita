@@ -14,6 +14,13 @@
     .screen{display:none;padding:14px;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}.screen.active{display:block}
     .card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;margin-bottom:12px}
     .card h2{margin:0 0 10px;font-size:16px}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
+    .control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+    .control-row.single{grid-template-columns:1fr}
+    .tool-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+    .tool-btn{border:none;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer}
+    .tool-btn.export{background:#2f7cde;color:#fff}
+    .tool-btn.import{background:#2c8b6b;color:#fff}
+    .tool-btn.stats{background:#394f6c;color:#e6f1ff}
     .hero{border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden;min-height:180px;margin-bottom:12px;position:relative;background:#0f1725}
     .hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,13,22,.15),rgba(8,13,22,.92))}
     .hero-content{position:relative;z-index:1;min-height:180px;padding:14px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
@@ -26,6 +33,8 @@
     .list{display:grid;gap:8px}.item{border:1px solid #2a3d58;border-radius:10px;background:#0f1826;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
+    .dist-list{display:grid;gap:6px}
+    .dist-item{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#c9dbf3;padding:7px 8px;border:1px solid #30445f;border-radius:8px;background:#0f1827}
     .chip.visited{color:#7be8c5;background:rgba(63,208,162,.14);border-color:rgba(63,208,162,.35)}.chip.planned{color:#ffd88f;background:rgba(242,190,79,.14);border-color:rgba(242,190,79,.35)}.chip.again{color:#9ecbff;background:rgba(78,161,255,.14);border-color:rgba(78,161,255,.4)}
     .flags-grid{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}.flag{width:20px;height:10px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1);opacity:.22;filter:grayscale(1);justify-self:center;display:block;background:#0a111b}
     .flag.visited{opacity:1;filter:none;border-color:rgba(255,255,255,.35);box-shadow:0 0 7px rgba(255,255,255,.16)}
@@ -97,6 +106,18 @@
         <article class="stat"><small>Planlanan</small><strong id="statPlanned">0</strong></article>
       </section>
 
+      <article class="card">
+        <h2>Gelismis Istatistikler</h2>
+        <div class="list">
+          <div class="item"><p>Ortalama puan: <strong id="statAvgRating">-</strong></p></div>
+          <div class="item"><p>Toplam butce: <strong id="statTotalBudget">-</strong></p></div>
+          <div class="item">
+            <p>Ulke basina sehir dagilimi</p>
+            <div id="countryDistribution" class="dist-list"></div>
+          </div>
+        </div>
+      </article>
+
       <section class="home-map-wrap">
         <h2>Ana Harita</h2>
         <img class="home-static-map" src="./dunya.png" alt="Dunya haritasi">
@@ -122,6 +143,29 @@
     <section id="recordsScreen" class="screen">
       <article class="card">
         <h2>Tum Kayitlar</h2>
+        <div class="tool-row">
+          <button id="exportJsonBtn" class="tool-btn export" type="button">JSON disa aktar</button>
+          <button id="importJsonBtn" class="tool-btn import" type="button">JSON ice aktar</button>
+        </div>
+        <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
+        <div class="control-row single">
+          <input id="recordsSearchInput" type="text" placeholder="Sehir / ulke ara">
+        </div>
+        <div class="control-row">
+          <select id="recordsSortInput">
+            <option value="newest">En yeni</option>
+            <option value="oldest">En eski</option>
+            <option value="expensive">En pahali</option>
+            <option value="rating">En yuksek puan</option>
+            <option value="city-asc">Sehir A-Z</option>
+          </select>
+          <select id="recordsStatusFilterInput">
+            <option value="">Tum durumlar</option>
+            <option value="visited">Gezildi</option>
+            <option value="planned">Planlaniyor</option>
+            <option value="again">Tekrar gidilecek</option>
+          </select>
+        </div>
         <div id="recordsList" class="list"></div>
       </article>
     </section>
@@ -148,6 +192,7 @@
           <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
           <div id="citySuggestions" class="suggestions"></div>
         </div>
+        <button id="useLocationBtn" class="tool-btn stats" type="button">Anlik konumdan al</button>
         <input id="countryInput" type="text" placeholder="Ulke otomatik gelecek" readonly>
         <input id="dateInput" type="date">
         <select id="statusInput">
@@ -229,17 +274,27 @@
       statCity: document.getElementById("statCity"),
       statCountry: document.getElementById("statCountry"),
       statPlanned: document.getElementById("statPlanned"),
+      statAvgRating: document.getElementById("statAvgRating"),
+      statTotalBudget: document.getElementById("statTotalBudget"),
+      countryDistribution: document.getElementById("countryDistribution"),
       heroImage: document.getElementById("heroImage"),
       heroBadge: document.getElementById("heroBadge"),
       recentList: document.getElementById("recentList"),
       flagsGrid: document.getElementById("flagsGrid"),
       recordsList: document.getElementById("recordsList"),
+      recordsSearchInput: document.getElementById("recordsSearchInput"),
+      recordsSortInput: document.getElementById("recordsSortInput"),
+      recordsStatusFilterInput: document.getElementById("recordsStatusFilterInput"),
+      exportJsonBtn: document.getElementById("exportJsonBtn"),
+      importJsonBtn: document.getElementById("importJsonBtn"),
+      importJsonInput: document.getElementById("importJsonInput"),
       openModalBtn: document.getElementById("openModalBtn"),
       closeModalBtn: document.getElementById("closeModalBtn"),
       cityModal: document.getElementById("cityModal"),
       cityForm: document.getElementById("cityForm"),
       cityInput: document.getElementById("cityInput"),
       citySuggestions: document.getElementById("citySuggestions"),
+      useLocationBtn: document.getElementById("useLocationBtn"),
       countryInput: document.getElementById("countryInput"),
       dateInput: document.getElementById("dateInput"),
       statusInput: document.getElementById("statusInput"),
@@ -323,6 +378,13 @@
       els.cityForm.addEventListener("submit", onSave);
       els.recordsList.addEventListener("click", onRecordAction);
       els.tabs.forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.screen)));
+      els.recordsSearchInput.addEventListener("input", renderRecords);
+      els.recordsSortInput.addEventListener("change", renderRecords);
+      els.recordsStatusFilterInput.addEventListener("change", renderRecords);
+      els.exportJsonBtn.addEventListener("click", exportJson);
+      els.importJsonBtn.addEventListener("click", () => els.importJsonInput.click());
+      els.importJsonInput.addEventListener("change", onImportJson);
+      els.useLocationBtn.addEventListener("click", useCurrentLocation);
       els.cityInput.addEventListener("input", onCityInput);
       els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
       els.photoInput.addEventListener("change", onPhotoInputChange);
@@ -420,6 +482,61 @@
     function closeSuggestions() {
       els.citySuggestions.classList.remove("open");
       els.citySuggestions.innerHTML = "";
+    }
+
+    async function useCurrentLocation() {
+      if (!navigator.geolocation) {
+        alert("Tarayicin konum ozelligini desteklemiyor.");
+        return;
+      }
+
+      const originalText = els.useLocationBtn.textContent;
+      els.useLocationBtn.disabled = true;
+      els.useLocationBtn.textContent = "Konum aliniyor...";
+
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 60000
+          });
+        });
+
+        const lat = Number(pos.coords.latitude);
+        const lng = Number(pos.coords.longitude);
+        const place = await reverseGeocode(lat, lng);
+
+        selectedCitySuggestion = {
+          city: place.city,
+          country: place.country,
+          countryCode: place.countryCode,
+          lat,
+          lng
+        };
+
+        els.cityInput.value = place.city;
+        els.countryInput.value = place.country;
+        closeSuggestions();
+      } catch (error) {
+        alert("Anlik konum alinamadi. Konum izni verdiginden emin ol.");
+      } finally {
+        els.useLocationBtn.disabled = false;
+        els.useLocationBtn.textContent = originalText;
+      }
+    }
+
+    async function reverseGeocode(lat, lng) {
+      const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=" +
+        encodeURIComponent(String(lat)) + "&lon=" + encodeURIComponent(String(lng));
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("Reverse geocode basarisiz");
+      const data = await response.json();
+      const a = data.address || {};
+      const city = a.city || a.town || a.village || a.municipality || a.state || "Mevcut Konum";
+      const country = a.country || "";
+      const countryCode = String(a.country_code || "").toLowerCase();
+      return { city, country, countryCode };
     }
 
     async function onPhotoInputChange(event) {
@@ -570,6 +687,100 @@
     }
 
     function saveRecords() { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+
+    function getVisibleRecords() {
+      const q = String(els.recordsSearchInput.value || "").trim().toLowerCase();
+      const statusFilter = String(els.recordsStatusFilterInput.value || "");
+      const sortBy = String(els.recordsSortInput.value || "newest");
+
+      let list = [...records].filter(item => {
+        const hitQuery = !q ||
+          item.city.toLowerCase().includes(q) ||
+          item.country.toLowerCase().includes(q) ||
+          String(item.note || "").toLowerCase().includes(q);
+        const hitStatus = !statusFilter || item.status === statusFilter;
+        return hitQuery && hitStatus;
+      });
+
+      switch (sortBy) {
+        case "oldest":
+          list.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+          break;
+        case "expensive":
+          list.sort((a, b) => (b.budget || 0) - (a.budget || 0));
+          break;
+        case "rating":
+          list.sort((a, b) => (b.ratingOverall || 0) - (a.ratingOverall || 0));
+          break;
+        case "city-asc":
+          list.sort((a, b) => a.city.localeCompare(b.city, "tr"));
+          break;
+        case "newest":
+        default:
+          list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      }
+      return list;
+    }
+
+    function exportJson() {
+      const payload = {
+        version: 3,
+        exportedAt: new Date().toISOString(),
+        total: records.length,
+        records
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sehir-haritam-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function onImportJson(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const txt = await file.text();
+        const parsed = JSON.parse(txt);
+        const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.records) ? parsed.records : []);
+        if (!incoming.length) throw new Error("Iceride kayit bulunamadi.");
+
+        const normalized = incoming.map(item => ({
+          id: item.id || crypto.randomUUID(),
+          city: String(item.city || "").trim(),
+          country: String(item.country || "").trim(),
+          countryCode: String(item.countryCode || "").toLowerCase(),
+          lat: Number(item.lat),
+          lng: Number(item.lng),
+          status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
+          date: item.date || "",
+          ratingOverall: normalizeScore(item.ratingOverall),
+          ratingFood: normalizeScore(item.ratingFood),
+          ratingTransport: normalizeScore(item.ratingTransport),
+          ratingSafety: normalizeScore(item.ratingSafety),
+          budget: normalizeMoney(item.budget),
+          currency: normalizeCurrency(item.currency),
+          tripDays: normalizeDays(item.tripDays),
+          photos: normalizePhotos(item.photos),
+          note: String(item.note || ""),
+          createdAt: item.createdAt || new Date().toISOString()
+        })).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
+
+        if (!normalized.length) throw new Error("Gecerli kayit yok.");
+        records = normalized.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        saveRecords();
+        renderAll();
+        alert("JSON ice aktarma tamamlandi: " + records.length + " kayit.");
+      } catch (error) {
+        alert(error.message || "JSON ice aktarma basarisiz.");
+      } finally {
+        event.target.value = "";
+      }
+    }
 
     async function onSave(event) {
       event.preventDefault();
@@ -730,6 +941,30 @@
       els.statCity.textContent = String(records.length);
       els.statCountry.textContent = String(countries.size);
       els.statPlanned.textContent = String(records.filter(item => item.status === "planned").length);
+
+      const rated = records.filter(item => item.ratingOverall != null).map(item => item.ratingOverall);
+      const avg = rated.length ? (rated.reduce((a, b) => a + b, 0) / rated.length) : null;
+      els.statAvgRating.textContent = avg == null ? "-" : avg.toFixed(1) + "/10";
+
+      const groupedBudget = {};
+      records.forEach(item => {
+        if (item.budget == null) return;
+        const c = normalizeCurrency(item.currency || "TRY");
+        groupedBudget[c] = (groupedBudget[c] || 0) + item.budget;
+      });
+      const budgetText = Object.keys(groupedBudget).length
+        ? Object.entries(groupedBudget).map(([c, v]) => formatMoney(v, c)).join(" | ")
+        : "-";
+      els.statTotalBudget.textContent = budgetText;
+
+      const perCountry = {};
+      records.forEach(item => {
+        perCountry[item.country] = (perCountry[item.country] || 0) + 1;
+      });
+      const dist = Object.entries(perCountry).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      els.countryDistribution.innerHTML = dist.length
+        ? dist.map(([country, count]) => "<div class='dist-item'><span>" + esc(country) + "</span><strong>" + count + " sehir</strong></div>").join("")
+        : "<div class='empty'>Dagilim verisi yok.</div>";
     }
 
     function renderHero() {
@@ -777,15 +1012,15 @@
       const latest = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
       if (!latest.length) { els.recentList.innerHTML = "<div class='empty'>Henuz kayit yok.</div>"; return; }
       els.recentList.innerHTML = latest.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + "</article>"
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p><p>Konum: " + esc(formatCoords(item.lat, item.lng)) + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + "</article>"
       ).join("");
     }
 
     function renderRecords() {
-      const sorted = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      if (!sorted.length) { els.recordsList.innerHTML = "<div class='empty'>Kayit bulunmuyor.</div>"; return; }
-      els.recordsList.innerHTML = sorted.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
+      const visible = getVisibleRecords();
+      if (!visible.length) { els.recordsList.innerHTML = "<div class='empty'>Filtreye uygun kayit bulunmuyor.</div>"; return; }
+      els.recordsList.innerHTML = visible.map(item =>
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p><p>Konum: " + esc(formatCoords(item.lat, item.lng)) + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
       ).join("");
     }
 
@@ -809,6 +1044,7 @@
           "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
           "Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" +
           (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") +
+          "Konum: " + esc(formatCoords(item.lat, item.lng)) + "<br>" +
           (popupMeta.length ? esc(popupMeta.join(" | ")) + "<br>" : "") +
           (item.note ? "Not: " + esc(item.note) : "")
         );
@@ -936,6 +1172,13 @@
       const d = new Date(value + "T00:00:00");
       if (Number.isNaN(d.getTime())) return value;
       return new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(d);
+    }
+
+    function formatCoords(lat, lng) {
+      const a = Number(lat);
+      const b = Number(lng);
+      if (!Number.isFinite(a) || !Number.isFinite(b)) return "-";
+      return a.toFixed(4) + ", " + b.toFixed(4);
     }
 
     function esc(value) {
