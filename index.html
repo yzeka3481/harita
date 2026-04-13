@@ -1223,7 +1223,7 @@
     function renderHero() {
       const countries = [...new Set(records.map(item => item.country).filter(Boolean))];
       if (!countries.length) {
-        setHeroImageByCountry("world");
+        setHeroDefaultPassport();
         els.heroBadge.textContent = "Ulke yok";
         heroCountry = "";
         return;
@@ -1259,6 +1259,35 @@
 
       els.heroImage.onerror = tryNext;
       tryNext();
+    }
+
+    function setHeroDefaultPassport() {
+      const svg =
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700'>" +
+          "<defs>" +
+            "<linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'>" +
+              "<stop offset='0%' stop-color='#0f3a66'/>" +
+              "<stop offset='100%' stop-color='#164f86'/>" +
+            "</linearGradient>" +
+            "<linearGradient id='card' x1='0' y1='0' x2='0' y2='1'>" +
+              "<stop offset='0%' stop-color='#204d78'/>" +
+              "<stop offset='100%' stop-color='#173d62'/>" +
+            "</linearGradient>" +
+          "</defs>" +
+          "<rect width='1200' height='700' fill='url(#bg)'/>" +
+          "<circle cx='1040' cy='120' r='140' fill='rgba(255,255,255,0.08)'/>" +
+          "<circle cx='180' cy='640' r='220' fill='rgba(255,255,255,0.06)'/>" +
+          "<rect x='270' y='110' width='660' height='470' rx='34' fill='url(#card)' stroke='rgba(255,255,255,0.22)'/>" +
+          "<rect x='300' y='144' width='600' height='60' rx='12' fill='rgba(255,255,255,0.08)'/>" +
+          "<text x='600' y='185' text-anchor='middle' fill='#dcecff' font-family='Segoe UI, Arial, sans-serif' font-size='38' font-weight='700'>PASSPORT</text>" +
+          "<circle cx='600' cy='328' r='95' fill='none' stroke='rgba(255,215,130,0.82)' stroke-width='8'/>" +
+          "<path d='M535 328h130M600 263v130M553 281c24-17 70-17 94 0M553 375c24 17 70 17 94 0' stroke='rgba(255,215,130,0.82)' stroke-width='7' fill='none' stroke-linecap='round'/>" +
+          "<rect x='328' y='450' width='544' height='20' rx='10' fill='rgba(255,255,255,0.2)'/>" +
+          "<rect x='328' y='484' width='430' height='14' rx='7' fill='rgba(255,255,255,0.14)'/>" +
+          "<text x='600' y='545' text-anchor='middle' fill='rgba(222,238,255,0.92)' font-family='Segoe UI, Arial, sans-serif' font-size='28' font-weight='600'>Ilk sehri ekleyerek seyahatine basla</text>" +
+        "</svg>";
+      els.heroImage.onerror = null;
+      els.heroImage.src = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
     }
 
     function renderHomeGlobe() {
