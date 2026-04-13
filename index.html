@@ -3,60 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Gezdigim Sehirler - Mobile Dark</title>
+  <title>Sehir Haritam - Mobile Dark</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
   <style>
     :root {
       color-scheme: dark;
       --bg: #080c12;
-      --bg-soft: #101722;
-      --card: #111a27;
-      --card-2: #182437;
-      --line: #253248;
-      --text: #e8f0ff;
-      --muted: #93a5bd;
+      --bg-2: #0f1724;
+      --card: #131d2b;
+      --line: #27384f;
+      --text: #e9f1ff;
+      --muted: #9ab0cc;
       --primary: #4ea1ff;
       --primary-2: #2f7cde;
-      --ok: #48d3a7;
+      --ok: #36c596;
+      --warn: #f2be4f;
+      --danger: #ff7373;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      background:
-        radial-gradient(circle at 20% -10%, #1f385f 0%, transparent 45%),
-        radial-gradient(circle at 90% -20%, #204c45 0%, transparent 50%),
-        var(--bg);
-      color: var(--text);
-      font-family: "Segoe UI", Tahoma, sans-serif;
       min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% -10%, #1f3d66 0%, transparent 40%),
+        radial-gradient(circle at 90% -15%, #20534d 0%, transparent 42%),
+        var(--bg);
     }
 
     .app {
-      max-width: 480px;
+      max-width: 500px;
       margin: 0 auto;
       padding: 14px 14px calc(22px + env(safe-area-inset-bottom));
     }
 
     .hero {
-      background: linear-gradient(135deg, #173357, #0f5f5a);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
       border-radius: 18px;
-      padding: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       margin-bottom: 12px;
+      min-height: 210px;
+      background: #0f1726;
+    }
+
+    .hero img {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      filter: saturate(1.1);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(7, 12, 20, 0.05), rgba(7, 12, 20, 0.92));
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      min-height: 210px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
     }
 
     .hero h1 {
-      margin: 0 0 6px;
+      margin: 0;
       font-size: 22px;
-      line-height: 1.25;
+      line-height: 1.2;
+    }
+
+    .country-badge {
+      background: rgba(20, 33, 50, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #d9e7ff;
+      white-space: nowrap;
     }
 
     .hero p {
       margin: 0;
-      color: #d6e5ff;
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.45;
+      color: #d7e5ff;
+      max-width: 92%;
+    }
+
+    .add-btn {
+      position: fixed;
+      right: 16px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      z-index: 20;
+      width: 56px;
+      height: 56px;
+      border: none;
+      border-radius: 999px;
+      color: #04233e;
+      font-size: 30px;
+      font-weight: 700;
+      background: linear-gradient(180deg, #82c1ff, #4f98ef);
+      box-shadow: 0 10px 30px rgba(37, 111, 196, 0.45);
+      cursor: pointer;
     }
 
     .stats {
@@ -67,11 +139,11 @@
     }
 
     .stat {
-      background: var(--card);
       border: 1px solid var(--line);
+      background: rgba(16, 24, 36, 0.95);
       border-radius: 12px;
-      padding: 10px 8px;
       text-align: center;
+      padding: 10px 8px;
     }
 
     .stat small {
@@ -82,44 +154,176 @@
     }
 
     .stat strong {
-      font-size: 20px;
+      font-size: 19px;
       line-height: 1;
     }
 
     .card {
-      background: linear-gradient(180deg, var(--card), var(--card-2));
       border: 1px solid var(--line);
       border-radius: 14px;
+      background: linear-gradient(180deg, #121c29, #182538);
       padding: 12px;
       margin-bottom: 12px;
-      backdrop-filter: blur(8px);
     }
 
     .card h2 {
       margin: 0 0 10px;
       font-size: 16px;
-      line-height: 1.3;
     }
 
     #map {
       height: 250px;
       border-radius: 10px;
-      border: 1px dashed #3b4e69;
-      background: #0f1726;
-      color: var(--muted);
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 14px;
-      font-size: 13px;
-      line-height: 1.5;
+      overflow: hidden;
+      border: 1px solid #31445f;
+      background: #0c1320;
     }
 
-    .roadmap {
-      margin-top: 10px;
+    .muted {
+      margin: 10px 0 0;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .item {
+      border: 1px solid #2a3c56;
+      border-radius: 10px;
+      background: #0e1724;
+      padding: 10px;
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+
+    .item h3 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .status {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .status.visited { background: rgba(54, 197, 150, 0.15); border-color: rgba(54, 197, 150, 0.35); color: #7de5c3; }
+    .status.planned { background: rgba(242, 190, 79, 0.15); border-color: rgba(242, 190, 79, 0.35); color: #ffd889; }
+    .status.again { background: rgba(78, 161, 255, 0.14); border-color: rgba(78, 161, 255, 0.4); color: #a5ceff; }
+
+    .item-actions {
+      display: flex;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .item-actions button {
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .btn-edit { background: #355c86; }
+    .btn-delete { background: #7d2f40; }
+
+    .flags-grid {
+      display: grid;
+      grid-template-columns: repeat(16, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .flag {
+      width: 20px;
+      height: 10px;
+      border-radius: 2px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      opacity: 0.22;
+      filter: grayscale(1);
+      justify-self: center;
+      display: block;
+      background: #0a111d;
+    }
+
+    .flag.visited {
+      opacity: 1;
+      filter: none;
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 12, 0.82);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 30;
+      padding: 10px;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 14px;
+      border: 1px solid #2b3d56;
+      background: linear-gradient(180deg, #152133, #111a28);
+      padding: 12px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .close-btn {
+      border: none;
+      border-radius: 8px;
+      background: #22354f;
+      color: #d8e6ff;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     form {
@@ -127,22 +331,19 @@
       gap: 9px;
     }
 
-    input, select, textarea, button {
+    input, select, textarea {
       width: 100%;
       border-radius: 10px;
-      font: inherit;
-    }
-
-    input, select, textarea {
-      background: #0e1624;
+      border: 1px solid #30445f;
+      background: #0e1826;
       color: var(--text);
-      border: 1px solid #2b3a52;
       padding: 11px 12px;
+      font: inherit;
       outline: none;
     }
 
     input::placeholder, textarea::placeholder {
-      color: #7990ad;
+      color: #7f98b7;
     }
 
     input:focus, select:focus, textarea:focus {
@@ -151,165 +352,543 @@
     }
 
     textarea {
-      min-height: 88px;
+      min-height: 84px;
       resize: vertical;
     }
 
-    button {
+    .save-btn {
       border: none;
+      border-radius: 10px;
       padding: 12px;
-      background: linear-gradient(180deg, var(--primary), var(--primary-2));
+      font: inherit;
+      font-weight: 800;
       color: #fff;
-      font-weight: 700;
-      letter-spacing: 0.2px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-2));
       cursor: pointer;
     }
 
-    button:active {
-      transform: translateY(1px);
-    }
-
-    .list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .city-item {
-      background: #0e1622;
-      border: 1px solid #2a3850;
+    .empty {
+      border: 1px dashed #334861;
       border-radius: 10px;
-      padding: 10px;
-    }
-
-    .city-item h3 {
-      margin: 0 0 5px;
-      font-size: 15px;
-      line-height: 1.3;
-    }
-
-    .city-item p {
-      margin: 0;
+      padding: 12px;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.4;
+      text-align: center;
+      background: rgba(12, 19, 30, 0.65);
     }
 
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid #33537b;
-      background: rgba(78, 161, 255, 0.12);
-      color: #9ecaff;
-      font-size: 11px;
-      margin-top: 8px;
-    }
-
-    .next-step {
-      display: grid;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.45;
-      margin-top: 4px;
-    }
-
-    .next-step strong {
-      color: var(--ok);
-      font-size: 12px;
-    }
-
-    @media (min-width: 760px) {
-      .app {
-        max-width: 920px;
-        padding-top: 22px;
-      }
-
-      .desktop-grid {
+    @media (min-width: 780px) {
+      .app { max-width: 940px; }
+      .layout {
         display: grid;
-        grid-template-columns: 1.2fr 1fr;
+        grid-template-columns: 1.1fr 1fr;
         gap: 12px;
       }
-
-      #map {
-        height: 340px;
-      }
+      #map { height: 320px; }
+      .flags-grid { grid-template-columns: repeat(24, minmax(0, 1fr)); }
+      .add-btn { right: calc(50% - 460px + 14px); }
     }
   </style>
 </head>
 <body>
   <main class="app">
     <section class="hero">
-      <h1>Gezdigim Sehirler</h1>
-      <p>Mobilde hizli kullanim icin sade dark mode taslak: sehir ekle, haritada goster, notlarini tut.</p>
+      <img id="heroImage" alt="Ulke fotografi" src="">
+      <div class="hero-content">
+        <div class="hero-top">
+          <h1>Sehir Haritam</h1>
+          <span id="heroCountryBadge" class="country-badge">Ulke secilmedi</span>
+        </div>
+        <p>Kaydettigin ulkelerden birine ait bir fotograf burada gosterilir.</p>
+      </div>
     </section>
 
     <section class="stats" aria-label="Ozet istatistikler">
       <article class="stat">
         <small>Toplam sehir</small>
-        <strong id="totalCities">0</strong>
+        <strong id="statCity">0</strong>
       </article>
       <article class="stat">
         <small>Toplam ulke</small>
-        <strong id="totalCountries">0</strong>
+        <strong id="statCountry">0</strong>
       </article>
       <article class="stat">
         <small>Planlanan</small>
-        <strong id="plannedTrips">0</strong>
+        <strong id="statPlanned">0</strong>
       </article>
     </section>
 
-    <section class="desktop-grid">
+    <section class="layout">
       <article class="card">
         <h2>Harita</h2>
-        <div id="map" role="img" aria-label="Sehir marker alani">
-          Harita burada acilacak
-          <br>
-          (Leaflet entegre edilince markerlar otomatik gorunecek)
-        </div>
-        <p class="roadmap">Not: Bu alan mobilde ilk bakista en kritik bilgi olarak konumlandi.</p>
+        <div id="map"></div>
+        <p class="muted">Marker renkleri: Gezildi yesil, Plan sari, Tekrar mavi.</p>
       </article>
 
-      <aside class="card">
-        <h2>Yeni Sehir Ekle</h2>
-        <form id="cityForm">
-          <input id="cityName" type="text" placeholder="Sehir adi (Orn: Roma)" required>
-          <input id="countryName" type="text" placeholder="Ulke adi (Orn: Italya)" required>
-          <input id="visitDate" type="date">
-          <select id="visitStatus">
-            <option value="visited">Gezildi</option>
-            <option value="planned">Planlaniyor</option>
-            <option value="again">Tekrar gidilecek</option>
-          </select>
-          <textarea id="cityNote" placeholder="Kisa not: yemek, gezi noktasi, puan..."></textarea>
-          <button type="submit">Sehri Kaydet</button>
-        </form>
-      </aside>
-    </section>
-
-    <section class="card">
-      <h2>Kayitlar</h2>
-      <div class="list" id="cityList">
-        <article class="city-item">
-          <h3>Henuz kayit yok</h3>
-          <p>Ilk sehir kaydini ekledikten sonra burada goreceksin.</p>
-          <span class="status-chip">MVP Hazir</span>
+      <section>
+        <article class="card">
+          <h2>Son Eklenen 3 Sehir</h2>
+          <div id="recentList" class="list"></div>
         </article>
-      </div>
+
+        <article class="card">
+          <h2>Sehir Kayitlari (Duzenle / Sil)</h2>
+          <div id="recordsList" class="list"></div>
+        </article>
+      </section>
     </section>
 
     <section class="card">
-      <h2>Uygulamada Neler Olabilir?</h2>
-      <div class="next-step">
-        <strong>Pratik MVP ozellikleri</strong>
-        <span>- Sehir ekle / sil / duzenle</span>
-        <span>- Haritada marker goster (renk: gezildi-plan-tekrar)</span>
-        <span>- Filtre: ulke, durum, tarih</span>
-        <span>- LocalStorage ile veri saklama</span>
-        <span>- JSON disa aktar / ice aktar</span>
-      </div>
+      <h2>Dunya Bayraklari</h2>
+      <p class="muted">20x10 gorunum: gidilen ulkeler parlak, digerleri soluk.</p>
+      <div id="flagsGrid" class="flags-grid"></div>
     </section>
   </main>
+
+  <button id="openModalBtn" class="add-btn" type="button" aria-label="Sehir ekle">+</button>
+
+  <div id="cityModal" class="modal" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="modalTitle">Sehir Ekle</h2>
+        <button id="closeModalBtn" class="close-btn" type="button">Kapat</button>
+      </div>
+      <form id="cityForm">
+        <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
+        <input id="countryInput" type="text" placeholder="Ulke adi (Orn: Italya)" required>
+        <input id="dateInput" type="date">
+        <select id="statusInput">
+          <option value="visited">Gezildi</option>
+          <option value="planned">Planlaniyor</option>
+          <option value="again">Tekrar gidilecek</option>
+        </select>
+        <textarea id="noteInput" placeholder="Not (opsiyonel)"></textarea>
+        <button id="saveBtn" class="save-btn" type="submit">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    const STORAGE_KEY = "travel-map-mobile-dark-v1";
+    const STATUS_LABELS = {
+      visited: "Gezildi",
+      planned: "Planlaniyor",
+      again: "Tekrar gidilecek"
+    };
+    const STATUS_COLORS = {
+      visited: "#36c596",
+      planned: "#f2be4f",
+      again: "#4ea1ff"
+    };
+
+    const WORLD_COUNTRY_CODES = [
+      "af","al","dz","ad","ao","ag","ar","am","au","at","az","bs","bh","bd","bb","by","be","bz","bj","bt","bo","ba","bw","br","bn","bg","bf","bi","cv","kh","cm","ca","cf","td","cl","cn","co","km","cg","cd","cr","ci","hr","cu","cy","cz","dk","dj","dm","do","ec","eg","sv","gq","er","ee","sz","et","fj","fi","fr","ga","gm","ge","de","gh","gr","gd","gt","gn","gw","gy","ht","hn","hu","is","in","id","ir","iq","ie","il","it","jm","jp","jo","kz","ke","ki","kp","kr","kw","kg","la","lv","lb","ls","lr","ly","li","lt","lu","mg","mw","my","mv","ml","mt","mh","mr","mu","mx","fm","md","mc","mn","me","ma","mz","mm","na","nr","np","nl","nz","ni","ne","ng","mk","no","om","pk","pw","pa","pg","py","pe","ph","pl","pt","qa","ro","ru","rw","kn","lc","vc","ws","sm","st","sa","sn","rs","sc","sl","sg","sk","si","sb","so","za","ss","es","lk","sd","sr","se","ch","sy","tj","tz","th","tl","tg","to","tt","tn","tr","tm","tv","ug","ua","ae","gb","us","uy","uz","vu","va","ve","vn","ye","zm","zw","tw","xk","ps","hk","mo","mt","md","bz","pr","is","cu","ao","ye","cy","by"
+    ];
+
+    const els = {
+      statCity: document.getElementById("statCity"),
+      statCountry: document.getElementById("statCountry"),
+      statPlanned: document.getElementById("statPlanned"),
+      heroImage: document.getElementById("heroImage"),
+      heroCountryBadge: document.getElementById("heroCountryBadge"),
+      recentList: document.getElementById("recentList"),
+      recordsList: document.getElementById("recordsList"),
+      flagsGrid: document.getElementById("flagsGrid"),
+      cityModal: document.getElementById("cityModal"),
+      openModalBtn: document.getElementById("openModalBtn"),
+      closeModalBtn: document.getElementById("closeModalBtn"),
+      modalTitle: document.getElementById("modalTitle"),
+      cityForm: document.getElementById("cityForm"),
+      cityInput: document.getElementById("cityInput"),
+      countryInput: document.getElementById("countryInput"),
+      dateInput: document.getElementById("dateInput"),
+      statusInput: document.getElementById("statusInput"),
+      noteInput: document.getElementById("noteInput"),
+      saveBtn: document.getElementById("saveBtn")
+    };
+
+    let records = loadRecords();
+    let editId = null;
+    let heroCountryCache = "";
+    let map;
+    let markerLayer;
+
+    init();
+
+    function init() {
+      initMap();
+      bindEvents();
+      renderAll();
+    }
+
+    function loadRecords() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return parsed
+          .map(item => ({
+            id: item.id || crypto.randomUUID(),
+            city: String(item.city || "").trim(),
+            country: String(item.country || "").trim(),
+            countryCode: String(item.countryCode || "").toLowerCase(),
+            lat: Number(item.lat),
+            lng: Number(item.lng),
+            status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
+            date: item.date || "",
+            note: item.note || "",
+            createdAt: item.createdAt || new Date().toISOString()
+          }))
+          .filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRecords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function initMap() {
+      map = L.map("map", {
+        zoomControl: true,
+        attributionControl: true,
+        worldCopyJump: true,
+        minZoom: 2
+      }).setView([20, 10], 2);
+
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        subdomains: "abcd",
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap &copy; CARTO"
+      }).addTo(map);
+
+      markerLayer = L.layerGroup().addTo(map);
+    }
+
+    function bindEvents() {
+      els.openModalBtn.addEventListener("click", () => openModal());
+      els.closeModalBtn.addEventListener("click", closeModal);
+      els.cityModal.addEventListener("click", event => {
+        if (event.target === els.cityModal) closeModal();
+      });
+
+      els.cityForm.addEventListener("submit", onSave);
+      els.recordsList.addEventListener("click", onRecordAction);
+    }
+
+    async function onSave(event) {
+      event.preventDefault();
+
+      const city = els.cityInput.value.trim();
+      const country = els.countryInput.value.trim();
+      const status = els.statusInput.value;
+      const date = els.dateInput.value;
+      const note = els.noteInput.value.trim();
+
+      if (!city || !country) return;
+
+      els.saveBtn.disabled = true;
+      els.saveBtn.textContent = editId ? "Guncelleniyor..." : "Kaydediliyor...";
+
+      try {
+        let lat = null;
+        let lng = null;
+        let countryCode = "";
+
+        if (editId) {
+          const existing = records.find(item => item.id === editId);
+          if (existing) {
+            lat = existing.lat;
+            lng = existing.lng;
+            countryCode = existing.countryCode;
+
+            if (
+              existing.city.toLowerCase() !== city.toLowerCase() ||
+              existing.country.toLowerCase() !== country.toLowerCase()
+            ) {
+              const geo = await geocodeCity(city, country);
+              lat = geo.lat;
+              lng = geo.lng;
+              countryCode = geo.countryCode;
+            }
+          }
+        } else {
+          const geo = await geocodeCity(city, country);
+          lat = geo.lat;
+          lng = geo.lng;
+          countryCode = geo.countryCode;
+        }
+
+        const payload = {
+          city,
+          country,
+          countryCode,
+          lat,
+          lng,
+          status,
+          date,
+          note
+        };
+
+        if (editId) {
+          records = records.map(item => (item.id === editId ? { ...item, ...payload } : item));
+        } else {
+          records.unshift({
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString(),
+            ...payload
+          });
+        }
+
+        saveRecords();
+        closeModal();
+        renderAll();
+      } catch (error) {
+        alert(error.message || "Kayit yapilamadi.");
+      } finally {
+        els.saveBtn.disabled = false;
+        els.saveBtn.textContent = "Kaydet";
+      }
+    }
+
+    async function geocodeCity(city, country) {
+      const query = encodeURIComponent(city + ", " + country);
+      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&q=" + query;
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+
+      if (!response.ok) {
+        throw new Error("Konum servisine ulasilamadi.");
+      }
+
+      const data = await response.json();
+      if (!data.length) {
+        throw new Error("Sehir bulunamadi. Farkli bir sehir/ulke deneyin.");
+      }
+
+      const top = data[0];
+      const countryCode = top.address && top.address.country_code ? String(top.address.country_code).toLowerCase() : "";
+
+      return {
+        lat: Number(top.lat),
+        lng: Number(top.lon),
+        countryCode
+      };
+    }
+
+    function onRecordAction(event) {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const action = button.dataset.action;
+
+      if (action === "edit") {
+        openModal(id);
+      }
+
+      if (action === "delete") {
+        const ok = confirm("Bu sehri silmek istiyor musun?");
+        if (!ok) return;
+        records = records.filter(item => item.id !== id);
+        saveRecords();
+        renderAll();
+      }
+    }
+
+    function openModal(id = null) {
+      editId = id;
+      els.cityForm.reset();
+      els.statusInput.value = "visited";
+
+      if (editId) {
+        const item = records.find(record => record.id === editId);
+        if (!item) return;
+        els.modalTitle.textContent = "Sehir Duzenle";
+        els.cityInput.value = item.city;
+        els.countryInput.value = item.country;
+        els.dateInput.value = item.date || "";
+        els.statusInput.value = item.status;
+        els.noteInput.value = item.note || "";
+      } else {
+        els.modalTitle.textContent = "Sehir Ekle";
+      }
+
+      els.cityModal.classList.add("open");
+      els.cityModal.setAttribute("aria-hidden", "false");
+      setTimeout(() => els.cityInput.focus(), 50);
+    }
+
+    function closeModal() {
+      editId = null;
+      els.cityModal.classList.remove("open");
+      els.cityModal.setAttribute("aria-hidden", "true");
+      els.cityForm.reset();
+      els.statusInput.value = "visited";
+    }
+
+    function renderAll() {
+      renderStats();
+      renderHero();
+      renderRecent();
+      renderRecords();
+      renderMap();
+      renderFlags();
+    }
+
+    function renderStats() {
+      const countries = new Set(records.map(item => item.country.toLowerCase()));
+      const planned = records.filter(item => item.status === "planned").length;
+
+      els.statCity.textContent = String(records.length);
+      els.statCountry.textContent = String(countries.size);
+      els.statPlanned.textContent = String(planned);
+    }
+
+    function getVisitedCountryCodes() {
+      return new Set(
+        records
+          .filter(item => item.status === "visited" || item.status === "again")
+          .map(item => item.countryCode)
+          .filter(Boolean)
+      );
+    }
+
+    function renderHero() {
+      const countries = [...new Set(records.map(item => item.country).filter(Boolean))];
+      if (!countries.length) {
+        els.heroImage.src = "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=1200&q=80";
+        els.heroCountryBadge.textContent = "Ulke secilmedi";
+        heroCountryCache = "";
+        return;
+      }
+
+      let country = heroCountryCache;
+      if (!country || !countries.includes(country)) {
+        country = countries[Math.floor(Math.random() * countries.length)];
+        heroCountryCache = country;
+      }
+
+      const query = encodeURIComponent(country + " travel landscape");
+      els.heroImage.src = "https://source.unsplash.com/1200x700/?" + query;
+      els.heroCountryBadge.textContent = country;
+    }
+
+    function renderRecent() {
+      const latest = [...records]
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 3);
+
+      if (!latest.length) {
+        els.recentList.innerHTML = "<div class='empty'>Henuz sehir yok. + ile ilk sehri ekle.</div>";
+        return;
+      }
+
+      els.recentList.innerHTML = latest.map(item => {
+        return (
+          "<article class='item'>" +
+            "<div class='item-head'>" +
+              "<h3>" + esc(item.city) + ", " + esc(item.country) + "</h3>" +
+              "<span class='status " + esc(item.status) + "'>" + esc(STATUS_LABELS[item.status]) + "</span>" +
+            "</div>" +
+            "<p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p>" +
+          "</article>"
+        );
+      }).join("");
+    }
+
+    function renderRecords() {
+      const sorted = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      if (!sorted.length) {
+        els.recordsList.innerHTML = "<div class='empty'>Kayit yok.</div>";
+        return;
+      }
+
+      els.recordsList.innerHTML = sorted.map(item => {
+        return (
+          "<article class='item'>" +
+            "<div class='item-head'>" +
+              "<h3>" + esc(item.city) + ", " + esc(item.country) + "</h3>" +
+              "<span class='status " + esc(item.status) + "'>" + esc(STATUS_LABELS[item.status]) + "</span>" +
+            "</div>" +
+            "<p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" +
+            (item.note ? "<p>" + esc(item.note) + "</p>" : "") +
+            "<div class='item-actions'>" +
+              "<button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button>" +
+              "<button class='btn-delete' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button>" +
+            "</div>" +
+          "</article>"
+        );
+      }).join("");
+    }
+
+    function renderMap() {
+      markerLayer.clearLayers();
+      const points = [];
+
+      records.forEach(item => {
+        const color = STATUS_COLORS[item.status] || "#4ea1ff";
+        const marker = L.circleMarker([item.lat, item.lng], {
+          radius: 8,
+          color: "#0b1421",
+          weight: 1.3,
+          fillColor: color,
+          fillOpacity: 0.95
+        });
+
+        marker.bindPopup(
+          "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
+          "Durum: " + esc(STATUS_LABELS[item.status]) + "<br>" +
+          (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") +
+          (item.note ? "Not: " + esc(item.note) : "")
+        );
+
+        marker.addTo(markerLayer);
+        points.push([item.lat, item.lng]);
+      });
+
+      if (!points.length) {
+        map.setView([20, 10], 2);
+      } else if (points.length === 1) {
+        map.setView(points[0], 4);
+      } else {
+        map.fitBounds(points, { padding: [30, 30] });
+      }
+    }
+
+    function renderFlags() {
+      const visited = getVisitedCountryCodes();
+      const html = WORLD_COUNTRY_CODES.map(code => {
+        const cls = visited.has(code) ? "flag visited" : "flag";
+        const title = code.toUpperCase();
+        return (
+          "<img class='" + cls + "' " +
+          "src='https://flagcdn.com/w20/" + code + ".png' " +
+          "width='20' height='10' loading='lazy' alt='" + title + " flag' title='" + title + "'>"
+        );
+      }).join("");
+
+      els.flagsGrid.innerHTML = html;
+    }
+
+    function formatDate(value) {
+      const date = new Date(value + "T00:00:00");
+      if (Number.isNaN(date.getTime())) return value;
+      return new Intl.DateTimeFormat("tr-TR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).format(date);
+    }
+
+    function esc(value) {
+      const div = document.createElement("div");
+      div.textContent = value == null ? "" : String(value);
+      return div.innerHTML;
+    }
+  </script>
 </body>
 </html>
