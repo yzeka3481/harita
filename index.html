@@ -67,7 +67,12 @@
     .photo-actions{display:flex;justify-content:flex-end;margin-top:6px}
     .photo-clear{border:none;border-radius:8px;background:#2b405c;color:#dce9ff;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer}
     .gallery-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-    .gallery-row img{width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #30445f;display:block}
+    .gallery-row img{width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #30445f;display:block;cursor:pointer}
+    .lightbox{position:fixed;inset:0;z-index:7000;background:rgba(2,8,14,.9);display:none;align-items:center;justify-content:center;padding:14px}
+    .lightbox.open{display:flex}
+    .lightbox-inner{max-width:min(96vw,980px);max-height:90vh;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+    .lightbox img{max-width:100%;max-height:calc(90vh - 36px);border-radius:10px;border:1px solid #2e435e;background:#09101a}
+    .lightbox-close{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
     .flag-pin{width:24px;height:24px;border-radius:999px;border:2px solid #fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-static-map{max-height:340px;object-fit:contain}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}}
   </style>
@@ -202,6 +207,13 @@
     </div>
   </div>
 
+  <div id="photoLightbox" class="lightbox" aria-hidden="true">
+    <div class="lightbox-inner">
+      <button id="photoLightboxClose" class="lightbox-close" type="button">Kapat</button>
+      <img id="photoLightboxImg" alt="Buyuk fotograf">
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const STORAGE_KEY = "travel-map-v2";
@@ -244,7 +256,10 @@
       noteInput: document.getElementById("noteInput"),
       modalTitle: document.getElementById("modalTitle"),
       saveBtn: document.getElementById("saveBtn"),
-      tabs: document.querySelectorAll(".tab-btn")
+      tabs: document.querySelectorAll(".tab-btn"),
+      photoLightbox: document.getElementById("photoLightbox"),
+      photoLightboxImg: document.getElementById("photoLightboxImg"),
+      photoLightboxClose: document.getElementById("photoLightboxClose")
     };
 
     let records = loadRecords();
@@ -323,6 +338,18 @@
         if (!Number.isInteger(idx)) return;
         workingPhotos = workingPhotos.filter((_, i) => i !== idx);
         renderPhotoPreview();
+      });
+      els.photoLightboxClose.addEventListener("click", closePhotoLightbox);
+      els.photoLightbox.addEventListener("click", e => {
+        if (e.target === els.photoLightbox) closePhotoLightbox();
+      });
+      document.addEventListener("click", e => {
+        const img = e.target.closest("img[data-gallery-photo]");
+        if (!img) return;
+        openPhotoLightbox(img.getAttribute("src") || "");
+      });
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") closePhotoLightbox();
       });
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
@@ -456,8 +483,26 @@
         return;
       }
       els.photoPreview.innerHTML = workingPhotos.map((src, i) =>
-        "<div class='photo-thumb'><img src='" + esc(src) + "' alt='ani foto'><button class='photo-remove' type='button' data-remove-photo='" + i + "'>&times;</button></div>"
+        "<div class='photo-thumb'><img src='" + esc(src) + "' alt='ani foto' data-gallery-photo='1'><button class='photo-remove' type='button' data-remove-photo='" + i + "'>&times;</button></div>"
       ).join("");
+    }
+
+    function openPhotoLightbox(src) {
+      if (!src) return;
+      els.photoLightboxImg.src = src;
+      els.photoLightbox.classList.add("open");
+      els.photoLightbox.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closePhotoLightbox() {
+      if (!els.photoLightbox.classList.contains("open")) return;
+      els.photoLightbox.classList.remove("open");
+      els.photoLightbox.setAttribute("aria-hidden", "true");
+      els.photoLightboxImg.src = "";
+      if (!els.cityModal.classList.contains("open")) {
+        document.body.classList.remove("modal-open");
+      }
     }
 
     async function loadWorldData() {
@@ -487,6 +532,7 @@
     }
 
     function switchScreen(name) {
+      closePhotoLightbox();
       els.homeScreen.classList.toggle("active", name === "home");
       els.mapScreen.classList.toggle("active", name === "map");
       els.recordsScreen.classList.toggle("active", name === "records");
@@ -662,9 +708,12 @@
       selectedCitySuggestion = null;
       workingPhotos = [];
       closeSuggestions();
+      closePhotoLightbox();
       els.cityModal.classList.remove("open");
       els.cityModal.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
+      if (!els.photoLightbox.classList.contains("open")) {
+        document.body.classList.remove("modal-open");
+      }
       els.cityForm.reset();
       els.statusInput.value = "visited";
       els.currencyInput.value = "TRY";
@@ -827,7 +876,7 @@
 
     function renderGalleryRow(photos) {
       if (!Array.isArray(photos) || !photos.length) return "";
-      const thumbs = photos.slice(0, 4).map(src => "<img src='" + esc(src) + "' alt='ani fotograf'>").join("");
+      const thumbs = photos.slice(0, 4).map(src => "<img src='" + esc(src) + "' alt='ani fotograf' data-gallery-photo='1'>").join("");
       return "<div class='gallery-row'>" + thumbs + "</div>";
     }
 
