@@ -155,6 +155,24 @@
     .download-btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none}
     .download-btn.disabled{pointer-events:none;opacity:.55}
     .download-btn.story{background:#4a90e8;color:#fff}
+    .auth-card{border:1px solid rgba(255,255,255,.22);border-radius:14px;background:linear-gradient(180deg,#1d3b5d,#183452);padding:12px;margin-bottom:12px}
+    .auth-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .auth-state{font-size:12px;color:#dbeafc;line-height:1.35}
+    .auth-actions{display:flex;gap:8px}
+    .auth-btn{border:none;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}
+    .auth-btn.primary{background:#74bcff;color:#0c2b4a}
+    .auth-btn.ghost{background:rgba(255,255,255,.16);color:#eef6ff}
+    .auth-modal{position:fixed;inset:0;z-index:7600;background:rgba(3,9,18,.72);display:none;align-items:center;justify-content:center;padding:16px}
+    .auth-modal.open{display:flex}
+    .auth-panel{width:min(94vw,420px);border:1px solid rgba(255,255,255,.24);border-radius:16px;background:linear-gradient(180deg,#173a5f,#133250);padding:14px}
+    .auth-panel h3{margin:0 0 10px;font-size:18px}
+    .auth-tabs{display:flex;gap:6px;margin-bottom:10px}
+    .auth-tab{flex:1;border:none;border-radius:999px;padding:8px 10px;font-size:12px;font-weight:700;background:rgba(255,255,255,.14);color:#e6f3ff;cursor:pointer}
+    .auth-tab.active{background:#73bcff;color:#0f2c4a}
+    .auth-form{display:grid;gap:8px}
+    .auth-google{margin-top:8px;border:none;border-radius:999px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;background:#ffffff;color:#1d3b5d}
+    .auth-help{font-size:11px;color:#c6dbf3;line-height:1.4;margin-top:8px}
+    .auth-close{margin-left:auto;display:block;border:none;background:transparent;color:#dbeafc;font-size:20px;line-height:1;cursor:pointer}
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-globe{width:min(72vw,420px)}#exploreMapWrap{height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
   </style>
 </head>
@@ -302,6 +320,16 @@
     </section>
 
     <section id="summaryScreen" class="screen">
+      <article class="auth-card">
+        <div class="auth-row">
+          <div id="authStateText" class="auth-state">Hesap: Misafir modunda.</div>
+          <div class="auth-actions">
+            <button id="openAuthBtn" class="auth-btn primary" type="button">Giris / Kayit</button>
+            <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Cikis</button>
+          </div>
+        </div>
+      </article>
+
       <article class="card summary-hero">
         <div class="summary-top">
           <h2 class="summary-title">Seyahat Ozeti</h2>
@@ -391,10 +419,43 @@
     </div>
   </div>
 
+  <div id="authModal" class="auth-modal" aria-hidden="true">
+    <div class="auth-panel">
+      <button id="authCloseBtn" class="auth-close" type="button" aria-label="Kapat">×</button>
+      <h3>Hesap</h3>
+      <div class="auth-tabs">
+        <button id="authTabLogin" class="auth-tab active" type="button">Giris</button>
+        <button id="authTabRegister" class="auth-tab" type="button">Kayit Ol</button>
+      </div>
+      <form id="authForm" class="auth-form">
+        <input id="authNameInput" type="text" placeholder="Ad soyad (kayit olurken)" autocomplete="name" hidden>
+        <input id="authEmailInput" type="email" placeholder="E-posta" autocomplete="email" required>
+        <input id="authPasswordInput" type="password" placeholder="Sifre (min 6)" autocomplete="current-password" required>
+        <button id="authSubmitBtn" class="save-btn" type="submit">Giris Yap</button>
+      </form>
+      <button id="authGoogleBtn" class="auth-google" type="button">Google ile Gir</button>
+      <p id="authHelpText" class="auth-help">Firebase baglandiginda hesapla giris yapabilirsin.</p>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/three@0.164.1/build/three.min.js"></script>
   <script>
+    window.FIREBASE_CONFIG = {
+      apiKey: "AIzaSyA15GUvhvIXx9MR_YmGwE14UbuJlBv_h1o",
+      authDomain: "harita-23b9a.firebaseapp.com",
+      projectId: "harita-23b9a",
+      storageBucket: "harita-23b9a.firebasestorage.app",
+      messagingSenderId: "746679490957",
+      appId: "1:746679490957:web:618a7dfac1e1ef9e0145c4",
+      measurementId: "G-91CEKHYXRV"
+    };
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script>
     const STORAGE_KEY = "travel-map-v2";
+    const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
     const COUNTRY_PALETTE = ["#8ecae6","#219ebc","#ffb703","#fb8500","#bdb2ff","#a0c4ff","#90be6d","#43aa8b","#f9c74f","#f9844a","#e76f51","#4d908e","#577590","#f94144","#277da1","#3a86ff","#06d6a0","#ff99c8"];
     const WORLD_CODES = ["af","al","dz","ad","ao","ag","ar","am","au","at","az","bs","bh","bd","bb","by","be","bz","bj","bt","bo","ba","bw","br","bn","bg","bf","bi","cv","kh","cm","ca","cf","td","cl","cn","co","km","cg","cd","cr","ci","hr","cu","cy","cz","dk","dj","dm","do","ec","eg","sv","gq","er","ee","sz","et","fj","fi","fr","ga","gm","ge","de","gh","gr","gd","gt","gn","gw","gy","ht","hn","hu","is","in","id","ir","iq","ie","il","it","jm","jp","jo","kz","ke","ki","kp","kr","kw","kg","la","lv","lb","ls","lr","ly","li","lt","lu","mg","mw","my","mv","ml","mt","mh","mr","mu","mx","fm","md","mc","mn","me","ma","mz","mm","na","nr","np","nl","nz","ni","ne","ng","mk","no","om","pk","pw","pa","pg","py","pe","ph","pl","pt","qa","ro","ru","rw","kn","lc","vc","ws","sm","st","sa","sn","rs","sc","sl","sg","sk","si","sb","so","za","ss","es","lk","sd","sr","se","ch","sy","tj","tz","th","tl","tg","to","tt","tn","tr","tm","tv","ug","ua","ae","gb","us","uy","uz","vu","va","ve","vn","ye","zm","zw","tw","xk","ps","hk","mo"];
@@ -435,6 +496,20 @@
       exportJsonBtn: document.getElementById("exportJsonBtn"),
       importJsonBtn: document.getElementById("importJsonBtn"),
       importJsonInput: document.getElementById("importJsonInput"),
+      authStateText: document.getElementById("authStateText"),
+      openAuthBtn: document.getElementById("openAuthBtn"),
+      logoutBtn: document.getElementById("logoutBtn"),
+      authModal: document.getElementById("authModal"),
+      authCloseBtn: document.getElementById("authCloseBtn"),
+      authTabLogin: document.getElementById("authTabLogin"),
+      authTabRegister: document.getElementById("authTabRegister"),
+      authForm: document.getElementById("authForm"),
+      authNameInput: document.getElementById("authNameInput"),
+      authEmailInput: document.getElementById("authEmailInput"),
+      authPasswordInput: document.getElementById("authPasswordInput"),
+      authSubmitBtn: document.getElementById("authSubmitBtn"),
+      authGoogleBtn: document.getElementById("authGoogleBtn"),
+      authHelpText: document.getElementById("authHelpText"),
       openAddBtn: document.getElementById("openAddBtn"),
       addScreenTitle: document.getElementById("addScreenTitle"),
       cancelAddBtn: document.getElementById("cancelAddBtn"),
@@ -469,6 +544,10 @@
     };
 
     let records = loadRecords();
+    let currentUser = null;
+    let firebaseReady = false;
+    let authMode = "login";
+    let firebaseAuth = null;
     let editId = null;
     let heroCountry = "";
     let recentItems = [];
@@ -509,6 +588,7 @@
     function init() {
       initMaps();
       bindEvents();
+      initAuth();
       loadWorldData();
       renderAll();
     }
@@ -709,6 +789,14 @@
       els.recentList.addEventListener("pointerdown", onRecentPointerDown);
       els.recentList.addEventListener("pointerup", onRecentPointerUp);
       els.recentList.addEventListener("pointercancel", () => { recentGesture = null; });
+      els.openAuthBtn.addEventListener("click", () => openAuthModal("login"));
+      els.logoutBtn.addEventListener("click", onLogout);
+      els.authCloseBtn.addEventListener("click", closeAuthModal);
+      els.authModal.addEventListener("click", e => { if (e.target === els.authModal) closeAuthModal(); });
+      els.authTabLogin.addEventListener("click", () => setAuthMode("login"));
+      els.authTabRegister.addEventListener("click", () => setAuthMode("register"));
+      els.authForm.addEventListener("submit", onAuthSubmit);
+      els.authGoogleBtn.addEventListener("click", onGoogleSignIn);
       els.summaryYearSelect.addEventListener("change", renderSummaryDashboard);
       els.generateStoryBtn.addEventListener("click", generateStorySummary);
       els.exportJsonBtn.addEventListener("click", exportJson);
@@ -741,7 +829,9 @@
         openPhotoLightbox(img.getAttribute("src") || "");
       });
       document.addEventListener("keydown", e => {
-        if (e.key === "Escape") closePhotoLightbox();
+        if (e.key !== "Escape") return;
+        if (els.authModal.classList.contains("open")) closeAuthModal();
+        closePhotoLightbox();
       });
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
@@ -766,6 +856,154 @@
           closeSuggestions();
         }
       }, 260);
+    }
+
+    function initAuth() {
+      try {
+        if (!window.firebase || !FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey) {
+          firebaseReady = false;
+          renderAuthPanel();
+          return;
+        }
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        firebaseAuth = firebase.auth();
+        firebaseReady = true;
+        firebaseAuth.onAuthStateChanged(user => {
+          currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
+          records = loadRecords();
+          renderAll();
+        });
+      } catch (error) {
+        console.warn("Firebase baslatilamadi:", error);
+        firebaseReady = false;
+        renderAuthPanel();
+      }
+    }
+
+    function renderAuthPanel() {
+      if (currentUser) {
+        const name = currentUser.name || currentUser.email || "Kullanici";
+        els.authStateText.textContent = "Hesap: " + name;
+        els.openAuthBtn.hidden = true;
+        els.logoutBtn.hidden = false;
+        els.authHelpText.textContent = "Girili hesapla kayitlar cihazda kullanici bazli ayrilir.";
+      } else {
+        els.authStateText.textContent = "Hesap: Misafir modunda.";
+        els.openAuthBtn.hidden = false;
+        els.logoutBtn.hidden = true;
+        els.authHelpText.textContent = firebaseReady
+          ? "Hesabina girerek kendi kayit alanini kullanabilirsin."
+          : "Firebase baglantisi icin index.html icinde FIREBASE_CONFIG tanimla.";
+      }
+      setAuthMode(authMode);
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode === "register" ? "register" : "login";
+      const register = authMode === "register";
+      els.authTabLogin.classList.toggle("active", !register);
+      els.authTabRegister.classList.toggle("active", register);
+      els.authNameInput.hidden = !register;
+      els.authNameInput.required = register;
+      els.authPasswordInput.setAttribute("autocomplete", register ? "new-password" : "current-password");
+      els.authSubmitBtn.textContent = register ? "Kayit Ol" : "Giris Yap";
+    }
+
+    function openAuthModal(mode = "login") {
+      setAuthMode(mode);
+      els.authModal.classList.add("open");
+      els.authModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      setTimeout(() => els.authEmailInput.focus(), 30);
+    }
+
+    function closeAuthModal() {
+      els.authModal.classList.remove("open");
+      els.authModal.setAttribute("aria-hidden", "true");
+      els.authForm.reset();
+      setAuthMode("login");
+      if (!els.photoLightbox.classList.contains("open")) document.body.classList.remove("modal-open");
+    }
+
+    async function onAuthSubmit(event) {
+      event.preventDefault();
+      if (!firebaseReady || !firebaseAuth) {
+        alert("Firebase hazir degil. FIREBASE_CONFIG eklenmeli.");
+        return;
+      }
+      const email = String(els.authEmailInput.value || "").trim();
+      const password = String(els.authPasswordInput.value || "");
+      const name = String(els.authNameInput.value || "").trim();
+      if (!email || password.length < 6) {
+        alert("E-posta ve en az 6 karakter sifre gerekli.");
+        return;
+      }
+      els.authSubmitBtn.disabled = true;
+      try {
+        if (authMode === "register") {
+          const cred = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+          if (name && cred.user) await cred.user.updateProfile({ displayName: name });
+        } else {
+          await firebaseAuth.signInWithEmailAndPassword(email, password);
+        }
+        closeAuthModal();
+      } catch (error) {
+        alert(mapAuthError(error));
+      } finally {
+        els.authSubmitBtn.disabled = false;
+      }
+    }
+
+    async function onGoogleSignIn() {
+      if (!firebaseReady || !firebaseAuth) {
+        alert("Firebase hazir degil. FIREBASE_CONFIG eklenmeli.");
+        return;
+      }
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      try {
+        const isMobile = window.matchMedia && window.matchMedia("(max-width: 900px)").matches;
+        if (isMobile) {
+          await firebaseAuth.signInWithRedirect(provider);
+          return;
+        }
+        await firebaseAuth.signInWithPopup(provider);
+        closeAuthModal();
+      } catch (error) {
+        const code = error && error.code ? String(error.code) : "";
+        if (code.includes("popup-blocked") || code.includes("popup-closed-by-user") || code.includes("operation-not-supported-in-this-environment")) {
+          try {
+            await firebaseAuth.signInWithRedirect(provider);
+            return;
+          } catch (err2) {
+            alert(mapAuthError(err2));
+            return;
+          }
+        }
+        alert(mapAuthError(error));
+      }
+    }
+
+    async function onLogout() {
+      if (!firebaseReady || !firebaseAuth) return;
+      try {
+        await firebaseAuth.signOut();
+      } catch (error) {
+        alert(mapAuthError(error));
+      }
+    }
+
+    function mapAuthError(error) {
+      const code = error && error.code ? String(error.code) : "";
+      if (code.includes("email-already-in-use")) return "Bu e-posta zaten kullaniliyor.";
+      if (code.includes("invalid-email")) return "E-posta formati gecersiz.";
+      if (code.includes("weak-password")) return "Sifre en az 6 karakter olmali.";
+      if (code.includes("user-not-found") || code.includes("wrong-password")) return "E-posta veya sifre hatali.";
+      if (code.includes("popup-closed-by-user")) return "Google giris penceresi kapatildi.";
+      if (code.includes("popup-blocked")) return "Tarayici popup engelledi. Tekrar deneyin.";
+      if (code.includes("account-exists-with-different-credential")) return "Bu e-posta farkli bir yontemle kayitli.";
+      if (code.includes("too-many-requests")) return "Cok fazla deneme yapildi, lutfen sonra tekrar dene.";
+      return (error && error.message) ? error.message : "Islem sirasinda hata olustu.";
     }
 
     async function searchCitySuggestions(query) {
@@ -949,7 +1187,9 @@
 
     function loadRecords() {
       try {
-        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const key = getRecordsStorageKey();
+        const raw = localStorage.getItem(key) || (!currentUser ? localStorage.getItem(STORAGE_KEY) : "[]") || "[]";
+        const parsed = JSON.parse(raw);
         return parsed.map(item => ({
           id: item.id || crypto.randomUUID(),
           city: String(item.city || "").trim(),
@@ -972,7 +1212,11 @@
       } catch { return []; }
     }
 
-    function saveRecords() { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    function saveRecords() { localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records)); }
+
+    function getRecordsStorageKey() {
+      return currentUser && currentUser.uid ? (STORAGE_KEY + ":" + currentUser.uid) : (STORAGE_KEY + ":guest");
+    }
 
     function getVisibleRecords() {
       const q = String(els.recordsSearchInput.value || "").trim().toLowerCase();
@@ -1209,6 +1453,7 @@
     }
 
     function renderAll() {
+      renderAuthPanel();
       renderHero();
       renderHomeGlobe();
       renderHomeInsights();
