@@ -21,18 +21,18 @@
     .tool-btn.export{background:#2f7cde;color:#fff}
     .tool-btn.import{background:#2c8b6b;color:#fff}
     .tool-btn.stats{background:#394f6c;color:#e6f1ff}
-    .hero{border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden;min-height:180px;margin-bottom:12px;position:relative;background:#0f1725}
-    .hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,13,22,.15),rgba(8,13,22,.92))}
-    .hero-content{position:relative;z-index:1;min-height:180px;padding:14px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
+    .hero{border:none;border-radius:0;overflow:visible;min-height:230px;margin:-14px -14px -58px;position:relative;background:transparent;z-index:1}
+    .hero img{position:absolute;inset:0;width:100%;height:250px;object-fit:cover;transform:scale(1.06)}.hero:after{content:"";position:absolute;left:0;right:0;top:0;height:250px;background:linear-gradient(180deg,rgba(8,13,22,.08),rgba(8,13,22,.72))}
+    .hero-content{position:relative;z-index:1;min-height:220px;padding:24px 20px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
     .hero-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.hero h1{margin:0;font-size:22px}.badge{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 10px;font-size:12px;background:rgba(16,25,37,.7)}
     .hero p{margin:0;font-size:12px;color:#d2e1fb;line-height:1.4}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
     .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
-    .home-map-wrap{margin:0 0 12px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .home-globe{width:min(86vw,390px);aspect-ratio:1/1;border-radius:999px;overflow:hidden;position:relative;background:#aeb4bc;border:1px solid rgba(255,255,255,.25)}
-    #homeMiniMap{width:100%;height:100%}
+    .home-map-wrap{margin:0 0 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2}
+    .home-globe{width:min(86vw,390px);aspect-ratio:1/1;border-radius:999px;overflow:hidden;position:relative;background:transparent;border:none;touch-action:none;user-select:none;-webkit-user-select:none}
+    #homeMiniMap{width:100%;height:100%;background:transparent}
     #homeMiniMap canvas{width:100%!important;height:100%!important;display:block}
-    .home-globe:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.12),rgba(255,255,255,0) 38%)}
+    .home-globe:after{content:none}
     .list{display:grid;gap:8px}.item{border:1px solid #36577c;border-radius:10px;background:#163359;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
@@ -126,12 +126,10 @@
             <h1>Sehir Haritam</h1>
             <span id="heroBadge" class="badge">Ulke yok</span>
           </div>
-          <p>Ana ekrandaki harita sabittir. Gidilen ulkeler kirmizi gorunur.</p>
         </div>
       </article>
 
       <section class="home-map-wrap">
-        <h2>Ana Harita</h2>
         <div class="home-globe" aria-label="Dunya kuresi">
           <div id="homeMiniMap"></div>
         </div>
@@ -420,6 +418,10 @@
     let globeFallbackCanvas;
     let globeFallbackCtx;
     let globeLon = 22;
+    let globeLat = 20;
+    let globeDragging = false;
+    let globeLastX = 0;
+    let globeLastY = 0;
     let exploreMap;
     let exploreWorldLayer;
     let exploreMarkerLayer;
@@ -473,9 +475,11 @@
       container.innerHTML = "";
       globeFallbackCanvas = null;
       globeFallbackCtx = null;
+      globeDragging = false;
 
       if (!window.THREE) {
         initHomeGlobeFallback(container);
+        bindHomeGlobeDrag(container);
         return;
       }
 
@@ -506,9 +510,12 @@
         color: 0xffffff
       });
       globeMesh = new THREE.Mesh(geometry, material);
+      globeMesh.scale.set(1.03, 1.03, 1.03);
       globeMesh.rotation.y = -0.35;
+      globeMesh.rotation.x = -0.08;
       globeScene.add(globeMesh);
 
+      bindHomeGlobeDrag(container);
       resizeHomeGlobe();
       if (!globeAnimationId) animateHomeGlobe();
     }
@@ -523,6 +530,42 @@
       globeFallbackCtx = globeFallbackCanvas.getContext("2d");
       resizeHomeGlobe();
       if (!globeAnimationId) animateHomeGlobe();
+    }
+
+    function bindHomeGlobeDrag(container) {
+      if (!container || container.dataset.dragBound === "1") return;
+      container.dataset.dragBound = "1";
+      container.addEventListener("pointerdown", e => {
+        globeDragging = true;
+        globeLastX = e.clientX;
+        globeLastY = e.clientY;
+        if (container.setPointerCapture) container.setPointerCapture(e.pointerId);
+      });
+      container.addEventListener("pointermove", e => {
+        if (!globeDragging) return;
+        const dx = e.clientX - globeLastX;
+        const dy = e.clientY - globeLastY;
+        globeLastX = e.clientX;
+        globeLastY = e.clientY;
+
+        if (globeMesh) {
+          globeMesh.rotation.y += dx * 0.006;
+          globeMesh.rotation.x = Math.max(-0.72, Math.min(0.72, globeMesh.rotation.x + dy * 0.0038));
+        } else {
+          globeLon += dx * 0.34;
+          globeLat = Math.max(-55, Math.min(55, globeLat - dy * 0.2));
+          drawFallbackGlobeFrame();
+        }
+      });
+      const endDrag = e => {
+        globeDragging = false;
+        if (container.releasePointerCapture && e && e.pointerId != null) {
+          try { container.releasePointerCapture(e.pointerId); } catch {}
+        }
+      };
+      container.addEventListener("pointerup", endDrag);
+      container.addEventListener("pointercancel", endDrag);
+      container.addEventListener("pointerleave", endDrag);
     }
 
     function resizeHomeGlobe() {
@@ -543,10 +586,10 @@
     function animateHomeGlobe() {
       globeAnimationId = requestAnimationFrame(animateHomeGlobe);
       if (globeRenderer && globeScene && globeCamera && globeMesh) {
-        globeMesh.rotation.y += 0.0021;
+        if (!globeDragging) globeMesh.rotation.y += 0.0042;
         globeRenderer.render(globeScene, globeCamera);
       } else if (globeFallbackCtx && globeFallbackCanvas) {
-        globeLon += 0.16;
+        if (!globeDragging) globeLon += 0.32;
         if (globeLon > 180) globeLon -= 360;
         drawFallbackGlobeFrame();
       }
@@ -1147,15 +1190,11 @@
       const h = globeTextureCanvas.height;
       const ctx = globeTextureCtx;
 
-      const sea = ctx.createLinearGradient(0, 0, 0, h);
-      sea.addColorStop(0, "#9ca3ac");
-      sea.addColorStop(0.5, "#9a9fa7");
-      sea.addColorStop(1, "#8d939b");
-      ctx.fillStyle = sea;
+      ctx.fillStyle = "#6f8fb3";
       ctx.fillRect(0, 0, w, h);
 
       if (worldGeoJson && Array.isArray(worldGeoJson.features)) {
-        drawEquirectFeatures(ctx, worldGeoJson.features, w, h, () => ({ fill: "#bcbfc5", stroke: "rgba(96,102,111,.45)", line: 0.85 }));
+        drawEquirectFeatures(ctx, worldGeoJson.features, w, h, () => ({ fill: "#dde3ea", stroke: "rgba(95,111,131,.55)", line: 0.9 }));
         drawEquirectFeatures(
           ctx,
           worldGeoJson.features,
@@ -1163,7 +1202,7 @@
           h,
           feature => isVisitedFeature(feature, visitedCodes, visitedNames)
             || featureContainsVisitedPoint(feature, visitedPoints)
-            ? { fill: "#c92b33", stroke: "rgba(102,14,20,.7)", line: 1.0 }
+            ? { fill: "#ff3b42", stroke: "rgba(125,18,25,.82)", line: 1.05 }
             : null
         );
       }
@@ -1184,18 +1223,14 @@
       const cy = size / 2;
       const r = size * 0.47;
 
-      const base = ctx.createRadialGradient(cx - r * 0.45, cy - r * 0.5, r * 0.1, cx + r * 0.25, cy + r * 0.2, r * 1.05);
-      base.addColorStop(0, "#f3f3f3");
-      base.addColorStop(0.45, "#bfc4cb");
-      base.addColorStop(1, "#80868f");
-      ctx.fillStyle = base;
+      ctx.fillStyle = "#6f8fb3";
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
 
       if (worldGeoJson && Array.isArray(worldGeoJson.features)) {
         const lon0 = globeLon * (Math.PI / 180);
-        const lat0 = 20 * (Math.PI / 180);
+        const lat0 = globeLat * (Math.PI / 180);
         const sinLat0 = Math.sin(lat0);
         const cosLat0 = Math.cos(lat0);
         const toRad = Math.PI / 180;
@@ -1226,23 +1261,14 @@
           const on = isVisitedFeature(feature, visitedCodes, visitedNames) || featureContainsVisitedPoint(feature, visitedPoints);
           ctx.beginPath();
           drawFallbackGeometryPath(ctx, geometry, project);
-          ctx.fillStyle = on ? "#cc2d34" : "#b8bcc2";
-          ctx.strokeStyle = on ? "rgba(102,16,22,.65)" : "rgba(126,132,141,.52)";
+          ctx.fillStyle = on ? "#ff3b42" : "#dde3ea";
+          ctx.strokeStyle = on ? "rgba(123,18,24,.82)" : "rgba(97,112,133,.56)";
           ctx.lineWidth = 0.7;
           ctx.fill();
           ctx.stroke();
         });
         ctx.restore();
       }
-
-      const shadow = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.5, r * 0.08, cx + r * 0.35, cy + r * 0.38, r * 1.1);
-      shadow.addColorStop(0, "rgba(255,255,255,.24)");
-      shadow.addColorStop(0.55, "rgba(0,0,0,0)");
-      shadow.addColorStop(1, "rgba(0,0,0,.35)");
-      ctx.fillStyle = shadow;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
     }
 
     function drawFallbackGeometryPath(ctx, geometry, project) {
