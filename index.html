@@ -6,13 +6,13 @@
   <title>Sehir Haritam</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
-    :root{color-scheme:dark;--bg:#0a0f17;--panel:#121b28;--panel2:#172334;--line:#2b3f59;--text:#e8f1ff;--muted:#9ab0cc;--primary:#4ea1ff;--primary2:#2f7cde;--tabh:68px}
+    :root{color-scheme:dark;--bg:#142640;--panel:#213a5b;--panel2:#2a4a70;--line:#4f7398;--text:#f0f7ff;--muted:#c6d9ef;--primary:#61b0ff;--primary2:#3d8fe8;--tabh:68px}
     *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(circle at 20% -20%,#1e3b64,transparent 40%),var(--bg);color:var(--text);font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh}
+    body{margin:0;background:radial-gradient(circle at 10% -10%,#6faee8,transparent 42%),radial-gradient(circle at 90% -20%,#67c8bb,transparent 38%),linear-gradient(180deg,#153154,#112743 50%,#10223b);color:var(--text);font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh}
     body.modal-open{overflow:hidden;height:100vh}
     .app{max-width:500px;margin:0 auto;height:100vh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow:hidden}
     .screen{display:none;padding:14px;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}.screen.active{display:block}
-    .card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;margin-bottom:12px}
+    .card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;margin-bottom:12px;box-shadow:0 8px 20px rgba(13,24,41,.25)}
     .card h2{margin:0 0 10px;font-size:16px}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
     .control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
     .control-row.single{grid-template-columns:1fr}
@@ -30,26 +30,31 @@
     .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
     .home-map-wrap{margin:0 0 12px}
     .home-static-map{width:100%;height:auto;display:block;border:none;background:transparent}
-    .list{display:grid;gap:8px}.item{border:1px solid #2a3d58;border-radius:10px;background:#0f1826;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+    .list{display:grid;gap:8px}.item{border:1px solid #36577c;border-radius:10px;background:#163359;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
     .dist-list{display:grid;gap:8px}
-    .dist-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:12px;color:#c9dbf3;padding:8px;border:1px solid #30445f;border-radius:8px;background:#0f1827}
-    .dist-bar{grid-column:1 / -1;height:8px;border-radius:999px;background:#23354d;overflow:hidden}
+    .dist-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:12px;color:#d7e6f7;padding:8px;border:1px solid #3a5f86;border-radius:8px;background:#143156}
+    .dist-bar{grid-column:1 / -1;height:8px;border-radius:999px;background:#28486a;overflow:hidden}
     .dist-fill{height:100%;background:linear-gradient(90deg,#4ea1ff,#7ed1ff)}
     .chip.visited{color:#7be8c5;background:rgba(63,208,162,.14);border-color:rgba(63,208,162,.35)}.chip.planned{color:#ffd88f;background:rgba(242,190,79,.14);border-color:rgba(242,190,79,.35)}.chip.again{color:#9ecbff;background:rgba(78,161,255,.14);border-color:rgba(78,161,255,.4)}
-    .flags-grid{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}.flag{width:20px;height:10px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1);opacity:.22;filter:grayscale(1);justify-self:center;display:block;background:#0a111b}
+    .flags-grid{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}.flag{width:20px;height:10px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.14);opacity:.22;filter:grayscale(1);justify-self:center;display:block;background:#15304f}
     .flag.visited{opacity:1;filter:none;border-color:rgba(255,255,255,.35);box-shadow:0 0 7px rgba(255,255,255,.16);cursor:pointer}
     .map-screen{padding:0;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow:hidden}
     #exploreMapWrap{width:100%;aspect-ratio:9/16;max-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));margin:0 auto}
     #exploreMap{width:100%;height:100%;background:#6fa8dc;border:none}
     #exploreMap .leaflet-container{background:#6fa8dc}
     .records-actions{display:flex;gap:8px;margin-top:8px}.records-actions button{flex:1;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer}.btn-edit{background:#325b85}.btn-del{background:#87344a}
-    .empty{border:1px dashed #35506f;border-radius:10px;text-align:center;color:var(--muted);padding:12px;font-size:13px;background:rgba(11,18,29,.7)}
-    .tabs{position:fixed;left:0;right:0;bottom:0;z-index:2200;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(8,12,18,0),rgba(8,12,18,.95) 30%)}
-    .tabs-inner{max-width:500px;margin:0 auto;border:1px solid #2a3f59;border-radius:16px;background:#0f1826;height:var(--tabh);display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:6px}
-    .tab-btn{border:none;border-radius:12px;background:linear-gradient(180deg,#18273a,#152233);color:#b9cce6;font-size:11px;font-weight:800;cursor:pointer;display:grid;place-items:center;line-height:1.2}
-    .tab-btn.active{background:linear-gradient(180deg,#3c6a9b,#2d507a);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+    .empty{border:1px dashed #446a90;border-radius:10px;text-align:center;color:var(--muted);padding:12px;font-size:13px;background:rgba(18,39,64,.56)}
+    .tabs{position:fixed;left:0;right:0;bottom:0;z-index:2200;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(9,19,32,0),rgba(12,28,48,.9) 30%)}
+    .tabs-inner{max-width:500px;margin:0 auto;border:1px solid #476f98;border-radius:16px;background:linear-gradient(180deg,#1a375a,#163150);height:var(--tabh);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px}
+    .tab-btn{border:none;border-radius:12px;background:linear-gradient(180deg,#2a4a73,#203f65);color:#d9ebff;font-size:12px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1.05;position:relative}
+    .tab-btn.active{background:linear-gradient(180deg,#7ec1ff,#4f9ae8);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 6px 14px rgba(22,69,121,.35)}
+    .tab-icon{width:18px;height:18px;display:block}
+    .tab-icon svg{width:18px;height:18px;display:block;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .tab-label{font-size:10px;letter-spacing:.2px}
+    .add-btn{position:fixed;right:14px;bottom:calc(var(--tabh) + 10px + env(safe-area-inset-bottom));z-index:2300;width:44px;height:44px;border:none;border-radius:999px;font-size:0;color:#eff8ff;background:rgba(104,180,255,.36);backdrop-filter:blur(5px);box-shadow:0 6px 18px rgba(36,96,160,.35);cursor:pointer}
+    .add-btn::before{content:"+";font-size:22px;line-height:44px;font-weight:700}
     .screen-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
     .screen-head h2{margin:0;font-size:17px}
     .ghost-btn{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
@@ -58,14 +63,14 @@
     .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
     .field-label{display:block;font-size:11px;color:var(--muted);margin:0 0 4px 2px}
     .field{position:relative}
-    input,select,textarea{width:100%;border-radius:10px;border:1px solid #2f455f;background:#0f1827;color:var(--text);padding:11px 12px;font:inherit;outline:none}
+    input,select,textarea{width:100%;border-radius:10px;border:1px solid #44698f;background:#16365b;color:var(--text);padding:11px 12px;font:inherit;outline:none}
     input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(78,161,255,.2)}
     #countryInput[readonly]{opacity:.85}
-    .suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#0f1827;border:1px solid #2f455f;border-radius:10px;max-height:180px;overflow:auto;z-index:40;display:none}
+    .suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#16365b;border:1px solid #44698f;border-radius:10px;max-height:180px;overflow:auto;z-index:40;display:none}
     .suggestions.open{display:block}
-    .suggestion-item{padding:10px 12px;border-bottom:1px solid #25374f;cursor:pointer}
+    .suggestion-item{padding:10px 12px;border-bottom:1px solid #355c84;cursor:pointer}
     .suggestion-item:last-child{border-bottom:none}
-    .suggestion-item:hover{background:#17263b}
+    .suggestion-item:hover{background:#20436b}
     .suggestion-item strong{display:block;font-size:13px}
     .suggestion-item span{font-size:12px;color:var(--muted)}
     textarea{min-height:84px;resize:vertical}.save-btn{border:none;border-radius:10px;padding:12px;color:#fff;font:inherit;font-weight:800;background:linear-gradient(180deg,var(--primary),var(--primary2));cursor:pointer}
@@ -86,7 +91,7 @@
     .lightbox-close{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
     .flag-pin{width:24px;height:24px;border-radius:999px;border:2px solid #fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
     .country-facts{display:grid;gap:8px}
-    .country-fact{border:1px solid #30445f;border-radius:10px;background:#0f1827;padding:10px}
+    .country-fact{border:1px solid #44698f;border-radius:10px;background:#16365b;padding:10px}
     .country-fact small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}
     .country-fact strong{font-size:15px}
     #countryMap{height:240px;border:1px solid #30445f;border-radius:10px;overflow:hidden;background:#0d1624}
@@ -165,7 +170,6 @@
             <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
             <div id="citySuggestions" class="suggestions"></div>
           </div>
-          <button id="useLocationBtn" class="tool-btn stats" type="button">Anlik konumdan al</button>
           <input id="countryInput" type="text" placeholder="Ulke otomatik gelecek" readonly>
           <input id="dateInput" type="date">
           <select id="statusInput">
@@ -173,10 +177,6 @@
             <option value="planned">Planlaniyor</option>
             <option value="again">Tekrar gidilecek</option>
           </select>
-          <div>
-            <label class="field-label" for="ratingOverallInput">Gezi puani (1-10)</label>
-            <input id="ratingOverallInput" type="number" min="1" max="10" step="1" placeholder="Orn: 8">
-          </div>
           <div class="row3">
             <div>
               <label class="field-label" for="ratingFoodInput">Yemek</label>
@@ -248,19 +248,32 @@
           <div class="country-fact"><small>Para birimi</small><strong id="countryCurrency">-</strong></div>
           <div class="country-fact"><small>Nufus</small><strong id="countryPopulation">-</strong></div>
           <div class="country-fact"><small>Dil</small><strong id="countryLanguage">-</strong></div>
-          <div class="country-fact"><small>Kayitli sehirler</small><strong id="countryCities">-</strong></div>
+          <div class="country-fact"><small>Baskent</small><strong id="countryCapital">-</strong></div>
         </div>
       </article>
     </section>
   </main>
 
+  <button id="openAddBtn" class="add-btn" type="button" aria-label="Sehir ekle"></button>
+
   <nav class="tabs" aria-label="Menu">
     <div class="tabs-inner">
-      <button class="tab-btn active" data-screen="home" type="button">Ana<br>Sayfa</button>
-      <button class="tab-btn" data-screen="map" type="button">Harita</button>
-      <button class="tab-btn" data-screen="records" type="button">Kayitlar</button>
-      <button class="tab-btn" data-screen="add" type="button">Ekle</button>
-      <button class="tab-btn" data-screen="summary" type="button">Genel</button>
+      <button class="tab-btn active" data-screen="home" type="button" aria-label="Ana">
+        <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13V10.5"/><path d="M9.5 20v-6h5v6"/></svg></span>
+        <span class="tab-label">Ana</span>
+      </button>
+      <button class="tab-btn" data-screen="map" type="button" aria-label="Harita">
+        <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14"/><path d="M15 6v14"/></svg></span>
+        <span class="tab-label">Harita</span>
+      </button>
+      <button class="tab-btn" data-screen="records" type="button" aria-label="Kayitlar">
+        <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h7l3 3h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M8 12h8"/><path d="M8 16h5"/></svg></span>
+        <span class="tab-label">Kayit</span>
+      </button>
+      <button class="tab-btn" data-screen="summary" type="button" aria-label="Genel">
+        <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v4"/><path d="M12 17v4"/><path d="m4.9 4.9 2.8 2.8"/><path d="m16.3 16.3 2.8 2.8"/><path d="M3 12h4"/><path d="M17 12h4"/><path d="m4.9 19.1 2.8-2.8"/><path d="m16.3 7.7 2.8-2.8"/><circle cx="12" cy="12" r="3.5"/></svg></span>
+        <span class="tab-label">Genel</span>
+      </button>
     </div>
   </nav>
 
@@ -297,16 +310,15 @@
       exportJsonBtn: document.getElementById("exportJsonBtn"),
       importJsonBtn: document.getElementById("importJsonBtn"),
       importJsonInput: document.getElementById("importJsonInput"),
+      openAddBtn: document.getElementById("openAddBtn"),
       addScreenTitle: document.getElementById("addScreenTitle"),
       cancelAddBtn: document.getElementById("cancelAddBtn"),
       cityForm: document.getElementById("cityForm"),
       cityInput: document.getElementById("cityInput"),
       citySuggestions: document.getElementById("citySuggestions"),
-      useLocationBtn: document.getElementById("useLocationBtn"),
       countryInput: document.getElementById("countryInput"),
       dateInput: document.getElementById("dateInput"),
       statusInput: document.getElementById("statusInput"),
-      ratingOverallInput: document.getElementById("ratingOverallInput"),
       ratingFoodInput: document.getElementById("ratingFoodInput"),
       ratingTransportInput: document.getElementById("ratingTransportInput"),
       ratingSafetyInput: document.getElementById("ratingSafetyInput"),
@@ -325,7 +337,7 @@
       countryCurrency: document.getElementById("countryCurrency"),
       countryPopulation: document.getElementById("countryPopulation"),
       countryLanguage: document.getElementById("countryLanguage"),
-      countryCities: document.getElementById("countryCities"),
+      countryCapital: document.getElementById("countryCapital"),
       photoLightbox: document.getElementById("photoLightbox"),
       photoLightboxImg: document.getElementById("photoLightboxImg"),
       photoLightboxClose: document.getElementById("photoLightboxClose")
@@ -407,13 +419,10 @@
         switchScreen("records");
       });
       els.countryBackBtn.addEventListener("click", () => switchScreen(lastNonCountryScreen || "home"));
+      els.openAddBtn.addEventListener("click", () => openAddScreen());
       els.cityForm.addEventListener("submit", onSave);
       els.recordsList.addEventListener("click", onRecordAction);
       els.tabs.forEach(btn => btn.addEventListener("click", () => {
-        if (btn.dataset.screen === "add") {
-          openAddScreen();
-          return;
-        }
         switchScreen(btn.dataset.screen);
       }));
       els.recordsSearchInput.addEventListener("input", renderRecords);
@@ -422,7 +431,6 @@
       els.exportJsonBtn.addEventListener("click", exportJson);
       els.importJsonBtn.addEventListener("click", () => els.importJsonInput.click());
       els.importJsonInput.addEventListener("change", onImportJson);
-      els.useLocationBtn.addEventListener("click", useCurrentLocation);
       els.cityInput.addEventListener("input", onCityInput);
       els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
       els.flagsGrid.addEventListener("click", onFlagClick);
@@ -521,61 +529,6 @@
     function closeSuggestions() {
       els.citySuggestions.classList.remove("open");
       els.citySuggestions.innerHTML = "";
-    }
-
-    async function useCurrentLocation() {
-      if (!navigator.geolocation) {
-        alert("Tarayicin konum ozelligini desteklemiyor.");
-        return;
-      }
-
-      const originalText = els.useLocationBtn.textContent;
-      els.useLocationBtn.disabled = true;
-      els.useLocationBtn.textContent = "Konum aliniyor...";
-
-      try {
-        const pos = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 12000,
-            maximumAge: 60000
-          });
-        });
-
-        const lat = Number(pos.coords.latitude);
-        const lng = Number(pos.coords.longitude);
-        const place = await reverseGeocode(lat, lng);
-
-        selectedCitySuggestion = {
-          city: place.city,
-          country: place.country,
-          countryCode: place.countryCode,
-          lat,
-          lng
-        };
-
-        els.cityInput.value = place.city;
-        els.countryInput.value = place.country;
-        closeSuggestions();
-      } catch (error) {
-        alert("Anlik konum alinamadi. Konum izni verdiginden emin ol.");
-      } finally {
-        els.useLocationBtn.disabled = false;
-        els.useLocationBtn.textContent = originalText;
-      }
-    }
-
-    async function reverseGeocode(lat, lng) {
-      const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=" +
-        encodeURIComponent(String(lat)) + "&lon=" + encodeURIComponent(String(lng));
-      const response = await fetch(url, { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error("Reverse geocode basarisiz");
-      const data = await response.json();
-      const a = data.address || {};
-      const city = a.city || a.town || a.village || a.municipality || a.state || "Mevcut Konum";
-      const country = a.country || "";
-      const countryCode = String(a.country_code || "").toLowerCase();
-      return { city, country, countryCode };
     }
 
     async function onPhotoInputChange(event) {
@@ -835,10 +788,10 @@
       const country = els.countryInput.value.trim();
       const date = els.dateInput.value;
       const status = els.statusInput.value;
-      const ratingOverall = normalizeScore(els.ratingOverallInput.value);
       const ratingFood = normalizeScore(els.ratingFoodInput.value);
       const ratingTransport = normalizeScore(els.ratingTransportInput.value);
       const ratingSafety = normalizeScore(els.ratingSafetyInput.value);
+      const ratingOverall = computeOverallRating([ratingFood, ratingTransport, ratingSafety]);
       const budget = normalizeMoney(els.budgetInput.value);
       const currency = normalizeCurrency(els.currencyInput.value);
       const tripDays = normalizeDays(els.tripDaysInput.value);
@@ -940,7 +893,6 @@
         els.countryInput.value = item.country;
         els.dateInput.value = item.date || "";
         els.statusInput.value = item.status;
-        els.ratingOverallInput.value = item.ratingOverall ?? "";
         els.ratingFoodInput.value = item.ratingFood ?? "";
         els.ratingTransportInput.value = item.ratingTransport ?? "";
         els.ratingSafetyInput.value = item.ratingSafety ?? "";
@@ -1024,7 +976,7 @@
       const latest = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
       if (!latest.length) { els.recentList.innerHTML = "<div class='empty'>Henuz kayit yok.</div>"; return; }
       els.recentList.innerHTML = latest.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p><p>Konum: " + esc(formatCoords(item.lat, item.lng)) + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + "</article>"
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + "</article>"
       ).join("");
     }
 
@@ -1032,7 +984,7 @@
       const visible = getVisibleRecords();
       if (!visible.length) { els.recordsList.innerHTML = "<div class='empty'>Filtreye uygun kayit bulunmuyor.</div>"; return; }
       els.recordsList.innerHTML = visible.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p><p>Konum: " + esc(formatCoords(item.lat, item.lng)) + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
       ).join("");
     }
 
@@ -1066,9 +1018,7 @@
       const countryRecords = records.filter(item => (item.countryCode || "").toLowerCase() === code);
       const prettyName = countryName || (countryRecords[0] && countryRecords[0].country) || code.toUpperCase();
       els.countryTitle.textContent = prettyName + " Detayi";
-      els.countryCities.textContent = countryRecords.length
-        ? countryRecords.map(item => item.city).join(", ")
-        : "Kayit bulunmuyor";
+      els.countryCapital.textContent = "-";
       switchScreen("country");
 
       await loadCountryFacts(code, prettyName);
@@ -1078,7 +1028,7 @@
     async function loadCountryFacts(countryCode, countryName) {
       let facts = null;
       try {
-        const alphaUrl = "https://restcountries.com/v3.1/alpha/" + encodeURIComponent(countryCode) + "?fields=name,currencies,languages,population";
+        const alphaUrl = "https://restcountries.com/v3.1/alpha/" + encodeURIComponent(countryCode) + "?fields=name,currencies,languages,population,capital";
         const r = await fetch(alphaUrl);
         if (r.ok) {
           const j = await r.json();
@@ -1087,7 +1037,7 @@
       } catch {}
       if (!facts) {
         try {
-          const byNameUrl = "https://restcountries.com/v3.1/name/" + encodeURIComponent(countryName) + "?fields=name,currencies,languages,population";
+          const byNameUrl = "https://restcountries.com/v3.1/name/" + encodeURIComponent(countryName) + "?fields=name,currencies,languages,population,capital";
           const r2 = await fetch(byNameUrl);
           if (r2.ok) {
             const j2 = await r2.json();
@@ -1100,16 +1050,19 @@
         els.countryCurrency.textContent = "-";
         els.countryPopulation.textContent = "-";
         els.countryLanguage.textContent = "-";
+        els.countryCapital.textContent = "-";
         return;
       }
 
       const currencies = facts.currencies ? Object.values(facts.currencies).map(c => c.name || "").filter(Boolean) : [];
       const languages = facts.languages ? Object.values(facts.languages).filter(Boolean) : [];
-      els.countryCurrency.textContent = currencies.length ? currencies.join(", ") : "-";
+      const capitals = Array.isArray(facts.capital) ? facts.capital : [];
+      els.countryCurrency.textContent = currencies.length ? toTitleCase(currencies.join(", ")) : "-";
       els.countryPopulation.textContent = Number.isFinite(Number(facts.population))
         ? new Intl.NumberFormat("tr-TR").format(Number(facts.population))
         : "-";
-      els.countryLanguage.textContent = languages.length ? languages.join(", ") : "-";
+      els.countryLanguage.textContent = languages.length ? toTitleCase(languages.join(", ")) : "-";
+      els.countryCapital.textContent = capitals.length ? toTitleCase(capitals.join(", ")) : "-";
     }
 
     function renderCountryMap(countryCode, countryRecords) {
@@ -1146,7 +1099,7 @@
           fillColor: "#4ea1ff",
           fillOpacity: 0.95
         });
-        marker.bindPopup("<strong>" + esc(item.city) + "</strong><br>" + esc(formatCoords(item.lat, item.lng)));
+        marker.bindPopup("<strong>" + esc(item.city) + "</strong>");
         marker.addTo(countryMarkerLayer);
         points.push([item.lat, item.lng]);
       });
@@ -1178,7 +1131,6 @@
           "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
           "Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" +
           (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") +
-          "Konum: " + esc(formatCoords(item.lat, item.lng)) + "<br>" +
           (popupMeta.length ? esc(popupMeta.join(" | ")) + "<br>" : "") +
           (item.note ? "Not: " + esc(item.note) : "")
         );
@@ -1257,6 +1209,13 @@
       return Math.max(1, Math.min(10, Math.round(n)));
     }
 
+    function computeOverallRating(scores) {
+      const valid = (scores || []).filter(v => v != null);
+      if (!valid.length) return null;
+      const avg = valid.reduce((a, b) => a + b, 0) / valid.length;
+      return Math.max(1, Math.min(10, Math.ceil(avg)));
+    }
+
     function normalizeMoney(value) {
       if (value === "" || value == null) return null;
       const n = Number(value);
@@ -1308,11 +1267,10 @@
       return new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(d);
     }
 
-    function formatCoords(lat, lng) {
-      const a = Number(lat);
-      const b = Number(lng);
-      if (!Number.isFinite(a) || !Number.isFinite(b)) return "-";
-      return a.toFixed(4) + ", " + b.toFixed(4);
+    function toTitleCase(text) {
+      const value = String(text || "").trim().toLocaleLowerCase("tr-TR");
+      if (!value) return "";
+      return value.replace(/(^|[\s,./-])(\p{L})/gu, (all, sep, ch) => sep + ch.toLocaleUpperCase("tr-TR"));
     }
 
     function esc(value) {
