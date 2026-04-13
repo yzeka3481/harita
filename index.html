@@ -28,8 +28,8 @@
     .hero p{margin:0;font-size:12px;color:#d2e1fb;line-height:1.4}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
     .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
-    .home-map-wrap{margin:0 0 12px}
-    .home-static-map{width:100%;height:auto;display:block;border:none;background:transparent}
+    .home-map-wrap{margin:0 0 12px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .home-globe{width:min(86vw,390px);aspect-ratio:1/1;display:block;background:transparent}
     .list{display:grid;gap:8px}.item{border:1px solid #36577c;border-radius:10px;background:#163359;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
@@ -95,7 +95,22 @@
     .country-fact small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}
     .country-fact strong{font-size:15px}
     #countryMap{height:240px;border:1px solid #30445f;border-radius:10px;overflow:hidden;background:#0d1624}
-    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-static-map{max-height:340px;object-fit:contain}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
+    .summary-hero{background:linear-gradient(135deg,#1f4f7e,#2f6fa6 55%,#46a5c9);border:1px solid rgba(255,255,255,.22)}
+    .summary-title{margin:0 0 10px;font-size:18px}
+    .summary-sub{margin:0;color:#e8f3ff;font-size:12px;line-height:1.45}
+    .summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+    .summary-stat{border-radius:12px;background:rgba(10,24,42,.34);border:1px solid rgba(255,255,255,.23);padding:10px}
+    .summary-stat small{display:block;font-size:11px;color:#d6e8fb;margin-bottom:6px}
+    .summary-stat strong{display:block;font-size:22px;line-height:1.1}
+    .summary-note{margin-top:8px;font-size:12px;color:#dcecff}
+    .story-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .story-preview{margin-top:10px;border:1px solid #44698f;border-radius:12px;background:#122b4a;padding:8px}
+    .story-preview img{display:block;width:100%;max-width:220px;margin:0 auto;border-radius:8px;border:1px solid rgba(255,255,255,.22)}
+    .story-preview p{margin:8px 0 0;font-size:11px;color:#c8dbf1;text-align:center}
+    .download-btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;text-decoration:none}
+    .download-btn.disabled{pointer-events:none;opacity:.55}
+    .download-btn.story{background:#4a90e8;color:#fff}
+    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-globe{width:min(72vw,420px)}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
   </style>
 </head>
 <body>
@@ -114,8 +129,8 @@
 
       <section class="home-map-wrap">
         <h2>Ana Harita</h2>
-        <img class="home-static-map" src="./dunya.png" alt="Dunya haritasi">
-        <p class="hint">Ornek gorsel, cercevesiz tam dunya haritasi.</p>
+        <canvas id="homeGlobeCanvas" class="home-globe" aria-label="Dunya kuresi"></canvas>
+        <p class="hint">Gidilen ulkeler kirmizi gorunur.</p>
       </section>
 
       <article class="card">
@@ -226,6 +241,31 @@
     </section>
 
     <section id="summaryScreen" class="screen">
+      <article class="card summary-hero">
+        <h2 class="summary-title">Seyahat Ozeti</h2>
+        <p id="summaryIntro" class="summary-sub">Kayit ekledikce yillik ozet burada canli guncellenir.</p>
+        <div class="summary-grid">
+          <div class="summary-stat"><small>Bu yil yol (km)</small><strong id="sumYearKm">0</strong></div>
+          <div class="summary-stat"><small>Farkli sehir</small><strong id="sumUniqueCities">0</strong></div>
+          <div class="summary-stat"><small>Farkli ulke</small><strong id="sumUniqueCountries">0</strong></div>
+          <div class="summary-stat"><small>En cok gezilen</small><strong id="sumTopCountry">-</strong></div>
+        </div>
+        <p id="summaryNote" class="summary-note">Henuz veri yok.</p>
+      </article>
+
+      <article class="card">
+        <h2>Paylasilabilir Story</h2>
+        <p class="hint">Instagram Story (1080x1920) formatinda ozet gorseli olustur.</p>
+        <div class="story-actions">
+          <button id="generateStoryBtn" class="tool-btn stats" type="button">Story olustur</button>
+          <a id="downloadStoryBtn" class="download-btn story disabled" href="#" download="seyahat-story.png">Story indir</a>
+        </div>
+        <div id="storyPreviewWrap" class="story-preview" hidden>
+          <img id="storyPreviewImg" alt="Story onizleme">
+          <p>Onizleme - indirmek icin "Story indir" butonunu kullan.</p>
+        </div>
+      </article>
+
       <article class="card">
         <h2>Genel Sayfasi</h2>
         <div class="tool-row">
@@ -301,12 +341,23 @@
       countryScreen: document.getElementById("countryScreen"),
       heroImage: document.getElementById("heroImage"),
       heroBadge: document.getElementById("heroBadge"),
+      homeGlobeCanvas: document.getElementById("homeGlobeCanvas"),
       recentList: document.getElementById("recentList"),
       flagsGrid: document.getElementById("flagsGrid"),
       recordsList: document.getElementById("recordsList"),
       recordsSearchInput: document.getElementById("recordsSearchInput"),
       recordsSortInput: document.getElementById("recordsSortInput"),
       recordsStatusFilterInput: document.getElementById("recordsStatusFilterInput"),
+      summaryIntro: document.getElementById("summaryIntro"),
+      sumYearKm: document.getElementById("sumYearKm"),
+      sumUniqueCities: document.getElementById("sumUniqueCities"),
+      sumUniqueCountries: document.getElementById("sumUniqueCountries"),
+      sumTopCountry: document.getElementById("sumTopCountry"),
+      summaryNote: document.getElementById("summaryNote"),
+      generateStoryBtn: document.getElementById("generateStoryBtn"),
+      downloadStoryBtn: document.getElementById("downloadStoryBtn"),
+      storyPreviewWrap: document.getElementById("storyPreviewWrap"),
+      storyPreviewImg: document.getElementById("storyPreviewImg"),
       exportJsonBtn: document.getElementById("exportJsonBtn"),
       importJsonBtn: document.getElementById("importJsonBtn"),
       importJsonInput: document.getElementById("importJsonInput"),
@@ -430,6 +481,7 @@
       els.recordsSearchInput.addEventListener("input", renderRecords);
       els.recordsSortInput.addEventListener("change", renderRecords);
       els.recordsStatusFilterInput.addEventListener("change", renderRecords);
+      els.generateStoryBtn.addEventListener("click", generateStorySummary);
       els.exportJsonBtn.addEventListener("click", exportJson);
       els.importJsonBtn.addEventListener("click", () => els.importJsonInput.click());
       els.importJsonInput.addEventListener("change", onImportJson);
@@ -465,7 +517,7 @@
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
       });
-      window.addEventListener("resize", () => setTimeout(() => { exploreMap.invalidateSize(); countryMap.invalidateSize(); }, 80));
+      window.addEventListener("resize", () => setTimeout(() => { exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
     }
 
     function onCityInput() {
@@ -620,6 +672,7 @@
         if (!response.ok) throw new Error("GeoJSON alinamadi.");
         worldGeoJson = await response.json();
         renderWorldLayers();
+        renderHomeGlobe();
       } catch (error) {
         console.warn("Dunya katmani yuklenemedi:", error);
       }
@@ -926,11 +979,13 @@
 
     function renderAll() {
       renderHero();
+      renderHomeGlobe();
       renderRecent();
       renderRecords();
       renderFlags();
       renderExplorePins();
       renderWorldLayers();
+      renderSummaryDashboard();
     }
 
     function renderHero() {
@@ -974,6 +1029,123 @@
       tryNext();
     }
 
+    function renderHomeGlobe() {
+      const canvas = els.homeGlobeCanvas;
+      if (!canvas) return;
+      const width = Math.max(220, Math.floor(canvas.clientWidth || 320));
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const px = Math.floor(width * dpr);
+      if (canvas.width !== px || canvas.height !== px) {
+        canvas.width = px;
+        canvas.height = px;
+      }
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, width);
+
+      const cx = width / 2;
+      const cy = width / 2 + width * 0.01;
+      const r = width * 0.43;
+
+      const globeBase = ctx.createRadialGradient(
+        cx - r * 0.45, cy - r * 0.55, r * 0.18,
+        cx + r * 0.2, cy + r * 0.25, r * 1.08
+      );
+      globeBase.addColorStop(0, "#f0f0f0");
+      globeBase.addColorStop(0.45, "#c9c9c9");
+      globeBase.addColorStop(1, "#8f8f8f");
+      ctx.fillStyle = globeBase;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      const lon0 = 22 * (Math.PI / 180);
+      const lat0 = 20 * (Math.PI / 180);
+      const sinLat0 = Math.sin(lat0);
+      const cosLat0 = Math.cos(lat0);
+      const toRad = Math.PI / 180;
+
+      const project = (latDeg, lonDeg) => {
+        const lat = latDeg * toRad;
+        const lon = lonDeg * toRad;
+        const dLon = lon - lon0;
+        const sinLat = Math.sin(lat);
+        const cosLat = Math.cos(lat);
+        const cosc = sinLat0 * sinLat + cosLat0 * cosLat * Math.cos(dLon);
+        if (cosc <= 0) return null;
+        const x = cx + r * cosLat * Math.sin(dLon);
+        const y = cy - r * (cosLat0 * sinLat - sinLat0 * cosLat * Math.cos(dLon));
+        return [x, y];
+      };
+
+      if (worldGeoJson && Array.isArray(worldGeoJson.features)) {
+        const visited = getVisitedCodesUpper();
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.clip();
+
+        worldGeoJson.features.forEach(feature => {
+          const geometry = feature && feature.geometry;
+          if (!geometry) return;
+          const code = getFeatureCode(feature);
+          const isVisited = visited.has(code);
+          ctx.beginPath();
+          drawGlobeGeometryPath(ctx, geometry, project);
+          ctx.fillStyle = isVisited ? "#cf2f36" : "#b5b8bd";
+          ctx.strokeStyle = isVisited ? "rgba(130,20,26,.55)" : "rgba(120,125,132,.42)";
+          ctx.lineWidth = 0.6;
+          ctx.fill();
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+
+      const shade = ctx.createRadialGradient(cx - r * 0.28, cy - r * 0.5, r * 0.08, cx + r * 0.33, cy + r * 0.35, r * 1.05);
+      shade.addColorStop(0, "rgba(255,255,255,.22)");
+      shade.addColorStop(0.52, "rgba(0,0,0,0)");
+      shade.addColorStop(1, "rgba(0,0,0,.32)");
+      ctx.fillStyle = shade;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,255,255,.24)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function drawGlobeGeometryPath(ctx, geometry, project) {
+      const polys = geometry.type === "Polygon"
+        ? [geometry.coordinates]
+        : (geometry.type === "MultiPolygon" ? geometry.coordinates : []);
+      polys.forEach(poly => {
+        if (!Array.isArray(poly)) return;
+        poly.forEach(ring => {
+          if (!Array.isArray(ring)) return;
+          let started = false;
+          ring.forEach(coord => {
+            if (!Array.isArray(coord) || coord.length < 2) return;
+            const p = project(Number(coord[1]), Number(coord[0]));
+            if (!p) {
+              started = false;
+              return;
+            }
+            if (!started) {
+              ctx.moveTo(p[0], p[1]);
+              started = true;
+            } else {
+              ctx.lineTo(p[0], p[1]);
+            }
+          });
+          if (started) ctx.closePath();
+        });
+      });
+    }
+
     function renderRecent() {
       const latest = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
       if (!latest.length) { els.recentList.innerHTML = "<div class='empty'>Henuz kayit yok.</div>"; return; }
@@ -988,6 +1160,129 @@
       els.recordsList.innerHTML = visible.map(item =>
         "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
       ).join("");
+    }
+
+    function renderSummaryDashboard() {
+      const stats = getSummaryStats();
+      els.sumYearKm.textContent = formatInteger(stats.yearKm);
+      els.sumUniqueCities.textContent = formatInteger(stats.uniqueCities);
+      els.sumUniqueCountries.textContent = formatInteger(stats.uniqueCountries);
+      els.sumTopCountry.textContent = stats.topCountry ? stats.topCountry : "-";
+      els.summaryIntro.textContent = stats.uniqueCities
+        ? stats.year + " yilinda " + formatInteger(stats.yearTrips) + " gezi kaydindan " + formatInteger(stats.yearKm) + " km yol cikti."
+        : "Kayit ekledikce yillik ozet burada canli guncellenir.";
+      els.summaryNote.textContent = stats.uniqueCities
+        ? "Toplam " + formatInteger(stats.totalTrips) + " gezi, " + formatInteger(stats.totalDays) + " gun ve " + formatMoney(stats.totalBudget, "TRY") + " butce kaydi var."
+        : "Henuz veri yok.";
+      const canGenerate = stats.totalTrips > 0;
+      els.generateStoryBtn.disabled = !canGenerate;
+      els.downloadStoryBtn.classList.toggle("disabled", true);
+      els.downloadStoryBtn.setAttribute("href", "#");
+      els.downloadStoryBtn.setAttribute("download", "seyahat-story.png");
+      els.storyPreviewWrap.hidden = true;
+      els.storyPreviewImg.removeAttribute("src");
+    }
+
+    function getSummaryStats() {
+      const year = new Date().getFullYear();
+      const travelled = records.filter(item => isTravelled(item.status));
+      const uniqueCities = new Set(travelled.map(item => (item.city || "").trim().toLowerCase() + "|" + (item.country || "").trim().toLowerCase()).filter(v => v !== "|"));
+      const uniqueCountries = new Set(travelled.map(item => (item.country || "").trim().toLowerCase()).filter(Boolean));
+      const yearTrips = travelled
+        .filter(item => getRecordYear(item) === year)
+        .sort((a, b) => getRecordTime(a) - getRecordTime(b));
+      const yearKm = Math.round(calculateRouteKm(yearTrips));
+      const countryCount = {};
+      travelled.forEach(item => {
+        if (!item.country) return;
+        const key = item.country.trim();
+        countryCount[key] = (countryCount[key] || 0) + 1;
+      });
+      const topCountry = Object.entries(countryCount).sort((a, b) => b[1] - a[1])[0];
+      const totalBudget = travelled.reduce((sum, item) => sum + (Number(item.budget) > 0 ? Number(item.budget) : 0), 0);
+      const totalDays = travelled.reduce((sum, item) => sum + (Number(item.tripDays) > 0 ? Number(item.tripDays) : 0), 0);
+      return {
+        year,
+        yearKm,
+        yearTrips: yearTrips.length,
+        totalTrips: travelled.length,
+        uniqueCities: uniqueCities.size,
+        uniqueCountries: uniqueCountries.size,
+        topCountry: topCountry ? (topCountry[0] + " (" + topCountry[1] + ")") : "",
+        totalBudget,
+        totalDays
+      };
+    }
+
+    function generateStorySummary() {
+      const stats = getSummaryStats();
+      if (!stats.totalTrips) {
+        alert("Story olusturmak icin once en az 1 gezi kaydi ekle.");
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const g = ctx.createLinearGradient(0, 0, 1080, 1920);
+      g.addColorStop(0, "#1B4F88");
+      g.addColorStop(0.55, "#2E78AF");
+      g.addColorStop(1, "#53B7C9");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 1080, 1920);
+
+      drawRoundedRect(ctx, 70, 80, 940, 1760, 42, "rgba(8,24,48,0.24)");
+      drawRoundedRect(ctx, 100, 210, 880, 360, 30, "rgba(255,255,255,0.13)");
+      drawRoundedRect(ctx, 100, 610, 420, 270, 26, "rgba(255,255,255,0.15)");
+      drawRoundedRect(ctx, 560, 610, 420, 270, 26, "rgba(255,255,255,0.15)");
+      drawRoundedRect(ctx, 100, 920, 420, 270, 26, "rgba(255,255,255,0.15)");
+      drawRoundedRect(ctx, 560, 920, 420, 270, 26, "rgba(255,255,255,0.15)");
+      drawRoundedRect(ctx, 100, 1240, 880, 410, 28, "rgba(13,37,67,0.32)");
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "700 68px Segoe UI";
+      ctx.fillText("Travel Story", 150, 300);
+      ctx.font = "500 34px Segoe UI";
+      ctx.fillStyle = "#d7ecff";
+      ctx.fillText(stats.year + " Ozeti", 150, 355);
+      ctx.font = "500 28px Segoe UI";
+      ctx.fillText(formatInteger(stats.totalTrips) + " gezi kaydi", 150, 425);
+
+      drawStoryStat(ctx, "Yillik km", formatInteger(stats.yearKm), 130, 680);
+      drawStoryStat(ctx, "Sehir", formatInteger(stats.uniqueCities), 590, 680);
+      drawStoryStat(ctx, "Ulke", formatInteger(stats.uniqueCountries), 130, 990);
+      drawStoryStat(ctx, "Top ulke", stats.topCountry || "-", 590, 990);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "600 34px Segoe UI";
+      ctx.fillText("Kisa Ozet", 140, 1320);
+      ctx.font = "500 30px Segoe UI";
+      const storyLines = [
+        "Bu yil yaklasik " + formatInteger(stats.yearKm) + " km yol.",
+        formatInteger(stats.uniqueCities) + " farkli sehir ve " + formatInteger(stats.uniqueCountries) + " ulke.",
+        "Toplam " + formatInteger(stats.totalDays) + " gunluk gezi kaydi.",
+        stats.topCountry ? "En cok: " + stats.topCountry : "Yeni ulkeler seni bekliyor."
+      ];
+      let y = 1390;
+      storyLines.forEach(line => {
+        y = drawWrappedLine(ctx, line, 140, y, 800, 42) + 18;
+      });
+
+      ctx.font = "500 24px Segoe UI";
+      ctx.fillStyle = "rgba(235,246,255,.9)";
+      ctx.fillText("Sehir Haritam ile olusturuldu", 140, 1715);
+      ctx.fillText(new Date().toLocaleDateString("tr-TR"), 840, 1715);
+
+      const dataUrl = canvas.toDataURL("image/png");
+      const fileDate = new Date().toISOString().slice(0, 10);
+      els.storyPreviewImg.src = dataUrl;
+      els.storyPreviewWrap.hidden = false;
+      els.downloadStoryBtn.classList.remove("disabled");
+      els.downloadStoryBtn.href = dataUrl;
+      els.downloadStoryBtn.download = "travel-story-" + fileDate + ".png";
     }
 
     function renderFlags() {
@@ -1260,6 +1555,90 @@
     function getFeatureCode(feature) {
       const p = (feature && feature.properties) || {};
       return String(p.ISO_A2 || p.iso_a2 || p.ISO2 || p.iso2 || "").toUpperCase();
+    }
+
+    function isTravelled(status) {
+      return status === "visited" || status === "again";
+    }
+
+    function getRecordTime(item) {
+      const raw = item && item.date ? (item.date + "T00:00:00") : (item && item.createdAt ? item.createdAt : "");
+      const t = Date.parse(raw);
+      return Number.isFinite(t) ? t : 0;
+    }
+
+    function getRecordYear(item) {
+      const time = getRecordTime(item);
+      if (!time) return 0;
+      return new Date(time).getFullYear();
+    }
+
+    function calculateRouteKm(list) {
+      if (!Array.isArray(list) || list.length < 2) return 0;
+      let km = 0;
+      for (let i = 1; i < list.length; i += 1) {
+        const a = list[i - 1];
+        const b = list[i];
+        if (![a.lat, a.lng, b.lat, b.lng].every(Number.isFinite)) continue;
+        km += haversineKm(a.lat, a.lng, b.lat, b.lng);
+      }
+      return km;
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = deg => deg * (Math.PI / 180);
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const aa = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+      return R * c;
+    }
+
+    function formatInteger(value) {
+      return Number(value || 0).toLocaleString("tr-TR", { maximumFractionDigits: 0 });
+    }
+
+    function drawRoundedRect(ctx, x, y, w, h, r, fill) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+
+    function drawStoryStat(ctx, label, value, x, y) {
+      ctx.fillStyle = "#d5ebff";
+      ctx.font = "600 28px Segoe UI";
+      ctx.fillText(label, x, y);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "700 56px Segoe UI";
+      drawWrappedLine(ctx, String(value), x, y + 68, 360, 62);
+    }
+
+    function drawWrappedLine(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = String(text || "").split(/\s+/).filter(Boolean);
+      if (!words.length) return y;
+      let line = words[0];
+      for (let i = 1; i < words.length; i += 1) {
+        const test = line + " " + words[i];
+        if (ctx.measureText(test).width <= maxWidth) {
+          line = test;
+        } else {
+          ctx.fillText(line, x, y);
+          line = words[i];
+          y += lineHeight;
+        }
+      }
+      ctx.fillText(line, x, y);
+      return y;
     }
 
     function formatDate(value) {
