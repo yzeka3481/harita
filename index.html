@@ -22,9 +22,7 @@
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
     .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
     .home-map-wrap{margin:0 0 12px}
-    #homeMap{height:260px;border:none;background:transparent}
-    #homeMap .leaflet-container{background:transparent}
-    #homeMap .leaflet-control-container{display:none}
+    .home-static-map{width:100%;height:auto;display:block;border:none;background:transparent}
     .list{display:grid;gap:8px}.item{border:1px solid #2a3d58;border-radius:10px;background:#0f1826;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .chip.visited{color:#7be8c5;background:rgba(63,208,162,.14);border-color:rgba(63,208,162,.35)}.chip.planned{color:#ffd88f;background:rgba(242,190,79,.14);border-color:rgba(242,190,79,.35)}.chip.again{color:#9ecbff;background:rgba(78,161,255,.14);border-color:rgba(78,161,255,.4)}
@@ -36,10 +34,10 @@
     #exploreMap .leaflet-container{background:#6fa8dc}
     .records-actions{display:flex;gap:8px;margin-top:8px}.records-actions button{flex:1;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer}.btn-edit{background:#325b85}.btn-del{background:#87344a}
     .empty{border:1px dashed #35506f;border-radius:10px;text-align:center;color:var(--muted);padding:12px;font-size:13px;background:rgba(11,18,29,.7)}
-    .tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(8,12,18,0),rgba(8,12,18,.95) 30%)}
+    .tabs{position:fixed;left:0;right:0;bottom:0;z-index:2200;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(8,12,18,0),rgba(8,12,18,.95) 30%)}
     .tabs-inner{max-width:500px;margin:0 auto;border:1px solid #2a3f59;border-radius:14px;background:#111a28;height:var(--tabh);display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px}
     .tab-btn{border:none;border-radius:10px;background:#1a2638;color:#b9cce6;font-size:12px;font-weight:800;cursor:pointer}.tab-btn.active{background:#2d507a;color:#fff}
-    .add-btn{position:fixed;right:16px;bottom:calc(var(--tabh) + 14px + env(safe-area-inset-bottom));z-index:60;width:56px;height:56px;border:none;border-radius:999px;font-size:32px;font-weight:700;color:#072240;background:linear-gradient(180deg,#83c2ff,#4f98ef);box-shadow:0 12px 30px rgba(44,121,208,.5);cursor:pointer}
+    .add-btn{position:fixed;right:16px;bottom:calc(var(--tabh) + 14px + env(safe-area-inset-bottom));z-index:2300;width:56px;height:56px;border:none;border-radius:999px;font-size:32px;font-weight:700;color:#072240;background:linear-gradient(180deg,#83c2ff,#4f98ef);box-shadow:0 12px 30px rgba(44,121,208,.5);cursor:pointer}
     .modal{position:fixed;inset:0;z-index:6000;background:rgba(2,7,13,.83);display:none;align-items:flex-end;justify-content:center;padding:10px;backdrop-filter:blur(3px)}.modal.open{display:flex}
     .modal-box{width:100%;max-width:500px;border:1px solid #2c415d;border-radius:14px;background:linear-gradient(180deg,#152236,#111c2b);padding:12px}
     .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.modal-head h2{margin:0;font-size:17px}.close-btn{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
@@ -57,7 +55,7 @@
     .suggestion-item span{font-size:12px;color:var(--muted)}
     textarea{min-height:84px;resize:vertical}.save-btn{border:none;border-radius:10px;padding:12px;color:#fff;font:inherit;font-weight:800;background:linear-gradient(180deg,var(--primary),var(--primary2));cursor:pointer}
     .flag-pin{width:24px;height:24px;border-radius:999px;border:2px solid #fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
-    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}#homeMap{height:320px}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}}
+    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-static-map{max-height:340px;object-fit:contain}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}}
   </style>
 </head>
 <body>
@@ -82,8 +80,8 @@
 
       <section class="home-map-wrap">
         <h2>Ana Harita</h2>
-        <div id="homeMap"></div>
-        <p class="hint">Kirmizi: gidilen ulke, gri: diger ulkeler.</p>
+        <img class="home-static-map" src="./dunya.png" alt="Dunya haritasi">
+        <p class="hint">Ornek gorsel, cercevesiz tam dunya haritasi.</p>
       </section>
 
       <article class="card">
@@ -186,8 +184,6 @@
     let citySearchTimer = null;
     let worldGeoJson = null;
 
-    let homeMap;
-    let homeWorldLayer;
     let exploreMap;
     let exploreWorldLayer;
     let exploreMarkerLayer;
@@ -202,16 +198,10 @@
     }
 
     function initMaps() {
-      homeMap = L.map("homeMap", {
-        zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false,
-        doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false, touchZoom: false
-      }).setView([22, 10], 2);
-      homeMap.createPane("homeCountryPane");
-      homeMap.getPane("homeCountryPane").style.zIndex = 300;
-
       exploreMap = L.map("exploreMap", {
-        zoomControl: false, attributionControl: false, worldCopyJump: true, minZoom: 2, maxZoom: 5
-      }).setView([22, 10], 2.3);
+        zoomControl: false, attributionControl: false, worldCopyJump: true, minZoom: 2.35, maxZoom: 5,
+        inertia: false
+      }).setView([22, 10], 2.35);
       L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         subdomains: "abcd", maxZoom: 19
       }).addTo(exploreMap);
@@ -224,15 +214,17 @@
     }
 
     function enforceVerticalBounds() {
-      const minLat = -58;
-      const maxLat = 82;
-      exploreMap.on("move", () => {
+      const minLat = -56;
+      const maxLat = 78;
+      const clamp = () => {
         const c = exploreMap.getCenter();
         if (c.lat < minLat || c.lat > maxLat) {
           const clamped = Math.max(minLat, Math.min(maxLat, c.lat));
           exploreMap.panTo([clamped, c.lng], { animate: false });
         }
-      });
+      };
+      exploreMap.on("move", clamp);
+      exploreMap.on("zoomend", clamp);
     }
 
     function bindEvents() {
@@ -247,7 +239,7 @@
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
       });
-      window.addEventListener("resize", () => setTimeout(() => { homeMap.invalidateSize(); exploreMap.invalidateSize(); }, 80));
+      window.addEventListener("resize", () => setTimeout(() => { exploreMap.invalidateSize(); }, 80));
     }
 
     function onCityInput() {
@@ -330,21 +322,6 @@
       if (!worldGeoJson) return;
       const visited = getVisitedCodesUpper();
 
-      if (homeWorldLayer) homeMap.removeLayer(homeWorldLayer);
-      homeWorldLayer = L.geoJSON(worldGeoJson, {
-        pane: "homeCountryPane",
-        style: f => {
-          const code = getFeatureCode(f);
-          const on = visited.has(code);
-          return { fillColor: on ? "#d92f2f" : "#2c3746", fillOpacity: on ? 0.95 : 0.75, color: "#0b1523", weight: 0.7, opacity: 1 };
-        }
-      }).addTo(homeMap);
-      const hb = homeWorldLayer.getBounds();
-      if (hb.isValid()) {
-        homeMap.fitBounds(hb, { padding: [0, 0] });
-        if (homeMap.getZoom() > 2) homeMap.setZoom(2);
-      }
-
       if (exploreWorldLayer) exploreMap.removeLayer(exploreWorldLayer);
       exploreWorldLayer = L.geoJSON(worldGeoJson, {
         pane: "exploreCountryPane",
@@ -361,7 +338,7 @@
       els.mapScreen.classList.toggle("active", name === "map");
       els.recordsScreen.classList.toggle("active", name === "records");
       els.tabs.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === name));
-      setTimeout(() => { homeMap.invalidateSize(); exploreMap.invalidateSize(); }, 90);
+      setTimeout(() => { exploreMap.invalidateSize(); }, 90);
     }
 
     function loadRecords() {
@@ -563,9 +540,9 @@
         marker.addTo(exploreMarkerLayer);
         points.push([item.lat, item.lng]);
       });
-      if (!points.length) exploreMap.setView([22, 10], 2.3);
+      if (!points.length) exploreMap.setView([22, 10], 2.35);
       else if (points.length === 1) exploreMap.setView(points[0], 4.2);
-      else { exploreMap.fitBounds(points, { padding: [20, 20] }); if (exploreMap.getZoom() > 4.5) exploreMap.setZoom(4.5); }
+      else { exploreMap.fitBounds(points, { padding: [20, 20] }); if (exploreMap.getZoom() > 4.5) exploreMap.setZoom(4.5); if (exploreMap.getZoom() < 2.35) exploreMap.setZoom(2.35); }
     }
 
     function getVisitedCodesLower() {
