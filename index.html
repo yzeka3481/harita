@@ -10,8 +10,8 @@
     *{box-sizing:border-box}
     body{margin:0;background:radial-gradient(circle at 20% -20%,#1e3b64,transparent 40%),var(--bg);color:var(--text);font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh}
     body.modal-open{overflow:hidden;height:100vh}
-    .app{max-width:500px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom))}
-    .screen{display:none;padding:14px}.screen.active{display:block}
+    .app{max-width:500px;margin:0 auto;height:100vh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow:hidden}
+    .screen{display:none;padding:14px;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain}.screen.active{display:block}
     .card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;margin-bottom:12px}
     .card h2{margin:0 0 10px;font-size:16px}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
     .hero{border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden;min-height:180px;margin-bottom:12px;position:relative;background:#0f1725}
@@ -25,10 +25,11 @@
     .home-static-map{width:100%;height:auto;display:block;border:none;background:transparent}
     .list{display:grid;gap:8px}.item{border:1px solid #2a3d58;border-radius:10px;background:#0f1826;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
+    .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
     .chip.visited{color:#7be8c5;background:rgba(63,208,162,.14);border-color:rgba(63,208,162,.35)}.chip.planned{color:#ffd88f;background:rgba(242,190,79,.14);border-color:rgba(242,190,79,.35)}.chip.again{color:#9ecbff;background:rgba(78,161,255,.14);border-color:rgba(78,161,255,.4)}
     .flags-grid{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}.flag{width:20px;height:10px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1);opacity:.22;filter:grayscale(1);justify-self:center;display:block;background:#0a111b}
     .flag.visited{opacity:1;filter:none;border-color:rgba(255,255,255,.35);box-shadow:0 0 7px rgba(255,255,255,.16)}
-    .map-screen{padding:0;min-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}
+    .map-screen{padding:0;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow:hidden}
     #exploreMapWrap{width:100%;aspect-ratio:9/16;max-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));margin:0 auto}
     #exploreMap{width:100%;height:100%;background:#6fa8dc;border:none}
     #exploreMap .leaflet-container{background:#6fa8dc}
@@ -42,6 +43,9 @@
     .modal-box{width:100%;max-width:500px;border:1px solid #2c415d;border-radius:14px;background:linear-gradient(180deg,#152236,#111c2b);padding:12px}
     .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.modal-head h2{margin:0;font-size:17px}.close-btn{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
     form{display:grid;gap:9px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .field-label{display:block;font-size:11px;color:var(--muted);margin:0 0 4px 2px}
     .field{position:relative}
     input,select,textarea{width:100%;border-radius:10px;border:1px solid #2f455f;background:#0f1827;color:var(--text);padding:11px 12px;font:inherit;outline:none}
     input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(78,161,255,.2)}
@@ -136,6 +140,43 @@
           <option value="planned">Planlaniyor</option>
           <option value="again">Tekrar gidilecek</option>
         </select>
+        <div>
+          <label class="field-label" for="ratingOverallInput">Gezi puani (1-10)</label>
+          <input id="ratingOverallInput" type="number" min="1" max="10" step="1" placeholder="Orn: 8">
+        </div>
+        <div class="row3">
+          <div>
+            <label class="field-label" for="ratingFoodInput">Yemek</label>
+            <input id="ratingFoodInput" type="number" min="1" max="10" step="1" placeholder="1-10">
+          </div>
+          <div>
+            <label class="field-label" for="ratingTransportInput">Ulasim</label>
+            <input id="ratingTransportInput" type="number" min="1" max="10" step="1" placeholder="1-10">
+          </div>
+          <div>
+            <label class="field-label" for="ratingSafetyInput">Guvenlik</label>
+            <input id="ratingSafetyInput" type="number" min="1" max="10" step="1" placeholder="1-10">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="field-label" for="budgetInput">Toplam harcama</label>
+            <input id="budgetInput" type="number" min="0" step="0.01" placeholder="Orn: 1250">
+          </div>
+          <div>
+            <label class="field-label" for="currencyInput">Para birimi</label>
+            <select id="currencyInput">
+              <option value="TRY">TRY</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="tripDaysInput">Seyahat suresi (gun)</label>
+          <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Orn: 4">
+        </div>
         <textarea id="noteInput" placeholder="Not (opsiyonel)"></textarea>
         <button id="saveBtn" class="save-btn" type="submit">Kaydet</button>
       </form>
@@ -171,6 +212,13 @@
       countryInput: document.getElementById("countryInput"),
       dateInput: document.getElementById("dateInput"),
       statusInput: document.getElementById("statusInput"),
+      ratingOverallInput: document.getElementById("ratingOverallInput"),
+      ratingFoodInput: document.getElementById("ratingFoodInput"),
+      ratingTransportInput: document.getElementById("ratingTransportInput"),
+      ratingSafetyInput: document.getElementById("ratingSafetyInput"),
+      budgetInput: document.getElementById("budgetInput"),
+      currencyInput: document.getElementById("currencyInput"),
+      tripDaysInput: document.getElementById("tripDaysInput"),
       noteInput: document.getElementById("noteInput"),
       modalTitle: document.getElementById("modalTitle"),
       saveBtn: document.getElementById("saveBtn"),
@@ -182,6 +230,7 @@
     let heroCountry = "";
     let selectedCitySuggestion = null;
     let citySearchTimer = null;
+    let isLockingMap = false;
     let worldGeoJson = null;
 
     let exploreMap;
@@ -214,15 +263,17 @@
     }
 
     function enforceVerticalBounds() {
-      const minLat = -56;
-      const maxLat = 78;
+      const fixedLat = 22;
       const clamp = () => {
+        if (isLockingMap) return;
         const c = exploreMap.getCenter();
-        if (c.lat < minLat || c.lat > maxLat) {
-          const clamped = Math.max(minLat, Math.min(maxLat, c.lat));
-          exploreMap.panTo([clamped, c.lng], { animate: false });
+        if (Math.abs(c.lat - fixedLat) > 0.0001) {
+          isLockingMap = true;
+          exploreMap.panTo([fixedLat, c.lng], { animate: false });
+          isLockingMap = false;
         }
       };
+      exploreMap.setView([fixedLat, 10], Math.max(2.35, exploreMap.getZoom()), { animate: false });
       exploreMap.on("move", clamp);
       exploreMap.on("zoomend", clamp);
     }
@@ -338,6 +389,10 @@
       els.mapScreen.classList.toggle("active", name === "map");
       els.recordsScreen.classList.toggle("active", name === "records");
       els.tabs.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === name));
+      els.homeScreen.scrollTop = 0;
+      els.mapScreen.scrollTop = 0;
+      els.recordsScreen.scrollTop = 0;
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       setTimeout(() => { exploreMap.invalidateSize(); }, 90);
     }
 
@@ -351,7 +406,16 @@
           countryCode: String(item.countryCode || "").toLowerCase(),
           lat: Number(item.lat), lng: Number(item.lng),
           status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
-          date: item.date || "", note: item.note || "", createdAt: item.createdAt || new Date().toISOString()
+          date: item.date || "",
+          ratingOverall: normalizeScore(item.ratingOverall),
+          ratingFood: normalizeScore(item.ratingFood),
+          ratingTransport: normalizeScore(item.ratingTransport),
+          ratingSafety: normalizeScore(item.ratingSafety),
+          budget: normalizeMoney(item.budget),
+          currency: normalizeCurrency(item.currency),
+          tripDays: normalizeDays(item.tripDays),
+          note: item.note || "",
+          createdAt: item.createdAt || new Date().toISOString()
         })).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
       } catch { return []; }
     }
@@ -364,6 +428,13 @@
       const country = els.countryInput.value.trim();
       const date = els.dateInput.value;
       const status = els.statusInput.value;
+      const ratingOverall = normalizeScore(els.ratingOverallInput.value);
+      const ratingFood = normalizeScore(els.ratingFoodInput.value);
+      const ratingTransport = normalizeScore(els.ratingTransportInput.value);
+      const ratingSafety = normalizeScore(els.ratingSafetyInput.value);
+      const budget = normalizeMoney(els.budgetInput.value);
+      const currency = normalizeCurrency(els.currencyInput.value);
+      const tripDays = normalizeDays(els.tripDaysInput.value);
       const note = els.noteInput.value.trim();
       if (!city) return;
 
@@ -390,7 +461,23 @@
           codeResolved = geo.countryCode;
         }
         if (!countryResolved) throw new Error("Lutfen onerilerden bir sehir secin.");
-        const payload = { city: cityResolved, country: countryResolved, countryCode: codeResolved || geo.countryCode, lat: geo.lat, lng: geo.lng, date, status, note };
+        const payload = {
+          city: cityResolved,
+          country: countryResolved,
+          countryCode: codeResolved || geo.countryCode,
+          lat: geo.lat,
+          lng: geo.lng,
+          date,
+          status,
+          ratingOverall,
+          ratingFood,
+          ratingTransport,
+          ratingSafety,
+          budget,
+          currency,
+          tripDays,
+          note
+        };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
         else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
         saveRecords(); closeModal(); renderAll();
@@ -445,9 +532,17 @@
         els.countryInput.value = item.country;
         els.dateInput.value = item.date || "";
         els.statusInput.value = item.status;
+        els.ratingOverallInput.value = item.ratingOverall ?? "";
+        els.ratingFoodInput.value = item.ratingFood ?? "";
+        els.ratingTransportInput.value = item.ratingTransport ?? "";
+        els.ratingSafetyInput.value = item.ratingSafety ?? "";
+        els.budgetInput.value = item.budget ?? "";
+        els.currencyInput.value = item.currency || "TRY";
+        els.tripDaysInput.value = item.tripDays || "";
         els.noteInput.value = item.note || "";
       } else {
         els.modalTitle.textContent = "Sehir Ekle";
+        els.currencyInput.value = "TRY";
       }
       els.cityModal.classList.add("open");
       els.cityModal.setAttribute("aria-hidden", "false");
@@ -464,6 +559,7 @@
       document.body.classList.remove("modal-open");
       els.cityForm.reset();
       els.statusInput.value = "visited";
+      els.currencyInput.value = "TRY";
     }
 
     function renderAll() {
@@ -478,32 +574,42 @@
     }
 
     function renderHero() {
-      if (!records.length) {
-        setHeroImage("world travel");
+      const countries = [...new Set(records.map(item => item.country).filter(Boolean))];
+      if (!countries.length) {
+        setHeroImageByCountry("world");
         els.heroBadge.textContent = "Ulke yok";
         heroCountry = "";
         return;
       }
-      const top = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-      heroCountry = top.country;
-      setHeroImage(top.city + " " + top.country + " landmark");
-      els.heroBadge.textContent = top.city + ", " + top.country;
+
+      if (!heroCountry || !countries.includes(heroCountry)) {
+        heroCountry = countries[Math.floor(Math.random() * countries.length)];
+      }
+
+      setHeroImageByCountry(heroCountry);
+      els.heroBadge.textContent = heroCountry;
     }
 
-    function setHeroImage(query) {
-      const seed = encodeURIComponent(query.toLowerCase().replace(/\s+/g, "-"));
+    function setHeroImageByCountry(country) {
+      const normalized = String(country || "world").toLowerCase();
+      const seed = encodeURIComponent(normalized.replace(/\s+/g, "-"));
+      const daily = Math.floor(Date.now() / 86400000);
+      const query = encodeURIComponent(country + " landscape travel");
+      const fallback = "https://picsum.photos/seed/" + seed + "-" + daily + "/1200/700";
+
       const candidates = [
-        "https://source.unsplash.com/featured/1200x700/?" + encodeURIComponent(query),
-        "https://loremflickr.com/1200/700/" + encodeURIComponent(query),
-        "https://picsum.photos/seed/" + seed + "/1200/700",
-        "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=1200&q=80"
+        "https://source.unsplash.com/featured/1200x700/?" + query,
+        "https://loremflickr.com/1200/700/" + encodeURIComponent(country) + ",landscape",
+        fallback
       ];
-      let idx = 0;
+
+      let i = 0;
       const tryNext = () => {
-        if (idx >= candidates.length) return;
-        els.heroImage.src = candidates[idx];
-        idx += 1;
+        if (i >= candidates.length) return;
+        els.heroImage.src = candidates[i];
+        i += 1;
       };
+
       els.heroImage.onerror = tryNext;
       tryNext();
     }
@@ -512,7 +618,7 @@
       const latest = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
       if (!latest.length) { els.recentList.innerHTML = "<div class='empty'>Henuz kayit yok.</div>"; return; }
       els.recentList.innerHTML = latest.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p></article>"
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p>" + renderRecordMeta(item) + "</article>"
       ).join("");
     }
 
@@ -520,7 +626,7 @@
       const sorted = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       if (!sorted.length) { els.recordsList.innerHTML = "<div class='empty'>Kayit bulunmuyor.</div>"; return; }
       els.recordsList.innerHTML = sorted.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
       ).join("");
     }
 
@@ -536,13 +642,30 @@
         const code = item.countryCode && item.countryCode.length === 2 ? item.countryCode : "xx";
         const icon = L.divIcon({ className: "", html: "<div class='flag-pin'><img src='https://flagcdn.com/w40/" + code + ".png' alt='flag'></div>", iconSize: [24, 29], iconAnchor: [12, 26], popupAnchor: [0, -22] });
         const marker = L.marker([item.lat, item.lng], { icon, pane: "explorePinPane" });
-        marker.bindPopup("<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" + (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") + (item.note ? "Not: " + esc(item.note) : ""));
+        const popupMeta = [];
+        if (item.ratingOverall != null) popupMeta.push("Puan: " + item.ratingOverall + "/10");
+        if (item.budget != null) popupMeta.push("Butce: " + formatMoney(item.budget, item.currency || "TRY"));
+        marker.bindPopup(
+          "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
+          "Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" +
+          (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") +
+          (popupMeta.length ? esc(popupMeta.join(" | ")) + "<br>" : "") +
+          (item.note ? "Not: " + esc(item.note) : "")
+        );
         marker.addTo(exploreMarkerLayer);
         points.push([item.lat, item.lng]);
       });
-      if (!points.length) exploreMap.setView([22, 10], 2.35);
-      else if (points.length === 1) exploreMap.setView(points[0], 4.2);
-      else { exploreMap.fitBounds(points, { padding: [20, 20] }); if (exploreMap.getZoom() > 4.5) exploreMap.setZoom(4.5); if (exploreMap.getZoom() < 2.35) exploreMap.setZoom(2.35); }
+      if (!points.length) {
+        exploreMap.setView([22, 10], 2.35);
+      } else if (points.length === 1) {
+        exploreMap.setView([22, points[0][1]], 4.2);
+      } else {
+        exploreMap.fitBounds(points, { padding: [20, 20] });
+        if (exploreMap.getZoom() > 4.5) exploreMap.setZoom(4.5);
+        if (exploreMap.getZoom() < 2.35) exploreMap.setZoom(2.35);
+        const c = exploreMap.getCenter();
+        exploreMap.setView([22, c.lng], exploreMap.getZoom(), { animate: false });
+      }
     }
 
     function getVisitedCodesLower() {
@@ -565,6 +688,69 @@
         hash |= 0;
       }
       return COUNTRY_PALETTE[Math.abs(hash) % COUNTRY_PALETTE.length];
+    }
+
+    function renderRecordMeta(item) {
+      const parts = [];
+      if (item.ratingOverall != null) parts.push("Puan: " + item.ratingOverall + "/10");
+
+      const detailScores = [];
+      if (item.ratingFood != null) detailScores.push("Yemek " + item.ratingFood);
+      if (item.ratingTransport != null) detailScores.push("Ulasim " + item.ratingTransport);
+      if (item.ratingSafety != null) detailScores.push("Guvenlik " + item.ratingSafety);
+      if (detailScores.length) parts.push(detailScores.join(" | "));
+
+      if (item.budget != null) {
+        const total = formatMoney(item.budget, item.currency || "TRY");
+        if (item.tripDays && item.tripDays > 0) {
+          const daily = formatMoney(item.budget / item.tripDays, item.currency || "TRY");
+          parts.push("Butce: " + total + " (Gunluk: " + daily + ")");
+        } else {
+          parts.push("Butce: " + total);
+        }
+      }
+
+      if (!parts.length) return "";
+      return "<div class='meta-line'>" + esc(parts.join(" | ")) + "</div>";
+    }
+
+    function normalizeScore(value) {
+      if (value === "" || value == null) return null;
+      const n = Number(value);
+      if (!Number.isFinite(n)) return null;
+      return Math.max(1, Math.min(10, Math.round(n)));
+    }
+
+    function normalizeMoney(value) {
+      if (value === "" || value == null) return null;
+      const n = Number(value);
+      if (!Number.isFinite(n)) return null;
+      return Math.max(0, Number(n.toFixed(2)));
+    }
+
+    function normalizeDays(value) {
+      if (value === "" || value == null) return null;
+      const n = Number(value);
+      if (!Number.isFinite(n)) return null;
+      return Math.max(1, Math.round(n));
+    }
+
+    function normalizeCurrency(value) {
+      const allowed = ["TRY", "USD", "EUR", "GBP"];
+      const c = String(value || "TRY").toUpperCase();
+      return allowed.includes(c) ? c : "TRY";
+    }
+
+    function formatMoney(amount, currency) {
+      try {
+        return new Intl.NumberFormat("tr-TR", {
+          style: "currency",
+          currency: normalizeCurrency(currency),
+          maximumFractionDigits: 2
+        }).format(amount);
+      } catch {
+        return amount + " " + normalizeCurrency(currency);
+      }
     }
 
     function getFeatureCode(feature) {
