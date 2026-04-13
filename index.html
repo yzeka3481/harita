@@ -45,10 +45,10 @@
     .insight-ring{width:76px;height:76px;border-radius:999px;background:conic-gradient(#ffd166 0 var(--pct,35%),rgba(255,255,255,.24) var(--pct,35%) 100%);position:relative;justify-self:center}
     .insight-ring::after{content:"";position:absolute;inset:13px;border-radius:999px;background:rgba(7,26,48,.62)}
     .insight-foot{margin-top:10px;font-size:12px;color:#d8ecff;text-align:center}
-    .recent-shell{position:relative}
-    .recent-carousel{position:relative;height:206px;touch-action:pan-y}
+    .recent-shell{position:relative;padding:0 10px}
+    .recent-carousel{position:relative;height:206px;touch-action:pan-y;overflow:hidden}
     .recent-stage{position:relative;height:100%;perspective:900px}
-    .recent-card{position:absolute;inset:10px 8px 6px;border-radius:20px;padding:16px 16px 14px;background:linear-gradient(180deg,#f8fbff,#e9f1fa);color:#1f2f45;box-shadow:0 16px 32px rgba(7,18,34,.28);opacity:0;transform:translateX(0) scale(.9);transition:transform .28s ease,opacity .28s ease,filter .28s ease;pointer-events:none}
+    .recent-card{position:absolute;inset:10px 14px 6px;border-radius:20px;padding:16px 16px 14px;background:linear-gradient(180deg,#f8fbff,#e9f1fa);color:#1f2f45;box-shadow:0 16px 32px rgba(7,18,34,.28);opacity:0;transform:translateX(0) scale(.9);transition:transform .28s ease,opacity .28s ease,filter .28s ease;pointer-events:none}
     .recent-card.active{opacity:1;transform:translateX(0) scale(1);z-index:3;filter:none}
     .recent-card.prev{opacity:.72;transform:translateX(-28px) scale(.93) rotateY(8deg);z-index:2;filter:saturate(.85)}
     .recent-card.next{opacity:.72;transform:translateX(28px) scale(.93) rotateY(-8deg);z-index:2;filter:saturate(.85)}
@@ -265,12 +265,21 @@
             <div id="citySuggestions" class="suggestions"></div>
           </div>
           <input id="countryInput" type="text" placeholder="Ulke otomatik gelecek" readonly>
-          <input id="dateInput" type="date">
           <select id="statusInput">
             <option value="visited">Gezildi</option>
             <option value="planned">Planlaniyor</option>
             <option value="again">Tekrar gidilecek</option>
           </select>
+          <div class="row2">
+            <div>
+              <label class="field-label" for="dateInput">Tarih</label>
+              <input id="dateInput" type="date">
+            </div>
+            <div>
+              <label class="field-label" for="tripDaysInput">Seyahat suresi (gun)</label>
+              <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Orn: 4">
+            </div>
+          </div>
           <div class="row3">
             <div>
               <label class="field-label" for="ratingFoodInput">Yemek</label>
@@ -299,10 +308,6 @@
                 <option value="GBP">GBP</option>
               </select>
             </div>
-          </div>
-          <div>
-            <label class="field-label" for="tripDaysInput">Seyahat suresi (gun)</label>
-            <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Orn: 4">
           </div>
           <div>
             <label class="field-label" for="photoInput">Ani galerisi (foto)</label>
@@ -1498,6 +1503,8 @@
       let i = 0;
       const tryNext = () => {
         if (i >= candidates.length) return;
+        els.heroImage.style.opacity = "1";
+        els.heroImage.style.objectPosition = "center center";
         els.heroImage.src = candidates[i];
         i += 1;
       };
@@ -1507,32 +1514,22 @@
     }
 
     function setHeroDefaultPassport() {
-      const svg =
-        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700'>" +
-          "<defs>" +
-            "<linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'>" +
-              "<stop offset='0%' stop-color='#0f3a66'/>" +
-              "<stop offset='100%' stop-color='#164f86'/>" +
-            "</linearGradient>" +
-            "<linearGradient id='card' x1='0' y1='0' x2='0' y2='1'>" +
-              "<stop offset='0%' stop-color='#204d78'/>" +
-              "<stop offset='100%' stop-color='#173d62'/>" +
-            "</linearGradient>" +
-          "</defs>" +
-          "<rect width='1200' height='700' fill='url(#bg)'/>" +
-          "<circle cx='1040' cy='120' r='140' fill='rgba(255,255,255,0.08)'/>" +
-          "<circle cx='180' cy='640' r='220' fill='rgba(255,255,255,0.06)'/>" +
-          "<rect x='270' y='110' width='660' height='470' rx='34' fill='url(#card)' stroke='rgba(255,255,255,0.22)'/>" +
-          "<rect x='300' y='144' width='600' height='60' rx='12' fill='rgba(255,255,255,0.08)'/>" +
-          "<text x='600' y='185' text-anchor='middle' fill='#dcecff' font-family='Segoe UI, Arial, sans-serif' font-size='38' font-weight='700'>PASSPORT</text>" +
-          "<circle cx='600' cy='328' r='95' fill='none' stroke='rgba(255,215,130,0.82)' stroke-width='8'/>" +
-          "<path d='M535 328h130M600 263v130M553 281c24-17 70-17 94 0M553 375c24 17 70 17 94 0' stroke='rgba(255,215,130,0.82)' stroke-width='7' fill='none' stroke-linecap='round'/>" +
-          "<rect x='328' y='450' width='544' height='20' rx='10' fill='rgba(255,255,255,0.2)'/>" +
-          "<rect x='328' y='484' width='430' height='14' rx='7' fill='rgba(255,255,255,0.14)'/>" +
-          "<text x='600' y='545' text-anchor='middle' fill='rgba(222,238,255,0.92)' font-family='Segoe UI, Arial, sans-serif' font-size='28' font-weight='600'>Ilk sehri ekleyerek seyahatine basla</text>" +
-        "</svg>";
-      els.heroImage.onerror = null;
-      els.heroImage.src = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+      const seed = Math.floor(Date.now() / 86400000);
+      const candidates = [
+        "https://source.unsplash.com/featured/1600x900/?passport,travel,visa",
+        "https://loremflickr.com/1600/900/passport,travel",
+        "https://picsum.photos/seed/passport-" + seed + "/1600/900"
+      ];
+      let i = 0;
+      const tryNext = () => {
+        if (i >= candidates.length) return;
+        els.heroImage.style.opacity = "0.42";
+        els.heroImage.style.objectPosition = "center center";
+        els.heroImage.src = candidates[i];
+        i += 1;
+      };
+      els.heroImage.onerror = tryNext;
+      tryNext();
     }
 
     function renderHomeGlobe() {
