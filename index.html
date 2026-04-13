@@ -7,23 +7,33 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     :root{color-scheme:dark;--bg:#0a0f17;--panel:#121b28;--panel2:#172334;--line:#2b3f59;--text:#e8f1ff;--muted:#9ab0cc;--primary:#4ea1ff;--primary2:#2f7cde;--tabh:68px}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% -20%,#1e3b64,transparent 40%),var(--bg);color:var(--text);font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh}
-    body.modal-open{overflow:hidden;height:100vh}.app{max-width:500px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom))}
-    .screen{display:none;padding:14px}.screen.active{display:block}.card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;margin-bottom:12px}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(circle at 20% -20%,#1e3b64,transparent 40%),var(--bg);color:var(--text);font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh}
+    body.modal-open{overflow:hidden;height:100vh}
+    .app{max-width:500px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom))}
+    .screen{display:none;padding:14px}.screen.active{display:block}
+    .card{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;margin-bottom:12px}
     .card h2{margin:0 0 10px;font-size:16px}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
     .hero{border:1px solid rgba(255,255,255,.1);border-radius:18px;overflow:hidden;min-height:180px;margin-bottom:12px;position:relative;background:#0f1725}
     .hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,13,22,.15),rgba(8,13,22,.92))}
     .hero-content{position:relative;z-index:1;min-height:180px;padding:14px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
     .hero-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.hero h1{margin:0;font-size:22px}.badge{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 10px;font-size:12px;background:rgba(16,25,37,.7)}
-    .hero p{margin:0;font-size:12px;color:#d2e1fb;line-height:1.4}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+    .hero p{margin:0;font-size:12px;color:#d2e1fb;line-height:1.4}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
     .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
-    #homeMap{height:220px;border:none;background:transparent}#homeMap .leaflet-container{background:transparent}#homeMap .leaflet-control-container{display:none}
+    .home-map-wrap{margin:0 0 12px}
+    #homeMap{height:260px;border:none;background:transparent}
+    #homeMap .leaflet-container{background:transparent}
+    #homeMap .leaflet-control-container{display:none}
     .list{display:grid;gap:8px}.item{border:1px solid #2a3d58;border-radius:10px;background:#0f1826;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .chip.visited{color:#7be8c5;background:rgba(63,208,162,.14);border-color:rgba(63,208,162,.35)}.chip.planned{color:#ffd88f;background:rgba(242,190,79,.14);border-color:rgba(242,190,79,.35)}.chip.again{color:#9ecbff;background:rgba(78,161,255,.14);border-color:rgba(78,161,255,.4)}
     .flags-grid{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}.flag{width:20px;height:10px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1);opacity:.22;filter:grayscale(1);justify-self:center;display:block;background:#0a111b}
     .flag.visited{opacity:1;filter:none;border-color:rgba(255,255,255,.35);box-shadow:0 0 7px rgba(255,255,255,.16)}
-    .map-screen{padding:0;min-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}#exploreMapWrap{width:100%;aspect-ratio:9/16;max-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));margin:0 auto}#exploreMap{width:100%;height:100%;background:transparent;border:none}#exploreMap .leaflet-container{background:transparent}
+    .map-screen{padding:0;min-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}
+    #exploreMapWrap{width:100%;aspect-ratio:9/16;max-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));margin:0 auto}
+    #exploreMap{width:100%;height:100%;background:#6fa8dc;border:none}
+    #exploreMap .leaflet-container{background:#6fa8dc}
     .records-actions{display:flex;gap:8px;margin-top:8px}.records-actions button{flex:1;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer}.btn-edit{background:#325b85}.btn-del{background:#87344a}
     .empty{border:1px dashed #35506f;border-radius:10px;text-align:center;color:var(--muted);padding:12px;font-size:13px;background:rgba(11,18,29,.7)}
     .tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(8,12,18,0),rgba(8,12,18,.95) 30%)}
@@ -33,10 +43,21 @@
     .modal{position:fixed;inset:0;z-index:6000;background:rgba(2,7,13,.83);display:none;align-items:flex-end;justify-content:center;padding:10px;backdrop-filter:blur(3px)}.modal.open{display:flex}
     .modal-box{width:100%;max-width:500px;border:1px solid #2c415d;border-radius:14px;background:linear-gradient(180deg,#152236,#111c2b);padding:12px}
     .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.modal-head h2{margin:0;font-size:17px}.close-btn{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
-    form{display:grid;gap:9px}input,select,textarea{width:100%;border-radius:10px;border:1px solid #2f455f;background:#0f1827;color:var(--text);padding:11px 12px;font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(78,161,255,.2)}
+    form{display:grid;gap:9px}
+    .field{position:relative}
+    input,select,textarea{width:100%;border-radius:10px;border:1px solid #2f455f;background:#0f1827;color:var(--text);padding:11px 12px;font:inherit;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(78,161,255,.2)}
+    #countryInput[readonly]{opacity:.85}
+    .suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#0f1827;border:1px solid #2f455f;border-radius:10px;max-height:180px;overflow:auto;z-index:40;display:none}
+    .suggestions.open{display:block}
+    .suggestion-item{padding:10px 12px;border-bottom:1px solid #25374f;cursor:pointer}
+    .suggestion-item:last-child{border-bottom:none}
+    .suggestion-item:hover{background:#17263b}
+    .suggestion-item strong{display:block;font-size:13px}
+    .suggestion-item span{font-size:12px;color:var(--muted)}
     textarea{min-height:84px;resize:vertical}.save-btn{border:none;border-radius:10px;padding:12px;color:#fff;font:inherit;font-weight:800;background:linear-gradient(180deg,var(--primary),var(--primary2));cursor:pointer}
     .flag-pin{width:24px;height:24px;border-radius:999px;border:2px solid #fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
-    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}#homeMap{height:300px}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}}
+    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}#homeMap{height:320px}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}}
   </style>
 </head>
 <body>
@@ -59,11 +80,11 @@
         <article class="stat"><small>Planlanan</small><strong id="statPlanned">0</strong></article>
       </section>
 
-      <article class="card">
+      <section class="home-map-wrap">
         <h2>Ana Harita</h2>
         <div id="homeMap"></div>
         <p class="hint">Kirmizi: gidilen ulke, gri: diger ulkeler.</p>
-      </article>
+      </section>
 
       <article class="card">
         <h2>Son Eklenen 3 Sehir</h2>
@@ -105,9 +126,12 @@
         <h2 id="modalTitle">Sehir Ekle</h2>
         <button id="closeModalBtn" class="close-btn" type="button">Kapat</button>
       </div>
-      <form id="cityForm">
-        <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
-        <input id="countryInput" type="text" placeholder="Ulke adi (Orn: Italya)" required>
+      <form id="cityForm" autocomplete="off">
+        <div class="field">
+          <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
+          <div id="citySuggestions" class="suggestions"></div>
+        </div>
+        <input id="countryInput" type="text" placeholder="Ulke otomatik gelecek" readonly>
         <input id="dateInput" type="date">
         <select id="statusInput">
           <option value="visited">Gezildi</option>
@@ -124,6 +148,7 @@
   <script>
     const STORAGE_KEY = "travel-map-v2";
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+    const COUNTRY_PALETTE = ["#8ecae6","#219ebc","#ffb703","#fb8500","#bdb2ff","#a0c4ff","#90be6d","#43aa8b","#f9c74f","#f9844a","#e76f51","#4d908e","#577590","#f94144","#277da1","#3a86ff","#06d6a0","#ff99c8"];
     const WORLD_CODES = ["af","al","dz","ad","ao","ag","ar","am","au","at","az","bs","bh","bd","bb","by","be","bz","bj","bt","bo","ba","bw","br","bn","bg","bf","bi","cv","kh","cm","ca","cf","td","cl","cn","co","km","cg","cd","cr","ci","hr","cu","cy","cz","dk","dj","dm","do","ec","eg","sv","gq","er","ee","sz","et","fj","fi","fr","ga","gm","ge","de","gh","gr","gd","gt","gn","gw","gy","ht","hn","hu","is","in","id","ir","iq","ie","il","it","jm","jp","jo","kz","ke","ki","kp","kr","kw","kg","la","lv","lb","ls","lr","ly","li","lt","lu","mg","mw","my","mv","ml","mt","mh","mr","mu","mx","fm","md","mc","mn","me","ma","mz","mm","na","nr","np","nl","nz","ni","ne","ng","mk","no","om","pk","pw","pa","pg","py","pe","ph","pl","pt","qa","ro","ru","rw","kn","lc","vc","ws","sm","st","sa","sn","rs","sc","sl","sg","sk","si","sb","so","za","ss","es","lk","sd","sr","se","ch","sy","tj","tz","th","tl","tg","to","tt","tn","tr","tm","tv","ug","ua","ae","gb","us","uy","uz","vu","va","ve","vn","ye","zm","zw","tw","xk","ps","hk","mo"];
     const STATUS_TEXT = { visited: "Gezildi", planned: "Planlaniyor", again: "Tekrar gidilecek" };
 
@@ -144,6 +169,7 @@
       cityModal: document.getElementById("cityModal"),
       cityForm: document.getElementById("cityForm"),
       cityInput: document.getElementById("cityInput"),
+      citySuggestions: document.getElementById("citySuggestions"),
       countryInput: document.getElementById("countryInput"),
       dateInput: document.getElementById("dateInput"),
       statusInput: document.getElementById("statusInput"),
@@ -156,6 +182,8 @@
     let records = loadRecords();
     let editId = null;
     let heroCountry = "";
+    let selectedCitySuggestion = null;
+    let citySearchTimer = null;
     let worldGeoJson = null;
 
     let homeMap;
@@ -184,11 +212,27 @@
       exploreMap = L.map("exploreMap", {
         zoomControl: false, attributionControl: false, worldCopyJump: true, minZoom: 2, maxZoom: 5
       }).setView([22, 10], 2.3);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        subdomains: "abcd", maxZoom: 19
+      }).addTo(exploreMap);
       exploreMap.createPane("exploreCountryPane");
       exploreMap.getPane("exploreCountryPane").style.zIndex = 300;
       exploreMap.createPane("explorePinPane");
       exploreMap.getPane("explorePinPane").style.zIndex = 650;
       exploreMarkerLayer = L.layerGroup().addTo(exploreMap);
+      enforceVerticalBounds();
+    }
+
+    function enforceVerticalBounds() {
+      const minLat = -58;
+      const maxLat = 82;
+      exploreMap.on("move", () => {
+        const c = exploreMap.getCenter();
+        if (c.lat < minLat || c.lat > maxLat) {
+          const clamped = Math.max(minLat, Math.min(maxLat, c.lat));
+          exploreMap.panTo([clamped, c.lng], { animate: false });
+        }
+      });
     }
 
     function bindEvents() {
@@ -198,7 +242,77 @@
       els.cityForm.addEventListener("submit", onSave);
       els.recordsList.addEventListener("click", onRecordAction);
       els.tabs.forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.screen)));
+      els.cityInput.addEventListener("input", onCityInput);
+      els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
+      document.addEventListener("click", e => {
+        if (!e.target.closest(".field")) closeSuggestions();
+      });
       window.addEventListener("resize", () => setTimeout(() => { homeMap.invalidateSize(); exploreMap.invalidateSize(); }, 80));
+    }
+
+    function onCityInput() {
+      selectedCitySuggestion = null;
+      const q = els.cityInput.value.trim();
+      if (!q) {
+        els.countryInput.value = "";
+        closeSuggestions();
+        return;
+      }
+      clearTimeout(citySearchTimer);
+      citySearchTimer = setTimeout(async () => {
+        try {
+          const items = await searchCitySuggestions(q);
+          renderSuggestions(items);
+        } catch {
+          closeSuggestions();
+        }
+      }, 260);
+    }
+
+    async function searchCitySuggestions(query) {
+      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=7&q=" + encodeURIComponent(query);
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("Sehir aramasi basarisiz.");
+      const data = await response.json();
+      return data.map(row => {
+        const a = row.address || {};
+        const city = a.city || a.town || a.village || a.municipality || a.state || "";
+        const country = a.country || "";
+        const code = (a.country_code || "").toLowerCase();
+        return {
+          city: city || row.name || query,
+          country,
+          countryCode: code,
+          lat: Number(row.lat),
+          lng: Number(row.lon)
+        };
+      }).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
+    }
+
+    function renderSuggestions(items) {
+      if (!items.length) {
+        closeSuggestions();
+        return;
+      }
+      els.citySuggestions.innerHTML = items.map((item, i) =>
+        "<div class='suggestion-item' data-i='" + i + "'><strong>" + esc(item.city) + "</strong><span>" + esc(item.country) + "</span></div>"
+      ).join("");
+      els.citySuggestions.classList.add("open");
+      els.citySuggestions.querySelectorAll(".suggestion-item").forEach(el => {
+        el.addEventListener("click", () => applyCitySuggestion(items[Number(el.dataset.i)]));
+      });
+    }
+
+    function applyCitySuggestion(item) {
+      selectedCitySuggestion = item;
+      els.cityInput.value = item.city;
+      els.countryInput.value = item.country;
+      closeSuggestions();
+    }
+
+    function closeSuggestions() {
+      els.citySuggestions.classList.remove("open");
+      els.citySuggestions.innerHTML = "";
     }
 
     async function loadWorldData() {
@@ -225,6 +339,11 @@
           return { fillColor: on ? "#d92f2f" : "#2c3746", fillOpacity: on ? 0.95 : 0.75, color: "#0b1523", weight: 0.7, opacity: 1 };
         }
       }).addTo(homeMap);
+      const hb = homeWorldLayer.getBounds();
+      if (hb.isValid()) {
+        homeMap.fitBounds(hb, { padding: [0, 0] });
+        if (homeMap.getZoom() > 2) homeMap.setZoom(2);
+      }
 
       if (exploreWorldLayer) exploreMap.removeLayer(exploreWorldLayer);
       exploreWorldLayer = L.geoJSON(worldGeoJson, {
@@ -232,7 +351,7 @@
         style: f => {
           const code = getFeatureCode(f);
           const on = visited.has(code);
-          return { fillColor: on ? "#d92f2f" : "#3a4557", fillOpacity: on ? 0.95 : 0.8, color: "#0b1523", weight: 0.8, opacity: 1 };
+          return { fillColor: on ? "#d92f2f" : colorByCountryCode(code), fillOpacity: on ? 0.86 : 0.52, color: "#233244", weight: 0.65, opacity: 0.95 };
         }
       }).addTo(exploreMap);
     }
@@ -269,19 +388,32 @@
       const date = els.dateInput.value;
       const status = els.statusInput.value;
       const note = els.noteInput.value.trim();
-      if (!city || !country) return;
+      if (!city) return;
 
       els.saveBtn.disabled = true;
       els.saveBtn.textContent = editId ? "Guncelleniyor..." : "Kaydediliyor...";
       try {
         let geo;
+        let cityResolved = city;
+        let countryResolved = country;
+        let codeResolved = "";
         const old = editId ? records.find(item => item.id === editId) : null;
-        if (old && old.city.toLowerCase() === city.toLowerCase() && old.country.toLowerCase() === country.toLowerCase()) {
+        if (selectedCitySuggestion) {
+          geo = { lat: selectedCitySuggestion.lat, lng: selectedCitySuggestion.lng, countryCode: selectedCitySuggestion.countryCode };
+          cityResolved = selectedCitySuggestion.city;
+          countryResolved = selectedCitySuggestion.country;
+          codeResolved = selectedCitySuggestion.countryCode;
+        } else if (old && old.city.toLowerCase() === city.toLowerCase() && old.country.toLowerCase() === country.toLowerCase()) {
           geo = { lat: old.lat, lng: old.lng, countryCode: old.countryCode };
+          codeResolved = old.countryCode;
         } else {
           geo = await geocode(city, country);
+          cityResolved = geo.city || cityResolved;
+          countryResolved = geo.country || countryResolved;
+          codeResolved = geo.countryCode;
         }
-        const payload = { city, country, countryCode: geo.countryCode, lat: geo.lat, lng: geo.lng, date, status, note };
+        if (!countryResolved) throw new Error("Lutfen onerilerden bir sehir secin.");
+        const payload = { city: cityResolved, country: countryResolved, countryCode: codeResolved || geo.countryCode, lat: geo.lat, lng: geo.lng, date, status, note };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
         else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
         saveRecords(); closeModal(); renderAll();
@@ -294,15 +426,19 @@
     }
 
     async function geocode(city, country) {
-      const q = encodeURIComponent(city + ", " + country);
+      const raw = country ? city + ", " + country : city;
+      const q = encodeURIComponent(raw);
       const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&q=" + q;
       const response = await fetch(url, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error("Konum servisine ulasilamadi.");
       const data = await response.json();
       if (!data.length) throw new Error("Sehir bulunamadi. Bilgiyi kontrol edin.");
       const top = data[0];
+      const addr = top.address || {};
+      const resolvedCity = addr.city || addr.town || addr.village || addr.municipality || city;
+      const resolvedCountry = addr.country || country || "";
       const code = top.address && top.address.country_code ? String(top.address.country_code).toLowerCase() : "";
-      return { lat: Number(top.lat), lng: Number(top.lon), countryCode: code };
+      return { lat: Number(top.lat), lng: Number(top.lon), countryCode: code, city: resolvedCity, country: resolvedCountry };
     }
 
     function onRecordAction(event) {
@@ -322,6 +458,8 @@
       editId = id;
       els.cityForm.reset();
       els.statusInput.value = "visited";
+      selectedCitySuggestion = null;
+      closeSuggestions();
       if (editId) {
         const item = records.find(record => record.id === editId);
         if (!item) return;
@@ -342,6 +480,8 @@
 
     function closeModal() {
       editId = null;
+      selectedCitySuggestion = null;
+      closeSuggestions();
       els.cityModal.classList.remove("open");
       els.cityModal.setAttribute("aria-hidden", "true");
       document.body.classList.remove("modal-open");
@@ -361,16 +501,34 @@
     }
 
     function renderHero() {
-      const countries = [...new Set(records.map(item => item.country))];
-      if (!countries.length) {
-        els.heroImage.src = "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=1200&q=80";
+      if (!records.length) {
+        setHeroImage("world travel");
         els.heroBadge.textContent = "Ulke yok";
         heroCountry = "";
         return;
       }
-      if (!heroCountry || !countries.includes(heroCountry)) heroCountry = countries[Math.floor(Math.random() * countries.length)];
-      els.heroImage.src = "https://source.unsplash.com/1200x700/?" + encodeURIComponent(heroCountry + " travel");
-      els.heroBadge.textContent = heroCountry;
+      const top = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      heroCountry = top.country;
+      setHeroImage(top.city + " " + top.country + " landmark");
+      els.heroBadge.textContent = top.city + ", " + top.country;
+    }
+
+    function setHeroImage(query) {
+      const seed = encodeURIComponent(query.toLowerCase().replace(/\s+/g, "-"));
+      const candidates = [
+        "https://source.unsplash.com/featured/1200x700/?" + encodeURIComponent(query),
+        "https://loremflickr.com/1200/700/" + encodeURIComponent(query),
+        "https://picsum.photos/seed/" + seed + "/1200/700",
+        "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=1200&q=80"
+      ];
+      let idx = 0;
+      const tryNext = () => {
+        if (idx >= candidates.length) return;
+        els.heroImage.src = candidates[idx];
+        idx += 1;
+      };
+      els.heroImage.onerror = tryNext;
+      tryNext();
     }
 
     function renderRecent() {
@@ -420,6 +578,16 @@
       const set = new Set();
       records.forEach(item => { if ((item.status === "visited" || item.status === "again") && item.countryCode) set.add(item.countryCode.toUpperCase()); });
       return set;
+    }
+
+    function colorByCountryCode(code) {
+      if (!code) return "#6b7a8a";
+      let hash = 0;
+      for (let i = 0; i < code.length; i += 1) {
+        hash = (hash << 5) - hash + code.charCodeAt(i);
+        hash |= 0;
+      }
+      return COUNTRY_PALETTE[Math.abs(hash) % COUNTRY_PALETTE.length];
     }
 
     function getFeatureCode(feature) {
