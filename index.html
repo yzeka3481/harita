@@ -58,6 +58,16 @@
     .suggestion-item strong{display:block;font-size:13px}
     .suggestion-item span{font-size:12px;color:var(--muted)}
     textarea{min-height:84px;resize:vertical}.save-btn{border:none;border-radius:10px;padding:12px;color:#fff;font:inherit;font-weight:800;background:linear-gradient(180deg,var(--primary),var(--primary2));cursor:pointer}
+    .file-input{padding:8px 10px}
+    .photo-helper{font-size:11px;color:var(--muted);margin-top:2px}
+    .photo-preview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:6px}
+    .photo-thumb{position:relative;border:1px solid #2f455f;border-radius:8px;overflow:hidden;aspect-ratio:1/1;background:#0f1827}
+    .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .photo-remove{position:absolute;top:4px;right:4px;border:none;border-radius:999px;background:rgba(8,15,24,.82);color:#fff;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer}
+    .photo-actions{display:flex;justify-content:flex-end;margin-top:6px}
+    .photo-clear{border:none;border-radius:8px;background:#2b405c;color:#dce9ff;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer}
+    .gallery-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+    .gallery-row img{width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #30445f;display:block}
     .flag-pin{width:24px;height:24px;border-radius:999px;border:2px solid #fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-static-map{max-height:340px;object-fit:contain}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}}
   </style>
@@ -177,6 +187,15 @@
           <label class="field-label" for="tripDaysInput">Seyahat suresi (gun)</label>
           <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Orn: 4">
         </div>
+        <div>
+          <label class="field-label" for="photoInput">Ani galerisi (foto)</label>
+          <input id="photoInput" class="file-input" type="file" accept="image/*" multiple>
+          <div class="photo-helper">Fotograflar otomatik boyutlandirilir (maks 1280px).</div>
+          <div class="photo-actions">
+            <button id="clearPhotosBtn" class="photo-clear" type="button">Fotograflari temizle</button>
+          </div>
+          <div id="photoPreview" class="photo-preview"></div>
+        </div>
         <textarea id="noteInput" placeholder="Not (opsiyonel)"></textarea>
         <button id="saveBtn" class="save-btn" type="submit">Kaydet</button>
       </form>
@@ -219,6 +238,9 @@
       budgetInput: document.getElementById("budgetInput"),
       currencyInput: document.getElementById("currencyInput"),
       tripDaysInput: document.getElementById("tripDaysInput"),
+      photoInput: document.getElementById("photoInput"),
+      clearPhotosBtn: document.getElementById("clearPhotosBtn"),
+      photoPreview: document.getElementById("photoPreview"),
       noteInput: document.getElementById("noteInput"),
       modalTitle: document.getElementById("modalTitle"),
       saveBtn: document.getElementById("saveBtn"),
@@ -230,6 +252,7 @@
     let heroCountry = "";
     let selectedCitySuggestion = null;
     let citySearchTimer = null;
+    let workingPhotos = [];
     let isLockingMap = false;
     let worldGeoJson = null;
 
@@ -287,6 +310,20 @@
       els.tabs.forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.screen)));
       els.cityInput.addEventListener("input", onCityInput);
       els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
+      els.photoInput.addEventListener("change", onPhotoInputChange);
+      els.clearPhotosBtn.addEventListener("click", () => {
+        workingPhotos = [];
+        els.photoInput.value = "";
+        renderPhotoPreview();
+      });
+      els.photoPreview.addEventListener("click", e => {
+        const btn = e.target.closest("button[data-remove-photo]");
+        if (!btn) return;
+        const idx = Number(btn.dataset.removePhoto);
+        if (!Number.isInteger(idx)) return;
+        workingPhotos = workingPhotos.filter((_, i) => i !== idx);
+        renderPhotoPreview();
+      });
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
       });
@@ -358,6 +395,71 @@
       els.citySuggestions.innerHTML = "";
     }
 
+    async function onPhotoInputChange(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+
+      const room = Math.max(0, 8 - workingPhotos.length);
+      const selected = files.slice(0, room);
+      if (!selected.length) {
+        alert("Maksimum 8 fotograf ekleyebilirsin.");
+        event.target.value = "";
+        return;
+      }
+
+      try {
+        const resized = await Promise.all(selected.map(file => resizeImageFile(file, 1280, 1280, 0.82)));
+        workingPhotos = workingPhotos.concat(resized.filter(Boolean)).slice(0, 8);
+        renderPhotoPreview();
+      } catch {
+        alert("Fotograflar islenirken hata oldu.");
+      } finally {
+        event.target.value = "";
+      }
+    }
+
+    function resizeImageFile(file, maxW, maxH, quality) {
+      return new Promise((resolve, reject) => {
+        if (!file.type.startsWith("image/")) {
+          resolve(null);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+            const w = Math.max(1, Math.round(img.width * ratio));
+            const h = Math.max(1, Math.round(img.height * ratio));
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              reject(new Error("Canvas context yok"));
+              return;
+            }
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = () => reject(new Error("Gorsel yuklenemedi"));
+          img.src = String(reader.result || "");
+        };
+        reader.onerror = () => reject(new Error("Dosya okunamadi"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderPhotoPreview() {
+      if (!workingPhotos.length) {
+        els.photoPreview.innerHTML = "";
+        return;
+      }
+      els.photoPreview.innerHTML = workingPhotos.map((src, i) =>
+        "<div class='photo-thumb'><img src='" + esc(src) + "' alt='ani foto'><button class='photo-remove' type='button' data-remove-photo='" + i + "'>&times;</button></div>"
+      ).join("");
+    }
+
     async function loadWorldData() {
       try {
         const response = await fetch(GEOJSON_URL, { headers: { Accept: "application/json" } });
@@ -414,6 +516,7 @@
           budget: normalizeMoney(item.budget),
           currency: normalizeCurrency(item.currency),
           tripDays: normalizeDays(item.tripDays),
+          photos: normalizePhotos(item.photos),
           note: item.note || "",
           createdAt: item.createdAt || new Date().toISOString()
         })).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
@@ -476,6 +579,7 @@
           budget,
           currency,
           tripDays,
+          photos: workingPhotos.slice(0, 8),
           note
         };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
@@ -523,6 +627,7 @@
       els.cityForm.reset();
       els.statusInput.value = "visited";
       selectedCitySuggestion = null;
+      workingPhotos = [];
       closeSuggestions();
       if (editId) {
         const item = records.find(record => record.id === editId);
@@ -539,11 +644,13 @@
         els.budgetInput.value = item.budget ?? "";
         els.currencyInput.value = item.currency || "TRY";
         els.tripDaysInput.value = item.tripDays || "";
+        workingPhotos = Array.isArray(item.photos) ? [...item.photos] : [];
         els.noteInput.value = item.note || "";
       } else {
         els.modalTitle.textContent = "Sehir Ekle";
         els.currencyInput.value = "TRY";
       }
+      renderPhotoPreview();
       els.cityModal.classList.add("open");
       els.cityModal.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
@@ -553,6 +660,7 @@
     function closeModal() {
       editId = null;
       selectedCitySuggestion = null;
+      workingPhotos = [];
       closeSuggestions();
       els.cityModal.classList.remove("open");
       els.cityModal.setAttribute("aria-hidden", "true");
@@ -560,6 +668,8 @@
       els.cityForm.reset();
       els.statusInput.value = "visited";
       els.currencyInput.value = "TRY";
+      els.photoInput.value = "";
+      renderPhotoPreview();
     }
 
     function renderAll() {
@@ -618,7 +728,7 @@
       const latest = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
       if (!latest.length) { els.recentList.innerHTML = "<div class='empty'>Henuz kayit yok.</div>"; return; }
       els.recentList.innerHTML = latest.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p>" + renderRecordMeta(item) + "</article>"
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + (item.note ? " - " + esc(item.note) : "") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + "</article>"
       ).join("");
     }
 
@@ -626,7 +736,7 @@
       const sorted = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       if (!sorted.length) { els.recordsList.innerHTML = "<div class='empty'>Kayit bulunmuyor.</div>"; return; }
       els.recordsList.innerHTML = sorted.map(item =>
-        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
+        "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
       ).join("");
     }
 
@@ -645,6 +755,7 @@
         const popupMeta = [];
         if (item.ratingOverall != null) popupMeta.push("Puan: " + item.ratingOverall + "/10");
         if (item.budget != null) popupMeta.push("Butce: " + formatMoney(item.budget, item.currency || "TRY"));
+        if (Array.isArray(item.photos) && item.photos.length) popupMeta.push("Ani: " + item.photos.length + " foto");
         marker.bindPopup(
           "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
           "Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" +
@@ -714,6 +825,12 @@
       return "<div class='meta-line'>" + esc(parts.join(" | ")) + "</div>";
     }
 
+    function renderGalleryRow(photos) {
+      if (!Array.isArray(photos) || !photos.length) return "";
+      const thumbs = photos.slice(0, 4).map(src => "<img src='" + esc(src) + "' alt='ani fotograf'>").join("");
+      return "<div class='gallery-row'>" + thumbs + "</div>";
+    }
+
     function normalizeScore(value) {
       if (value === "" || value == null) return null;
       const n = Number(value);
@@ -739,6 +856,14 @@
       const allowed = ["TRY", "USD", "EUR", "GBP"];
       const c = String(value || "TRY").toUpperCase();
       return allowed.includes(c) ? c : "TRY";
+    }
+
+    function normalizePhotos(value) {
+      if (!Array.isArray(value)) return [];
+      return value
+        .map(v => String(v || "").trim())
+        .filter(v => v.startsWith("data:image/") || v.startsWith("http://") || v.startsWith("https://"))
+        .slice(0, 8);
     }
 
     function formatMoney(amount, currency) {
