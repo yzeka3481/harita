@@ -53,9 +53,6 @@
     .recent-ring{width:70px;height:70px;border-radius:999px;background:conic-gradient(#d5a233 0 var(--pct,40%),#d8dde6 var(--pct,40%) 100%);position:relative}
     .recent-ring::after{content:"";position:absolute;inset:12px;border-radius:999px;background:#f6f9fe}
     .recent-sub{margin-top:12px;font-size:12px;color:#4e6481;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .recent-turn{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:999px;background:rgba(8,24,44,.38);color:#eef6ff;font-size:18px;line-height:1;display:grid;place-items:center;cursor:pointer;z-index:4}
-    .recent-turn.prev{left:-2px}
-    .recent-turn.next{right:-2px}
     .recent-dots{display:flex;justify-content:center;gap:6px;margin-top:8px}
     .recent-dot{width:7px;height:7px;border-radius:999px;background:rgba(255,255,255,.35)}
     .recent-dot.active{width:20px;background:#74bcff}
@@ -1141,7 +1138,7 @@
 
     function openAddScreen(id = null) {
       editId = id;
-      resetAddForm();
+      resetAddForm(true);
       if (editId) {
         const item = records.find(record => record.id === editId);
         if (!item) return;
@@ -1166,8 +1163,8 @@
       setTimeout(() => els.cityInput.focus(), 40);
     }
 
-    function resetAddForm() {
-      editId = null;
+    function resetAddForm(keepEditId = false) {
+      if (!keepEditId) editId = null;
       selectedCitySuggestion = null;
       workingPhotos = [];
       closeSuggestions();
@@ -1380,11 +1377,9 @@
       const dots = recentItems.map((_, idx) => "<span class='recent-dot" + (idx === recentIndex ? " active" : "") + "' data-recent-dot='" + idx + "'></span>").join("");
       els.recentList.innerHTML =
         "<div class='recent-shell'>" +
-          "<button class='recent-turn prev' type='button' data-recent-turn='-1' aria-label='Onceki'>&lt;</button>" +
           "<div class='recent-carousel'>" +
             "<div class='recent-stage'>" + cards + "</div>" +
           "</div>" +
-          "<button class='recent-turn next' type='button' data-recent-turn='1' aria-label='Sonraki'>&gt;</button>" +
         "</div>" +
         "<div class='recent-dots'>" + dots + "</div>";
       updateRecentCarouselView();
