@@ -1,6 +1,315 @@
-﻿<!doctype html>
-<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sehir Haritam</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>:root{--bg:#08131b;--bg2:#0e1d29;--panel:#102130;--line:rgba(255,255,255,.08);--text:#eef5fb;--muted:#92a9bb;--accent:#4db6ff;--ok:#7ee3c4;--warn:#ffd47d;--danger:#ff8080}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#061019,#0a1822 40%,#08131b);color:var(--text);font-family:"Segoe UI",Tahoma,sans-serif}body{display:flex;justify-content:center}.app{width:100%;max-width:430px;height:100vh;position:relative;overflow:hidden;background:linear-gradient(180deg,var(--bg),var(--bg2))}.screen{display:none;position:absolute;inset:0;overflow:auto;padding-bottom:94px;background:linear-gradient(180deg,var(--bg),var(--bg2))}.screen.active{display:block}.map-screen{overflow:hidden;background:#dde6ee}.hero{padding:24px 18px 18px;min-height:220px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;background:linear-gradient(135deg,rgba(7,18,28,.9),rgba(18,49,69,.82)),url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat}.hero-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.hero small{display:block;margin-bottom:8px;color:#b8c9d6;text-transform:uppercase;letter-spacing:.12em;font-weight:700}.hero h1{margin:0;font-size:30px}.hero p{margin:10px 0 16px;max-width:280px;color:#dce8f1;font-size:13px;line-height:1.5}.pill{display:inline-flex;gap:8px;align-items:center;padding:10px 14px;border-radius:999px;background:rgba(9,22,33,.58);border:1px solid rgba(255,255,255,.1);font-size:12px;color:#d7e8f4;font-weight:700}.wrap{padding:16px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.stat,.card{background:rgba(16,33,48,.95);border:1px solid var(--line);border-radius:22px}.stat{padding:13px 10px;text-align:center}.label{display:block;margin-bottom:6px;color:var(--muted);font-size:12px}.value{font-size:28px;line-height:1;font-weight:800}.card{margin-top:14px;padding:16px}.title{margin:0 0 10px;font-size:14px;font-weight:800}.sub,.helper,.note{font-size:12px;color:var(--muted);line-height:1.45}.sub{margin:-2px 0 14px}.bar{height:12px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-bottom:12px}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:width .25s ease}.mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.mini{padding:12px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}.mini span{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}.mini strong{display:block;font-size:18px;line-height:1.2}#homeMap{height:220px;border-radius:18px;overflow:hidden;background:#dfe7ee}#fullMap{position:absolute;inset:0}.stack{display:grid;gap:10px}.input,.select,.textarea,.button{width:100%;padding:13px 14px;border-radius:16px;border:1px solid var(--line);background:#0f2230;color:#fff;outline:none}.textarea{min-height:96px;resize:vertical}.button{border:none;background:linear-gradient(180deg,#67c6ff,#45aef6);font-weight:800}.button.secondary{background:linear-gradient(180deg,#243b4d,#1c2f40)}.button.success{background:linear-gradient(180deg,#7ee3c4,#4fd4ad);color:#042430}.button.danger{background:linear-gradient(180deg,#ff9d9d,#ff6e6e)}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.chips{display:flex;gap:8px;overflow:auto;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}.chip{flex:0 0 auto;border:none;border-radius:999px;padding:9px 14px;background:rgba(16,33,48,.92);color:#bfd0dc;font-size:12px;font-weight:800;border:1px solid rgba(255,255,255,.07)}.chip.active{background:#1d4258;color:#fff}.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.list{display:grid;gap:10px}.item{padding:13px;border-radius:18px;background:#102130;border:1px solid rgba(255,255,255,.06)}.item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}.item strong{display:block;font-size:15px;line-height:1.35}.meta{display:block;font-size:12px;line-height:1.45;color:var(--muted);margin-bottom:8px}.tag{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:rgba(77,182,255,.14);color:#9cd8ff;font-size:11px;font-weight:800;margin-bottom:8px}.tag.plan{background:rgba(255,207,118,.15);color:var(--warn)}.tag.repeat{background:rgba(126,227,196,.14);color:#8af0cf}.desc{font-size:13px;line-height:1.45;color:#d9e5ef;margin-bottom:10px}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.small{border:none;border-radius:12px;padding:10px 8px;background:#1b3b4f;color:#fff;font-size:12px;font-weight:800}.small.edit{background:#24516a}.small.danger{background:#73333d}.empty{padding:18px;border-radius:18px;border:1px dashed rgba(255,255,255,.12);text-align:center;color:var(--muted);background:rgba(255,255,255,.02);font-size:13px}.map-tools{position:absolute;left:16px;right:96px;bottom:112px;z-index:25;pointer-events:none}.map-tools .inner{pointer-events:auto;display:inline-flex;padding:8px;border-radius:18px;background:rgba(8,19,29,.88);border:1px solid rgba(255,255,255,.08)}.fab{position:absolute;right:18px;bottom:110px;z-index:26;width:62px;height:62px;border:none;border-radius:999px;background:linear-gradient(180deg,#7ee3c4,#4fd4ad);color:#06202b;font-size:34px;font-weight:800}.nav{position:absolute;left:0;right:0;bottom:0;z-index:20;padding:10px 12px 14px;background:linear-gradient(180deg,rgba(8,19,29,0),rgba(8,19,29,.96) 28%)}.nav-shell{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:8px;border-radius:24px;background:rgba(10,24,36,.95);border:1px solid rgba(255,255,255,.08)}.nav-btn{min-height:62px;border:none;border-radius:14px;background:#102130;color:#d8e4ee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:800}.nav-btn.active{background:#1d4258;color:#fff}.suggestions{display:none;margin-top:8px;border-radius:18px;overflow:hidden;background:#102130;border:1px solid var(--line)}.s-item{padding:12px 14px;border-bottom:1px solid var(--line)}.s-item:last-child{border-bottom:none}.flag-marker{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #fff;position:relative;font-size:16px}.flag-marker:after{content:"";position:absolute;width:10px;height:10px;left:50%;bottom:-4px;transform:translateX(-50%) rotate(45deg);background:#fff;z-index:-1}.hidden{display:none!important}</style></head><body><div class="app"><section id="screen-home" class="screen active"><div class="hero"><div class="hero-top"><div><small>Kisisel atlas</small><h1>Sehir Haritam</h1></div><div id="heroSummary" class="pill">0 kayit</div></div><p>Gezdigin, planladigin ve tekrar gitmek istedigin yerleri tek ekranda yonet.</p><div id="heroFocus" class="pill">Yeni bir rota sec ve kaydetmeye basla.</div></div><div class="wrap"><div class="grid3"><div class="stat"><span class="label">Ulke</span><span id="statCountry" class="value">0</span></div><div class="stat"><span class="label">Sehir</span><span id="statCity" class="value">0</span></div><div class="stat"><span class="label">Plan</span><span id="statPlan" class="value">0</span></div></div><div class="card"><div class="item-head"><div><h2 class="title">Seyahat ilerlemesi</h2><p class="sub">Gezilen ulke orani, aktif planlar ve sonraki durak burada ozetlenir.</p></div><div id="progressBadge" class="pill">%0 tamamlandi</div></div><div class="bar"><div id="progressFill" class="fill"></div></div><div class="mini-grid"><div class="mini"><span>Gezilen ulke</span><strong id="visitedCountryMetric">0</strong></div><div class="mini"><span>Bir sonraki durak</span><strong id="nextDestinationMetric">Henuz yok</strong></div><div class="mini"><span>Yeniden gidilecek</span><strong id="repeatMetric">0 rota</strong></div><div class="mini"><span>Kayit ritmi</span><strong id="latestActivityMetric">Yeni baslandi</strong></div></div></div><div class="card"><div id="homeMap"></div><div class="note" style="padding:10px 4px 0">Kayitlar eklenince mini harita otomatik guncellenir.</div></div><div class="card"><h2 id="homeContentTitle" class="title">Son eklenen sehirler</h2><p id="homeContentSub" class="sub">Haritadaki gorunumle senkron calisan liste.</p><div id="homeContent" class="list"></div></div></div></section><section id="screen-add" class="screen"><div class="wrap"><div class="card"><h2 id="formTitle" class="title">Sehir ekle</h2><p id="formSub" class="sub">Sehir adini yaz. Sistem uygun sonucu bulsun, sen notunu ve durumunu sec.</p><div class="stack"><div><input id="cityInput" class="input" type="text" placeholder="Orn: Roma, Koln, Tokyo"><div id="suggestions" class="suggestions"></div></div><input id="dateInput" class="input" type="date"><select id="statusInput" class="select"><option value="Gezildi">Gezildi</option><option value="Planlaniyor">Planlaniyor</option><option value="Tekrar gidilecek">Tekrar gidilecek</option></select><textarea id="noteInput" class="textarea" placeholder="Kisa not: anilar, yemek, favori sokak..."></textarea><div class="helper">Kayit sonrasinda ana ekran, liste, ozet ve harita birlikte guncellenir.</div><div class="row2"><button id="saveBtn" class="button" type="button">Sehri kaydet</button><button id="cancelEditBtn" class="button secondary hidden" type="button">Duzenlemeyi iptal et</button></div></div></div></div></section><section id="screen-map" class="screen map-screen"><div id="fullMap"></div><div class="map-tools"><div class="inner"><div class="chips"><button id="mapViewCityBtn" class="chip active" type="button">Sehir</button><button id="mapViewCountryBtn" class="chip" type="button">Ulke</button></div></div></div></section><section id="screen-records" class="screen"><div class="wrap"><div class="card"><h2 id="recordsTitle" class="title">Sehir kayitlari</h2><p class="sub">Sehir veya ulke bazli gorunumu sec, sonra filtreleri kullanip kayitlarini yonet.</p><div class="stack" style="margin-bottom:12px"><div class="chips"><button id="viewCityBtn" class="chip active" type="button">Sehir</button><button id="viewCountryBtn" class="chip" type="button">Ulke</button></div><input id="searchInput" class="input" type="text" placeholder="Sehir veya ulke ara"><div class="chips"><button class="chip active" data-status="" type="button">Tumu</button><button class="chip" data-status="Gezildi" type="button">Gezildi</button><button class="chip" data-status="Planlaniyor" type="button">Plan</button><button class="chip" data-status="Tekrar gidilecek" type="button">Tekrar</button></div><div class="filter-grid"><select id="countryFilter" class="select"><option value="">Tum ulkeler</option></select><select id="sortInput" class="select"><option value="newest">En yeni eklenen</option><option value="oldest">En eski eklenen</option><option value="date-asc">Tarih yaklasan</option><option value="date-desc">Tarih uzak</option><option value="city-asc">Sehir A-Z</option><option value="country-asc">Ulke A-Z</option></select></div></div><div id="recordsList" class="list"></div></div></div></section><section id="screen-manage" class="screen"><div class="wrap"><div class="card"><h2 class="title">Veri yonetimi</h2><p class="sub">Kayitlarini disari aktarabilir, geri ice alabilir veya tum veriyi sifirlayabilirsin.</p><div class="stack"><div class="mini"><strong id="storageInfo">Toplam 0 kayit, 0 ulke, 0 plan.</strong></div><div class="row2"><button id="exportBtn" class="button success" type="button">JSON disa aktar</button><button id="importBtn" class="button secondary" type="button">JSON ice aktar</button></div><input id="importFileInput" class="hidden" type="file" accept="application/json,.json"><button id="clearAllBtn" class="button danger" type="button">Tumunu sil</button></div></div></div></section><button id="fabAdd" class="fab" type="button">+</button><nav class="nav"><div class="nav-shell"><button class="nav-btn active" data-screen="home" type="button"><span>Ana</span><span>Ozet</span></button><button class="nav-btn" data-screen="map" type="button"><span>Harita</span><span>Dunya</span></button><button class="nav-btn" data-screen="records" type="button"><span>Liste</span><span>Kayit</span></button><button class="nav-btn" data-screen="manage" type="button"><span>Veri</span><span>Ayar</span></button></div></nav></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
-const STORAGE_KEY="travel-map-layout-v5",STATUS_PLANNED="Planlaniyor",STATUS_VISITED="Gezildi",STATUS_REPEAT="Tekrar gidilecek";const $=id=>document.getElementById(id),E={statCountry:$("statCountry"),statCity:$("statCity"),statPlan:$("statPlan"),heroSummary:$("heroSummary"),heroFocus:$("heroFocus"),progressBadge:$("progressBadge"),progressFill:$("progressFill"),visitedCountryMetric:$("visitedCountryMetric"),nextDestinationMetric:$("nextDestinationMetric"),repeatMetric:$("repeatMetric"),latestActivityMetric:$("latestActivityMetric"),homeContentTitle:$("homeContentTitle"),homeContentSub:$("homeContentSub"),homeContent:$("homeContent"),formTitle:$("formTitle"),formSub:$("formSub"),cityInput:$("cityInput"),suggestions:$("suggestions"),dateInput:$("dateInput"),statusInput:$("statusInput"),noteInput:$("noteInput"),saveBtn:$("saveBtn"),cancelEditBtn:$("cancelEditBtn"),mapViewCityBtn:$("mapViewCityBtn"),mapViewCountryBtn:$("mapViewCountryBtn"),viewCityBtn:$("viewCityBtn"),viewCountryBtn:$("viewCountryBtn"),searchInput:$("searchInput"),countryFilter:$("countryFilter"),sortInput:$("sortInput"),recordsTitle:$("recordsTitle"),recordsList:$("recordsList"),storageInfo:$("storageInfo"),exportBtn:$("exportBtn"),importBtn:$("importBtn"),importFileInput:$("importFileInput"),clearAllBtn:$("clearAllBtn"),fabAdd:$("fabAdd")};let cities=loadCities(),selectedPlace=null,searchTimer=null,viewMode="city",activeStatus="",activeScreen="home",fullMarkers=[],homeMarkers=[],editId=null;const menuButtons=document.querySelectorAll("[data-screen]"),homeMap=L.map("homeMap",{zoomControl:false,attributionControl:false,worldCopyJump:true,minZoom:1.8,maxZoom:5}).setView([20,8],1.9),fullMap=L.map("fullMap",{zoomControl:true,worldCopyJump:true,minZoom:2.2,maxZoom:6,maxBounds:[[-60,-180],[85,180]],maxBoundsViscosity:1}).setView([20,8],2.25);L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:"&copy; OpenStreetMap contributors &copy; CARTO"}).addTo(homeMap);L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:"&copy; OpenStreetMap contributors &copy; CARTO"}).addTo(fullMap);setTimeout(()=>{homeMap.invalidateSize();fullMap.invalidateSize()},250);addEventListener("resize",()=>{homeMap.invalidateSize();fullMap.invalidateSize()});function loadCities(){try{return(JSON.parse(localStorage.getItem(STORAGE_KEY))||[]).map(v=>({...v,id:v.id||crypto.randomUUID(),countryCode:(v.countryCode||"").toUpperCase(),flag:v.flag||flagOf(v.countryCode||""),lat:Number(v.lat),lng:Number(v.lng),status:v.status||STATUS_VISITED,note:v.note||"",createdAt:v.createdAt||new Date().toISOString()})).filter(v=>v.city&&v.country&&Number.isFinite(v.lat)&&Number.isFinite(v.lng))}catch{return[]}}function saveCities(){localStorage.setItem(STORAGE_KEY,JSON.stringify(cities))}function esc(t){const d=document.createElement("div");d.textContent=t||"";return d.innerHTML}function flagOf(code){if(!code||String(code).length!==2)return"📍";return String(code).toUpperCase().split("").map(ch=>String.fromCodePoint(127397+ch.charCodeAt(0))).join("")}function normalizePlace(item){const a=item.address||{},city=a.city||a.town||a.village||a.municipality||item.name||"",country=a.country||"",countryCode=(a.country_code||"").toUpperCase();return{city,country,countryCode,flag:flagOf(countryCode),lat:Number(item.lat),lng:Number(item.lon),displayName:item.display_name||`${city}, ${country}`}}async function searchCities(q){const r=await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`,{headers:{Accept:"application/json"}});if(!r.ok)throw new Error("Sehir aramasi yapilamadi.");return(await r.json()).map(normalizePlace).filter(v=>v.city&&v.country)}function renderSuggestions(items){if(!items.length){E.suggestions.innerHTML="";E.suggestions.style.display="none";return}E.suggestions.innerHTML=items.map((v,i)=>`<div class="s-item" data-i="${i}"><strong>${esc(v.flag)} ${esc(v.city)}</strong><div class="note">${esc(v.country)}</div></div>`).join("");E.suggestions.style.display="block";E.suggestions.querySelectorAll(".s-item").forEach(n=>n.addEventListener("click",()=>{const v=items[Number(n.dataset.i)];selectedPlace=v;E.cityInput.value=`${v.city}, ${v.country}`;E.suggestions.innerHTML="";E.suggestions.style.display="none"}))}function mapIcon(flag){return L.divIcon({className:"",html:`<div class="flag-marker">${esc(flag)}</div>`,iconSize:[36,40],iconAnchor:[18,38],popupAnchor:[0,-32]})}function tagClass(s){return s===STATUS_PLANNED?"tag plan":s===STATUS_REPEAT?"tag repeat":"tag"}function clearMarkers(map,list){list.forEach(m=>map.removeLayer(m));list.length=0}function fitMap(map,pts,home=false){if(!pts.length){map.setView([20,8],home?1.9:2.25);return}if(pts.length===1){map.setView(pts[0],home?2.6:4);return}map.fitBounds(L.latLngBounds(pts),{padding:[24,24]});map.setZoom(Math.min(map.getZoom(),home?2.6:4.2))}function groups(list=cities){const g=new Map;list.forEach(v=>{const k=`${v.country}__${v.countryCode||""}`;if(!g.has(k))g.set(k,{id:k,country:v.country,countryCode:v.countryCode,flag:v.flag,lat:v.lat,lng:v.lng,cities:[],statuses:new Set,dates:[]});const item=g.get(k);item.cities.push(v);item.statuses.add(v.status);if(v.date)item.dates.push(v.date)});return[...g.values()].map(v=>({...v,cityCount:v.cities.length,statuses:[...v.statuses],nextDate:v.dates.sort()[0]||""})).sort((a,b)=>a.country.localeCompare(b.country,"tr"))}function sortCities(list){const c=[...list],cmp=(a,b)=>{if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return-1;return a.date.localeCompare(b.date)};switch(E.sortInput.value){case"oldest":c.sort((a,b)=>a.createdAt.localeCompare(b.createdAt));break;case"date-asc":c.sort(cmp);break;case"date-desc":c.sort((a,b)=>cmp(b,a));break;case"city-asc":c.sort((a,b)=>a.city.localeCompare(b.city,"tr"));break;case"country-asc":c.sort((a,b)=>a.country.localeCompare(b.country,"tr"));break;default:c.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))}return c}function filtered(){const q=E.searchInput.value.trim().toLowerCase(),country=E.countryFilter.value;return sortCities(cities.filter(v=>(!q||v.city.toLowerCase().includes(q)||v.country.toLowerCase().includes(q)||(v.note||"").toLowerCase().includes(q))&&(!activeStatus||v.status===activeStatus)&&(!country||v.country===country)))}function populateCountryFilter(){const sel=E.countryFilter.value,countries=[...new Set(cities.map(v=>v.country))].sort((a,b)=>a.localeCompare(b,"tr"));E.countryFilter.innerHTML=`<option value="">Tum ulkeler</option>${countries.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}`;if(countries.includes(sel))E.countryFilter.value=sel}function upcoming(){return[...cities].filter(v=>v.status===STATUS_PLANNED&&v.date).sort((a,b)=>a.date.localeCompare(b.date))[0]||null}function visitedCountryCount(){return new Set(cities.filter(v=>v.status!==STATUS_PLANNED).map(v=>v.country.toLowerCase())).size}function fmtDate(v){if(!v)return"Tarih yok";const d=new Date(`${v}T00:00:00`);return Number.isNaN(d.getTime())?v:new Intl.DateTimeFormat("tr-TR",{day:"2-digit",month:"short",year:"numeric"}).format(d)}function latestActivity(){if(!cities.length)return"Yeni baslandi";const v=[...cities].sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];return`${v.city} eklendi`}function renderStats(){E.statCountry.textContent=new Set(cities.map(v=>v.country.toLowerCase())).size;E.statCity.textContent=cities.length;E.statPlan.textContent=cities.filter(v=>v.status===STATUS_PLANNED).length;E.heroSummary.textContent=`${cities.length} kayit, ${visitedCountryCount()} aktif ulke`;const u=upcoming();E.heroFocus.textContent=u?`Siradaki plan: ${u.city} - ${fmtDate(u.date)}`:"Yeni bir rota sec ve kaydetmeye basla.";E.storageInfo.textContent=`Toplam ${cities.length} kayit, ${new Set(cities.map(v=>v.country)).size} ulke, ${cities.filter(v=>v.status===STATUS_PLANNED).length} plan.`}function renderProgress(){const visited=visitedCountryCount(),pct=Math.round(visited/Math.max(visited+Math.max(cities.length,1),1)*100)||0,u=upcoming();E.progressBadge.textContent=`%${pct} tamamlandi`;E.progressFill.style.width=`${pct}%`;E.visitedCountryMetric.textContent=`${visited} ulke`;E.nextDestinationMetric.textContent=u?u.city:"Henuz yok";E.repeatMetric.textContent=`${cities.filter(v=>v.status===STATUS_REPEAT).length} rota`;E.latestActivityMetric.textContent=latestActivity()}function renderHomeContent(){const up=[...cities].filter(v=>v.status===STATUS_PLANNED).sort((a,b)=>(a.date||"9999-99-99").localeCompare(b.date||"9999-99-99")).slice(0,3);if(up.length){E.homeContentTitle.textContent="Yaklasan planlar";E.homeContentSub.textContent="Tarihi olan planlar ilk sirada gorunur.";E.homeContent.innerHTML=up.map(v=>`<div class="item"><div class="item-head"><strong>${esc(v.flag)} ${esc(v.city)}, ${esc(v.country)}</strong><div class="${tagClass(v.status)}">${esc(v.status)}</div></div><span class="meta">${fmtDate(v.date)}</span><div class="desc">${esc(v.note||"Bu rota icin not eklenmedi.")}</div></div>`).join("");return}const latest=[...cities].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,4);E.homeContentTitle.textContent="Son eklenen sehirler";E.homeContentSub.textContent="Haritadaki gorunumle senkron calisan liste.";E.homeContent.innerHTML=latest.length?latest.map(v=>`<div class="item"><div class="item-head"><strong>${esc(v.flag)} ${esc(v.city)}, ${esc(v.country)}</strong><div class="${tagClass(v.status)}">${esc(v.status)}</div></div><span class="meta">${v.date?fmtDate(v.date):"Tarih yok"} - ${esc(v.displayName||"")}</span>${v.note?`<div class="desc">${esc(v.note)}</div>`:""}</div>`).join(""):'<div class="empty">Henuz sehir eklenmedi.</div>'}function renderHomeMap(){clearMarkers(homeMap,homeMarkers);const pts=[];cities.slice(0,8).forEach(v=>{pts.push([v.lat,v.lng]);const m=L.marker([v.lat,v.lng],{icon:mapIcon(v.flag||"📍")}).addTo(homeMap).bindPopup(`<strong>${esc(v.flag)} ${esc(v.city)}, ${esc(v.country)}</strong>`);homeMarkers.push(m)});fitMap(homeMap,pts,true)}function renderFullMap(){clearMarkers(fullMap,fullMarkers);const list=viewMode==="country"?groups(filtered()):filtered(),pts=[];list.forEach(v=>{pts.push([v.lat,v.lng]);const popup=viewMode==="country"?`<div><strong>${esc(v.flag)} ${esc(v.country)}</strong><br><span>Toplam sehir: ${v.cityCount}</span><br><span>Sehirler: ${esc(v.cities.map(c=>c.city).join(", "))}</span></div>`:`<div><strong>${esc(v.flag)} ${esc(v.city)}, ${esc(v.country)}</strong><br><span>Durum: ${esc(v.status)}</span><br>${v.date?`<span>Tarih: ${esc(fmtDate(v.date))}</span><br>`:""}${v.note?`<span>Not: ${esc(v.note)}</span>`:""}</div>`;fullMarkers.push(L.marker([v.lat,v.lng],{icon:mapIcon(v.flag||"📍")}).addTo(fullMap).bindPopup(popup))});fitMap(fullMap,pts,false)}function renderRecords(){E.viewCityBtn.classList.toggle("active",viewMode==="city");E.viewCountryBtn.classList.toggle("active",viewMode==="country");E.mapViewCityBtn.classList.toggle("active",viewMode==="city");E.mapViewCountryBtn.classList.toggle("active",viewMode==="country");if(viewMode==="country"){const list=groups(filtered());E.recordsTitle.textContent=`Ulke kayitlari (${list.length})`;E.recordsList.innerHTML=list.length?list.map(v=>`<div class="item"><div class="item-head"><strong>${esc(v.flag)} ${esc(v.country)}</strong><div class="tag">${v.cityCount} sehir</div></div><span class="meta">${v.nextDate?`En yakin tarih: ${fmtDate(v.nextDate)}`:"Tarih bilgisi yok"}</span><div class="${tagClass(v.statuses.includes(STATUS_PLANNED)?STATUS_PLANNED:v.statuses[0]||STATUS_VISITED)}">${esc(v.statuses.join(" - "))}</div><div class="desc">${esc(v.cities.map(c=>c.city).join(", "))}</div><div class="actions"><button class="small" data-action="focus-country" data-id="${v.id}" type="button">Harita</button><button class="small edit" data-action="edit-country" data-id="${v.id}" type="button">Ilk kaydi ac</button><button class="small danger" data-action="delete-country" data-id="${v.id}" type="button">Sil</button></div></div>`).join(""):'<div class="empty">Filtreye uygun ulke kaydi yok.</div>';return}const list=filtered();E.recordsTitle.textContent=`Sehir kayitlari (${list.length})`;E.recordsList.innerHTML=list.length?list.map(v=>`<div class="item"><div class="item-head"><strong>${esc(v.flag)} ${esc(v.city)}, ${esc(v.country)}</strong><div class="${tagClass(v.status)}">${esc(v.status)}</div></div><span class="meta">${v.date?fmtDate(v.date):"Tarih yok"} - ${esc(v.displayName||"")}</span>${v.note?`<div class="desc">${esc(v.note)}</div>`:""}<div class="actions"><button class="small" data-action="focus-city" data-id="${v.id}" type="button">Harita</button><button class="small edit" data-action="edit-city" data-id="${v.id}" type="button">Duzenle</button><button class="small danger" data-action="delete-city" data-id="${v.id}" type="button">Sil</button></div></div>`).join(""):'<div class="empty">Filtreye uygun sehir kaydi yok.</div>'}function updateMenu(){menuButtons.forEach(b=>b.classList.toggle("active",b.dataset.screen===activeScreen))}function switchScreen(name){activeScreen=name;document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===`screen-${name}`));updateMenu();if(name==="map")setTimeout(()=>fullMap.invalidateSize(),100);if(name==="home")setTimeout(()=>homeMap.invalidateSize(),100)}function resetForm(){editId=null;selectedPlace=null;E.cityInput.value="";E.dateInput.value="";E.statusInput.value=STATUS_VISITED;E.noteInput.value="";E.formTitle.textContent="Sehir ekle";E.formSub.textContent="Sehir adini yaz. Sistem uygun sonucu bulsun, sen notunu ve durumunu sec.";E.saveBtn.textContent="Sehri kaydet";E.cancelEditBtn.classList.add("hidden");E.suggestions.innerHTML="";E.suggestions.style.display="none"}function openEdit(id){const v=cities.find(c=>c.id===id);if(!v)return;editId=id;selectedPlace={city:v.city,country:v.country,countryCode:v.countryCode,flag:v.flag,lat:v.lat,lng:v.lng,displayName:v.displayName};E.cityInput.value=`${v.city}, ${v.country}`;E.dateInput.value=v.date||"";E.statusInput.value=v.status;E.noteInput.value=v.note;E.formTitle.textContent="Kaydi duzenle";E.formSub.textContent="Konum, tarih, durum ve not alanlarini guncelleyebilirsin.";E.saveBtn.textContent="Degisiklikleri kaydet";E.cancelEditBtn.classList.remove("hidden");switchScreen("add")}async function saveCity(){const raw=E.cityInput.value.trim();if(!raw){alert("Lutfen sehir adi gir.");return}E.saveBtn.disabled=true;E.saveBtn.textContent=editId?"Guncelleniyor...":"Ekleniyor...";try{let place=selectedPlace;if(!place){const results=await searchCities(raw);if(!results.length)throw new Error("Sehir bulunamadi.");place=results[0]}const payload={city:place.city,country:place.country,countryCode:place.countryCode,flag:place.flag,lat:place.lat,lng:place.lng,displayName:place.displayName,date:E.dateInput.value,status:E.statusInput.value,note:E.noteInput.value.trim()};if(editId)cities=cities.map(v=>v.id===editId?{...v,...payload}:v);else cities.unshift({id:crypto.randomUUID(),createdAt:new Date().toISOString(),...payload});saveCities();resetForm();renderAll();switchScreen("home")}catch(err){alert(err.message||"Kayit kaydedilemedi.")}finally{E.saveBtn.disabled=false;E.saveBtn.textContent=editId?"Degisiklikleri kaydet":"Sehri kaydet"}}function focusCity(id){const v=cities.find(c=>c.id===id);if(!v)return;viewMode="city";renderAll();switchScreen("map");setTimeout(()=>{fullMap.setView([v.lat,v.lng],4.2);const m=fullMarkers.find(entry=>{const p=entry.getLatLng();return p.lat===v.lat&&p.lng===v.lng});if(m)m.openPopup()},120)}function focusCountry(id){const v=groups(filtered()).find(c=>c.id===id);if(!v)return;viewMode="country";renderAll();switchScreen("map");setTimeout(()=>fullMap.setView([v.lat,v.lng],4),120)}function deleteCity(id){if(!confirm("Bu sehri silmek istiyor musun?"))return;cities=cities.filter(v=>v.id!==id);if(editId===id)resetForm();saveCities();renderAll()}function deleteCountry(id){if(!confirm("Bu ulkeye ait tum kayitlar silinsin mi?"))return;cities=cities.filter(v=>`${v.country}__${v.countryCode||""}`!==id);saveCities();renderAll()}function clearAll(){if(!confirm("Tum sehirler silinsin mi?"))return;cities=[];localStorage.removeItem(STORAGE_KEY);resetForm();renderAll()}function exportData(){const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),count:cities.length,cities},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`sehir-haritam-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}async function importData(file){if(!file)return;const parsed=JSON.parse(await file.text()),incoming=Array.isArray(parsed)?parsed:parsed.cities;if(!Array.isArray(incoming))throw new Error("Gecerli bir JSON listesi bulunamadi.");const normalized=incoming.map(v=>({id:v.id||crypto.randomUUID(),city:v.city||"",country:v.country||"",countryCode:(v.countryCode||"").toUpperCase(),flag:v.flag||flagOf(v.countryCode||""),lat:Number(v.lat),lng:Number(v.lng),displayName:v.displayName||`${v.city||""}, ${v.country||""}`,date:v.date||"",status:v.status||STATUS_VISITED,note:v.note||"",createdAt:v.createdAt||new Date().toISOString()})).filter(v=>v.city&&v.country&&Number.isFinite(v.lat)&&Number.isFinite(v.lng));if(!normalized.length)throw new Error("Ice aktarilacak uygun kayit bulunamadi.");cities=normalized.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));saveCities();resetForm();renderAll();switchScreen("home")}function renderAll(){populateCountryFilter();renderStats();renderProgress();renderHomeContent();renderHomeMap();renderRecords();renderFullMap();updateMenu();if(activeScreen==="map")setTimeout(()=>fullMap.invalidateSize(),80);if(activeScreen==="home")setTimeout(()=>homeMap.invalidateSize(),80)}E.cityInput.addEventListener("input",()=>{selectedPlace=null;const v=E.cityInput.value.trim();clearTimeout(searchTimer);if(v.length<2){E.suggestions.innerHTML="";E.suggestions.style.display="none";return}searchTimer=setTimeout(async()=>{try{renderSuggestions(await searchCities(v))}catch{E.suggestions.innerHTML="";E.suggestions.style.display="none"}},350)});E.cityInput.addEventListener("keydown",async e=>{if(e.key!=="Enter")return;e.preventDefault();const v=E.cityInput.value.trim();if(!v||selectedPlace)return;try{const r=await searchCities(v);if(r.length){selectedPlace=r[0];E.cityInput.value=`${r[0].city}, ${r[0].country}`;E.suggestions.innerHTML="";E.suggestions.style.display="none"}}catch{}});document.addEventListener("click",e=>{if(!e.target.closest("#cityInput")&&!e.target.closest("#suggestions"))E.suggestions.style.display="none"});document.querySelectorAll(".chip[data-status]").forEach(chip=>chip.addEventListener("click",()=>{activeStatus=chip.dataset.status;document.querySelectorAll(".chip[data-status]").forEach(c=>c.classList.toggle("active",c===chip));renderAll()}));E.viewCityBtn.addEventListener("click",()=>{viewMode="city";renderAll()});E.viewCountryBtn.addEventListener("click",()=>{viewMode="country";renderAll()});E.mapViewCityBtn.addEventListener("click",()=>{viewMode="city";renderAll()});E.mapViewCountryBtn.addEventListener("click",()=>{viewMode="country";renderAll()});menuButtons.forEach(btn=>btn.addEventListener("click",()=>switchScreen(btn.dataset.screen)));E.fabAdd.addEventListener("click",()=>{if(!editId)resetForm();switchScreen("add")});E.cancelEditBtn.addEventListener("click",()=>{resetForm();switchScreen("records")});E.saveBtn.addEventListener("click",saveCity);E.searchInput.addEventListener("input",renderAll);E.countryFilter.addEventListener("change",renderAll);E.sortInput.addEventListener("change",renderAll);E.exportBtn.addEventListener("click",exportData);E.importBtn.addEventListener("click",()=>E.importFileInput.click());E.importFileInput.addEventListener("change",async e=>{try{await importData(e.target.files[0])}catch(err){alert(err.message||"JSON ice aktarilamadi.")}finally{e.target.value=""}});E.clearAllBtn.addEventListener("click",clearAll);E.recordsList.addEventListener("click",e=>{const b=e.target.closest("button[data-action]");if(!b)return;const{action,id}=b.dataset;if(action==="focus-city")focusCity(id);if(action==="delete-city")deleteCity(id);if(action==="edit-city")openEdit(id);if(action==="focus-country")focusCountry(id);if(action==="delete-country")deleteCountry(id);if(action==="edit-country"){const first=cities.find(v=>`${v.country}__${v.countryCode||""}`===id);if(first)openEdit(first.id)}});resetForm();renderAll();</script></body></html>
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Gezdigim Sehirler - Mobile Dark</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080c12;
+      --bg-soft: #101722;
+      --card: #111a27;
+      --card-2: #182437;
+      --line: #253248;
+      --text: #e8f0ff;
+      --muted: #93a5bd;
+      --primary: #4ea1ff;
+      --primary-2: #2f7cde;
+      --ok: #48d3a7;
+    }
 
+    * { box-sizing: border-box; }
 
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% -10%, #1f385f 0%, transparent 45%),
+        radial-gradient(circle at 90% -20%, #204c45 0%, transparent 50%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      min-height: 100vh;
+    }
 
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 14px 14px calc(22px + env(safe-area-inset-bottom));
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #173357, #0f5f5a);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #d6e5ff;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .stat strong {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--card), var(--card-2));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    #map {
+      height: 250px;
+      border-radius: 10px;
+      border: 1px dashed #3b4e69;
+      background: #0f1726;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .roadmap {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    form {
+      display: grid;
+      gap: 9px;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 10px;
+      font: inherit;
+    }
+
+    input, select, textarea {
+      background: #0e1624;
+      color: var(--text);
+      border: 1px solid #2b3a52;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #7990ad;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(78, 161, 255, 0.2);
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    button {
+      border: none;
+      padding: 12px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-2));
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .city-item {
+      background: #0e1622;
+      border: 1px solid #2a3850;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .city-item h3 {
+      margin: 0 0 5px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .city-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #33537b;
+      background: rgba(78, 161, 255, 0.12);
+      color: #9ecaff;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
+    .next-step {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 4px;
+    }
+
+    .next-step strong {
+      color: var(--ok);
+      font-size: 12px;
+    }
+
+    @media (min-width: 760px) {
+      .app {
+        max-width: 920px;
+        padding-top: 22px;
+      }
+
+      .desktop-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 12px;
+      }
+
+      #map {
+        height: 340px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <h1>Gezdigim Sehirler</h1>
+      <p>Mobilde hizli kullanim icin sade dark mode taslak: sehir ekle, haritada goster, notlarini tut.</p>
+    </section>
+
+    <section class="stats" aria-label="Ozet istatistikler">
+      <article class="stat">
+        <small>Toplam sehir</small>
+        <strong id="totalCities">0</strong>
+      </article>
+      <article class="stat">
+        <small>Toplam ulke</small>
+        <strong id="totalCountries">0</strong>
+      </article>
+      <article class="stat">
+        <small>Planlanan</small>
+        <strong id="plannedTrips">0</strong>
+      </article>
+    </section>
+
+    <section class="desktop-grid">
+      <article class="card">
+        <h2>Harita</h2>
+        <div id="map" role="img" aria-label="Sehir marker alani">
+          Harita burada acilacak
+          <br>
+          (Leaflet entegre edilince markerlar otomatik gorunecek)
+        </div>
+        <p class="roadmap">Not: Bu alan mobilde ilk bakista en kritik bilgi olarak konumlandi.</p>
+      </article>
+
+      <aside class="card">
+        <h2>Yeni Sehir Ekle</h2>
+        <form id="cityForm">
+          <input id="cityName" type="text" placeholder="Sehir adi (Orn: Roma)" required>
+          <input id="countryName" type="text" placeholder="Ulke adi (Orn: Italya)" required>
+          <input id="visitDate" type="date">
+          <select id="visitStatus">
+            <option value="visited">Gezildi</option>
+            <option value="planned">Planlaniyor</option>
+            <option value="again">Tekrar gidilecek</option>
+          </select>
+          <textarea id="cityNote" placeholder="Kisa not: yemek, gezi noktasi, puan..."></textarea>
+          <button type="submit">Sehri Kaydet</button>
+        </form>
+      </aside>
+    </section>
+
+    <section class="card">
+      <h2>Kayitlar</h2>
+      <div class="list" id="cityList">
+        <article class="city-item">
+          <h3>Henuz kayit yok</h3>
+          <p>Ilk sehir kaydini ekledikten sonra burada goreceksin.</p>
+          <span class="status-chip">MVP Hazir</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Uygulamada Neler Olabilir?</h2>
+      <div class="next-step">
+        <strong>Pratik MVP ozellikleri</strong>
+        <span>- Sehir ekle / sil / duzenle</span>
+        <span>- Haritada marker goster (renk: gezildi-plan-tekrar)</span>
+        <span>- Filtre: ulke, durum, tarih</span>
+        <span>- LocalStorage ile veri saklama</span>
+        <span>- JSON disa aktar / ice aktar</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
