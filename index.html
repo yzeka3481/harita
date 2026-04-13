@@ -29,7 +29,10 @@
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
     .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
     .home-map-wrap{margin:0 0 12px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .home-globe{width:min(86vw,390px);aspect-ratio:1/1;display:block;background:transparent}
+    .home-globe{width:min(86vw,390px);aspect-ratio:1/1;border-radius:999px;overflow:hidden;position:relative;background:#aeb4bc;border:1px solid rgba(255,255,255,.25)}
+    #homeMiniMap{width:100%;height:100%}
+    #homeMiniMap canvas{width:100%!important;height:100%!important;display:block}
+    .home-globe:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.12),rgba(255,255,255,0) 38%)}
     .list{display:grid;gap:8px}.item{border:1px solid #36577c;border-radius:10px;background:#163359;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
@@ -129,7 +132,9 @@
 
       <section class="home-map-wrap">
         <h2>Ana Harita</h2>
-        <canvas id="homeGlobeCanvas" class="home-globe" aria-label="Dunya kuresi"></canvas>
+        <div class="home-globe" aria-label="Dunya kuresi">
+          <div id="homeMiniMap"></div>
+        </div>
         <p class="hint">Gidilen ulkeler kirmizi gorunur.</p>
       </section>
 
@@ -325,6 +330,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/three@0.164.1/build/three.min.js"></script>
   <script>
     const STORAGE_KEY = "travel-map-v2";
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -341,7 +347,7 @@
       countryScreen: document.getElementById("countryScreen"),
       heroImage: document.getElementById("heroImage"),
       heroBadge: document.getElementById("heroBadge"),
-      homeGlobeCanvas: document.getElementById("homeGlobeCanvas"),
+      homeMiniMap: document.getElementById("homeMiniMap"),
       recentList: document.getElementById("recentList"),
       flagsGrid: document.getElementById("flagsGrid"),
       recordsList: document.getElementById("recordsList"),
@@ -403,6 +409,17 @@
     let isLockingMap = false;
     let worldGeoJson = null;
 
+    let globeRenderer;
+    let globeScene;
+    let globeCamera;
+    let globeMesh;
+    let globeTextureCanvas;
+    let globeTextureCtx;
+    let globeTexture;
+    let globeAnimationId = 0;
+    let globeFallbackCanvas;
+    let globeFallbackCtx;
+    let globeLon = 22;
     let exploreMap;
     let exploreWorldLayer;
     let exploreMarkerLayer;
@@ -421,6 +438,8 @@
     }
 
     function initMaps() {
+      initHomeGlobe3D();
+
       exploreMap = L.map("exploreMap", {
         zoomControl: false, attributionControl: false, worldCopyJump: true, minZoom: 2.35, maxZoom: 7,
         inertia: false
@@ -446,6 +465,91 @@
         maxZoom: 19
       }).addTo(countryMap);
       countryMarkerLayer = L.layerGroup().addTo(countryMap);
+    }
+
+    function initHomeGlobe3D() {
+      if (!els.homeMiniMap) return;
+      const container = els.homeMiniMap;
+      container.innerHTML = "";
+      globeFallbackCanvas = null;
+      globeFallbackCtx = null;
+
+      if (!window.THREE) {
+        initHomeGlobeFallback(container);
+        return;
+      }
+
+      try {
+        globeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      } catch {
+        globeRenderer = null;
+        initHomeGlobeFallback(container);
+        return;
+      }
+      globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.appendChild(globeRenderer.domElement);
+
+      globeScene = new THREE.Scene();
+      globeCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      globeCamera.position.set(0, 0, 3.15);
+
+      globeTextureCanvas = document.createElement("canvas");
+      globeTextureCanvas.width = 2048;
+      globeTextureCanvas.height = 1024;
+      globeTextureCtx = globeTextureCanvas.getContext("2d");
+      globeTexture = new THREE.CanvasTexture(globeTextureCanvas);
+      globeTexture.needsUpdate = true;
+
+      const geometry = new THREE.SphereGeometry(1, 96, 96);
+      const material = new THREE.MeshBasicMaterial({
+        map: globeTexture,
+        color: 0xffffff
+      });
+      globeMesh = new THREE.Mesh(geometry, material);
+      globeMesh.rotation.y = -0.35;
+      globeScene.add(globeMesh);
+
+      resizeHomeGlobe();
+      if (!globeAnimationId) animateHomeGlobe();
+    }
+
+    function initHomeGlobeFallback(container) {
+      globeFallbackCanvas = document.createElement("canvas");
+      globeFallbackCanvas.setAttribute("aria-label", "Dunya kuresi");
+      globeFallbackCanvas.style.width = "100%";
+      globeFallbackCanvas.style.height = "100%";
+      globeFallbackCanvas.style.display = "block";
+      container.appendChild(globeFallbackCanvas);
+      globeFallbackCtx = globeFallbackCanvas.getContext("2d");
+      resizeHomeGlobe();
+      if (!globeAnimationId) animateHomeGlobe();
+    }
+
+    function resizeHomeGlobe() {
+      if (!els.homeMiniMap) return;
+      const size = Math.max(220, Math.floor(els.homeMiniMap.clientWidth || 320));
+      if (globeRenderer && globeCamera) {
+        globeRenderer.setSize(size, size, false);
+        globeCamera.aspect = 1;
+        globeCamera.updateProjectionMatrix();
+      }
+      if (globeFallbackCanvas) {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        globeFallbackCanvas.width = Math.floor(size * dpr);
+        globeFallbackCanvas.height = Math.floor(size * dpr);
+      }
+    }
+
+    function animateHomeGlobe() {
+      globeAnimationId = requestAnimationFrame(animateHomeGlobe);
+      if (globeRenderer && globeScene && globeCamera && globeMesh) {
+        globeMesh.rotation.y += 0.0021;
+        globeRenderer.render(globeScene, globeCamera);
+      } else if (globeFallbackCtx && globeFallbackCanvas) {
+        globeLon += 0.16;
+        if (globeLon > 180) globeLon -= 360;
+        drawFallbackGlobeFrame();
+      }
     }
 
     function enforceVerticalBounds() {
@@ -517,7 +621,7 @@
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
       });
-      window.addEventListener("resize", () => setTimeout(() => { exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
+      window.addEventListener("resize", () => setTimeout(() => { resizeHomeGlobe(); exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
     }
 
     function onCityInput() {
@@ -680,14 +784,15 @@
 
     function renderWorldLayers() {
       if (!worldGeoJson) return;
-      const visited = getVisitedCodesUpper();
+      const visitedCodes = getVisitedCodesUpper();
+      const visitedNames = getVisitedCountryNamesLower();
 
       if (exploreWorldLayer) exploreMap.removeLayer(exploreWorldLayer);
       exploreWorldLayer = L.geoJSON(worldGeoJson, {
         pane: "exploreCountryPane",
         style: f => {
           const code = getFeatureCode(f);
-          const on = visited.has(code);
+          const on = isVisitedFeature(f, visitedCodes, visitedNames);
           return { fillColor: on ? "#d92f2f" : colorByCountryCode(code), fillOpacity: on ? 0.86 : 0.52, color: "#233244", weight: 0.65, opacity: 0.95 };
         }
       }).addTo(exploreMap);
@@ -711,6 +816,7 @@
       els.countryScreen.scrollTop = 0;
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       setTimeout(() => {
+        resizeHomeGlobe();
         exploreMap.invalidateSize();
         countryMap.invalidateSize();
       }, 90);
@@ -1030,95 +1136,116 @@
     }
 
     function renderHomeGlobe() {
-      const canvas = els.homeGlobeCanvas;
-      if (!canvas) return;
-      const width = Math.max(220, Math.floor(canvas.clientWidth || 320));
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      const px = Math.floor(width * dpr);
-      if (canvas.width !== px || canvas.height !== px) {
-        canvas.width = px;
-        canvas.height = px;
+      if (!globeTextureCtx || !globeTextureCanvas || !globeTexture) {
+        if (globeFallbackCtx && globeFallbackCanvas) drawFallbackGlobeFrame();
+        return;
       }
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      const visitedCodes = getVisitedCodesUpper();
+      const visitedNames = getVisitedCountryNamesLower();
+      const visitedPoints = getVisitedPoints();
+      const w = globeTextureCanvas.width;
+      const h = globeTextureCanvas.height;
+      const ctx = globeTextureCtx;
+
+      const sea = ctx.createLinearGradient(0, 0, 0, h);
+      sea.addColorStop(0, "#9ca3ac");
+      sea.addColorStop(0.5, "#9a9fa7");
+      sea.addColorStop(1, "#8d939b");
+      ctx.fillStyle = sea;
+      ctx.fillRect(0, 0, w, h);
+
+      if (worldGeoJson && Array.isArray(worldGeoJson.features)) {
+        drawEquirectFeatures(ctx, worldGeoJson.features, w, h, () => ({ fill: "#bcbfc5", stroke: "rgba(96,102,111,.45)", line: 0.85 }));
+        drawEquirectFeatures(
+          ctx,
+          worldGeoJson.features,
+          w,
+          h,
+          feature => isVisitedFeature(feature, visitedCodes, visitedNames)
+            || featureContainsVisitedPoint(feature, visitedPoints)
+            ? { fill: "#c92b33", stroke: "rgba(102,14,20,.7)", line: 1.0 }
+            : null
+        );
+      }
+
+      globeTexture.needsUpdate = true;
+    }
+
+    function drawFallbackGlobeFrame() {
+      if (!globeFallbackCtx || !globeFallbackCanvas) return;
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const size = globeFallbackCanvas.width / dpr;
+      if (!size) return;
+      const ctx = globeFallbackCtx;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, width, width);
+      ctx.clearRect(0, 0, size, size);
 
-      const cx = width / 2;
-      const cy = width / 2 + width * 0.01;
-      const r = width * 0.43;
+      const cx = size / 2;
+      const cy = size / 2;
+      const r = size * 0.47;
 
-      const globeBase = ctx.createRadialGradient(
-        cx - r * 0.45, cy - r * 0.55, r * 0.18,
-        cx + r * 0.2, cy + r * 0.25, r * 1.08
-      );
-      globeBase.addColorStop(0, "#f0f0f0");
-      globeBase.addColorStop(0.45, "#c9c9c9");
-      globeBase.addColorStop(1, "#8f8f8f");
-      ctx.fillStyle = globeBase;
+      const base = ctx.createRadialGradient(cx - r * 0.45, cy - r * 0.5, r * 0.1, cx + r * 0.25, cy + r * 0.2, r * 1.05);
+      base.addColorStop(0, "#f3f3f3");
+      base.addColorStop(0.45, "#bfc4cb");
+      base.addColorStop(1, "#80868f");
+      ctx.fillStyle = base;
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
 
-      const lon0 = 22 * (Math.PI / 180);
-      const lat0 = 20 * (Math.PI / 180);
-      const sinLat0 = Math.sin(lat0);
-      const cosLat0 = Math.cos(lat0);
-      const toRad = Math.PI / 180;
-
-      const project = (latDeg, lonDeg) => {
-        const lat = latDeg * toRad;
-        const lon = lonDeg * toRad;
-        const dLon = lon - lon0;
-        const sinLat = Math.sin(lat);
-        const cosLat = Math.cos(lat);
-        const cosc = sinLat0 * sinLat + cosLat0 * cosLat * Math.cos(dLon);
-        if (cosc <= 0) return null;
-        const x = cx + r * cosLat * Math.sin(dLon);
-        const y = cy - r * (cosLat0 * sinLat - sinLat0 * cosLat * Math.cos(dLon));
-        return [x, y];
-      };
-
       if (worldGeoJson && Array.isArray(worldGeoJson.features)) {
-        const visited = getVisitedCodesUpper();
+        const lon0 = globeLon * (Math.PI / 180);
+        const lat0 = 20 * (Math.PI / 180);
+        const sinLat0 = Math.sin(lat0);
+        const cosLat0 = Math.cos(lat0);
+        const toRad = Math.PI / 180;
+        const visitedCodes = getVisitedCodesUpper();
+        const visitedNames = getVisitedCountryNamesLower();
+        const visitedPoints = getVisitedPoints();
+
+        const project = (latDeg, lonDeg) => {
+          const lat = latDeg * toRad;
+          const lon = lonDeg * toRad;
+          const dLon = lon - lon0;
+          const sinLat = Math.sin(lat);
+          const cosLat = Math.cos(lat);
+          const cosc = sinLat0 * sinLat + cosLat0 * cosLat * Math.cos(dLon);
+          if (cosc <= 0) return null;
+          const x = cx + r * cosLat * Math.sin(dLon);
+          const y = cy - r * (cosLat0 * sinLat - sinLat0 * cosLat * Math.cos(dLon));
+          return [x, y];
+        };
+
         ctx.save();
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.clip();
-
         worldGeoJson.features.forEach(feature => {
           const geometry = feature && feature.geometry;
           if (!geometry) return;
-          const code = getFeatureCode(feature);
-          const isVisited = visited.has(code);
+          const on = isVisitedFeature(feature, visitedCodes, visitedNames) || featureContainsVisitedPoint(feature, visitedPoints);
           ctx.beginPath();
-          drawGlobeGeometryPath(ctx, geometry, project);
-          ctx.fillStyle = isVisited ? "#cf2f36" : "#b5b8bd";
-          ctx.strokeStyle = isVisited ? "rgba(130,20,26,.55)" : "rgba(120,125,132,.42)";
-          ctx.lineWidth = 0.6;
+          drawFallbackGeometryPath(ctx, geometry, project);
+          ctx.fillStyle = on ? "#cc2d34" : "#b8bcc2";
+          ctx.strokeStyle = on ? "rgba(102,16,22,.65)" : "rgba(126,132,141,.52)";
+          ctx.lineWidth = 0.7;
           ctx.fill();
           ctx.stroke();
         });
         ctx.restore();
       }
 
-      const shade = ctx.createRadialGradient(cx - r * 0.28, cy - r * 0.5, r * 0.08, cx + r * 0.33, cy + r * 0.35, r * 1.05);
-      shade.addColorStop(0, "rgba(255,255,255,.22)");
-      shade.addColorStop(0.52, "rgba(0,0,0,0)");
-      shade.addColorStop(1, "rgba(0,0,0,.32)");
-      ctx.fillStyle = shade;
+      const shadow = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.5, r * 0.08, cx + r * 0.35, cy + r * 0.38, r * 1.1);
+      shadow.addColorStop(0, "rgba(255,255,255,.24)");
+      shadow.addColorStop(0.55, "rgba(0,0,0,0)");
+      shadow.addColorStop(1, "rgba(0,0,0,.35)");
+      ctx.fillStyle = shadow;
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
-
-      ctx.strokeStyle = "rgba(255,255,255,.24)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
-      ctx.stroke();
     }
 
-    function drawGlobeGeometryPath(ctx, geometry, project) {
+    function drawFallbackGeometryPath(ctx, geometry, project) {
       const polys = geometry.type === "Polygon"
         ? [geometry.coordinates]
         : (geometry.type === "MultiPolygon" ? geometry.coordinates : []);
@@ -1458,6 +1585,105 @@
       return set;
     }
 
+    function getVisitedCountryNamesLower() {
+      const set = new Set();
+      records.forEach(item => {
+        if (!isTravelled(item.status) || !item.country) return;
+        const variants = getCountryNameVariants(item.country);
+        variants.forEach(v => set.add(v));
+      });
+      return set;
+    }
+
+    function isVisitedFeature(feature, visitedCodeSet, visitedNameSet) {
+      const code = getFeatureCode(feature);
+      if (code && visitedCodeSet.has(code)) return true;
+      const names = getFeatureCountryNames(feature);
+      return names.some(name => visitedNameSet.has(normalizeKey(name)));
+    }
+
+    function getFeatureCountryNames(feature) {
+      const p = (feature && feature.properties) || {};
+      const all = [p.ADMIN, p.name, p.NAME, p.SOVEREIGNT, p.brk_name, p.NAME_LONG, p.FORMAL_EN];
+      return all.map(v => String(v || "").trim()).filter(Boolean);
+    }
+
+    function getCountryNameVariants(name) {
+      const base = normalizeKey(name);
+      const set = new Set([base]);
+      const aliasMap = {
+        "turkiye": ["turkey", "republic of turkey"],
+        "abd": ["united states", "united states of america", "u.s.a.", "usa"],
+        "ingiltere": ["united kingdom", "great britain", "britain", "uk"],
+        "rusya": ["russia", "russian federation"],
+        "guney kore": ["south korea", "republic of korea"],
+        "kuzey kore": ["north korea", "democratic people's republic of korea"],
+        "cekya": ["czech republic", "czechia"],
+        "hollanda": ["netherlands"],
+        "birlesik arap emirlikleri": ["united arab emirates", "uae"]
+      };
+      Object.keys(aliasMap).forEach(key => {
+        if (base === key || aliasMap[key].includes(base)) {
+          set.add(key);
+          aliasMap[key].forEach(v => set.add(normalizeKey(v)));
+        }
+      });
+      return [...set];
+    }
+
+    function getVisitedPoints() {
+      const points = [];
+      records.forEach(item => {
+        if (!isTravelled(item.status)) return;
+        if (!Number.isFinite(item.lat) || !Number.isFinite(item.lng)) return;
+        points.push({ lat: item.lat, lng: item.lng });
+      });
+      return points;
+    }
+
+    function featureContainsVisitedPoint(feature, visitedPoints) {
+      if (!visitedPoints || !visitedPoints.length) return false;
+      const geometry = feature && feature.geometry;
+      if (!geometry) return false;
+      for (let i = 0; i < visitedPoints.length; i += 1) {
+        const p = visitedPoints[i];
+        if (geometryContainsPoint(geometry, p.lng, p.lat)) return true;
+      }
+      return false;
+    }
+
+    function geometryContainsPoint(geometry, lon, lat) {
+      if (!geometry || !geometry.type) return false;
+      if (geometry.type === "Polygon") return polygonContainsPoint(geometry.coordinates, lon, lat);
+      if (geometry.type === "MultiPolygon") {
+        return geometry.coordinates.some(poly => polygonContainsPoint(poly, lon, lat));
+      }
+      return false;
+    }
+
+    function polygonContainsPoint(polygonCoords, lon, lat) {
+      if (!Array.isArray(polygonCoords) || !polygonCoords.length) return false;
+      const outer = polygonCoords[0];
+      if (!ringContainsPoint(outer, lon, lat)) return false;
+      for (let i = 1; i < polygonCoords.length; i += 1) {
+        if (ringContainsPoint(polygonCoords[i], lon, lat)) return false;
+      }
+      return true;
+    }
+
+    function ringContainsPoint(ring, lon, lat) {
+      if (!Array.isArray(ring) || ring.length < 3) return false;
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = Number(ring[i][0]); const yi = Number(ring[i][1]);
+        const xj = Number(ring[j][0]); const yj = Number(ring[j][1]);
+        const intersect = ((yi > lat) !== (yj > lat))
+          && (lon < ((xj - xi) * (lat - yi)) / ((yj - yi) || 1e-12) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
     function colorByCountryCode(code) {
       if (!code) return "#6b7a8a";
       let hash = 0;
@@ -1601,6 +1827,17 @@
       return Number(value || 0).toLocaleString("tr-TR", { maximumFractionDigits: 0 });
     }
 
+    function normalizeKey(value) {
+      return String(value || "")
+        .trim()
+        .toLocaleLowerCase("tr-TR")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
     function drawRoundedRect(ctx, x, y, w, h, r, fill) {
       const radius = Math.min(r, w / 2, h / 2);
       ctx.beginPath();
@@ -1639,6 +1876,52 @@
       }
       ctx.fillText(line, x, y);
       return y;
+    }
+
+    function drawEquirectFeatures(ctx, features, w, h, styleForFeature) {
+      features.forEach(feature => {
+        const style = styleForFeature(feature);
+        if (!style) return;
+        const geometry = feature && feature.geometry;
+        if (!geometry) return;
+        const polys = geometry.type === "Polygon"
+          ? [geometry.coordinates]
+          : (geometry.type === "MultiPolygon" ? geometry.coordinates : []);
+        if (!polys.length) return;
+
+        ctx.beginPath();
+        polys.forEach(poly => {
+          if (!Array.isArray(poly)) return;
+          poly.forEach(ring => {
+            if (!Array.isArray(ring) || ring.length < 2) return;
+            let started = false;
+            let prevX = 0;
+            ring.forEach(coord => {
+              if (!Array.isArray(coord) || coord.length < 2) return;
+              const lon = Number(coord[0]);
+              const lat = Number(coord[1]);
+              if (!Number.isFinite(lon) || !Number.isFinite(lat)) return;
+              const x = ((lon + 180) / 360) * w;
+              const y = ((90 - lat) / 180) * h;
+              if (!started || Math.abs(x - prevX) > w * 0.45) {
+                ctx.moveTo(x, y);
+                started = true;
+              } else {
+                ctx.lineTo(x, y);
+              }
+              prevX = x;
+            });
+            if (started) ctx.closePath();
+          });
+        });
+        ctx.fillStyle = style.fill;
+        ctx.fill();
+        if (style.stroke && style.line > 0) {
+          ctx.strokeStyle = style.stroke;
+          ctx.lineWidth = style.line;
+          ctx.stroke();
+        }
+      });
     }
 
     function formatDate(value) {
