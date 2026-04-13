@@ -33,11 +33,13 @@
     .list{display:grid;gap:8px}.item{border:1px solid #2a3d58;border-radius:10px;background:#0f1826;padding:10px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
     .item h3{margin:0;font-size:15px}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent}
     .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
-    .dist-list{display:grid;gap:6px}
-    .dist-item{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#c9dbf3;padding:7px 8px;border:1px solid #30445f;border-radius:8px;background:#0f1827}
+    .dist-list{display:grid;gap:8px}
+    .dist-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:12px;color:#c9dbf3;padding:8px;border:1px solid #30445f;border-radius:8px;background:#0f1827}
+    .dist-bar{grid-column:1 / -1;height:8px;border-radius:999px;background:#23354d;overflow:hidden}
+    .dist-fill{height:100%;background:linear-gradient(90deg,#4ea1ff,#7ed1ff)}
     .chip.visited{color:#7be8c5;background:rgba(63,208,162,.14);border-color:rgba(63,208,162,.35)}.chip.planned{color:#ffd88f;background:rgba(242,190,79,.14);border-color:rgba(242,190,79,.35)}.chip.again{color:#9ecbff;background:rgba(78,161,255,.14);border-color:rgba(78,161,255,.4)}
     .flags-grid{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px}.flag{width:20px;height:10px;object-fit:cover;border-radius:2px;border:1px solid rgba(255,255,255,.1);opacity:.22;filter:grayscale(1);justify-self:center;display:block;background:#0a111b}
-    .flag.visited{opacity:1;filter:none;border-color:rgba(255,255,255,.35);box-shadow:0 0 7px rgba(255,255,255,.16)}
+    .flag.visited{opacity:1;filter:none;border-color:rgba(255,255,255,.35);box-shadow:0 0 7px rgba(255,255,255,.16);cursor:pointer}
     .map-screen{padding:0;height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));overflow:hidden}
     #exploreMapWrap{width:100%;aspect-ratio:9/16;max-height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom));margin:0 auto}
     #exploreMap{width:100%;height:100%;background:#6fa8dc;border:none}
@@ -45,12 +47,12 @@
     .records-actions{display:flex;gap:8px;margin-top:8px}.records-actions button{flex:1;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer}.btn-edit{background:#325b85}.btn-del{background:#87344a}
     .empty{border:1px dashed #35506f;border-radius:10px;text-align:center;color:var(--muted);padding:12px;font-size:13px;background:rgba(11,18,29,.7)}
     .tabs{position:fixed;left:0;right:0;bottom:0;z-index:2200;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(8,12,18,0),rgba(8,12,18,.95) 30%)}
-    .tabs-inner{max-width:500px;margin:0 auto;border:1px solid #2a3f59;border-radius:14px;background:#111a28;height:var(--tabh);display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px}
-    .tab-btn{border:none;border-radius:10px;background:#1a2638;color:#b9cce6;font-size:12px;font-weight:800;cursor:pointer}.tab-btn.active{background:#2d507a;color:#fff}
-    .add-btn{position:fixed;right:16px;bottom:calc(var(--tabh) + 14px + env(safe-area-inset-bottom));z-index:2300;width:56px;height:56px;border:none;border-radius:999px;font-size:32px;font-weight:700;color:#072240;background:linear-gradient(180deg,#83c2ff,#4f98ef);box-shadow:0 12px 30px rgba(44,121,208,.5);cursor:pointer}
-    .modal{position:fixed;inset:0;z-index:6000;background:rgba(2,7,13,.83);display:none;align-items:flex-end;justify-content:center;padding:10px;backdrop-filter:blur(3px)}.modal.open{display:flex}
-    .modal-box{width:100%;max-width:500px;border:1px solid #2c415d;border-radius:14px;background:linear-gradient(180deg,#152236,#111c2b);padding:12px}
-    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.modal-head h2{margin:0;font-size:17px}.close-btn{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
+    .tabs-inner{max-width:500px;margin:0 auto;border:1px solid #2a3f59;border-radius:16px;background:#0f1826;height:var(--tabh);display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:6px}
+    .tab-btn{border:none;border-radius:12px;background:linear-gradient(180deg,#18273a,#152233);color:#b9cce6;font-size:11px;font-weight:800;cursor:pointer;display:grid;place-items:center;line-height:1.2}
+    .tab-btn.active{background:linear-gradient(180deg,#3c6a9b,#2d507a);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+    .screen-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+    .screen-head h2{margin:0;font-size:17px}
+    .ghost-btn{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
     form{display:grid;gap:9px}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -83,7 +85,12 @@
     .lightbox img{max-width:100%;max-height:calc(90vh - 36px);border-radius:10px;border:1px solid #2e435e;background:#09101a}
     .lightbox-close{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
     .flag-pin{width:24px;height:24px;border-radius:999px;border:2px solid #fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
-    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-static-map{max-height:340px;object-fit:contain}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}}
+    .country-facts{display:grid;gap:8px}
+    .country-fact{border:1px solid #30445f;border-radius:10px;background:#0f1827;padding:10px}
+    .country-fact small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}
+    .country-fact strong{font-size:15px}
+    #countryMap{height:240px;border:1px solid #30445f;border-radius:10px;overflow:hidden;background:#0d1624}
+    @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-static-map{max-height:340px;object-fit:contain}#exploreMapWrap{height:calc(100vh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
   </style>
 </head>
 <body>
@@ -97,24 +104,6 @@
             <span id="heroBadge" class="badge">Ulke yok</span>
           </div>
           <p>Ana ekrandaki harita sabittir. Gidilen ulkeler kirmizi gorunur.</p>
-        </div>
-      </article>
-
-      <section class="stats">
-        <article class="stat"><small>Toplam sehir</small><strong id="statCity">0</strong></article>
-        <article class="stat"><small>Toplam ulke</small><strong id="statCountry">0</strong></article>
-        <article class="stat"><small>Planlanan</small><strong id="statPlanned">0</strong></article>
-      </section>
-
-      <article class="card">
-        <h2>Gelismis Istatistikler</h2>
-        <div class="list">
-          <div class="item"><p>Ortalama puan: <strong id="statAvgRating">-</strong></p></div>
-          <div class="item"><p>Toplam butce: <strong id="statTotalBudget">-</strong></p></div>
-          <div class="item">
-            <p>Ulke basina sehir dagilimi</p>
-            <div id="countryDistribution" class="dist-list"></div>
-          </div>
         </div>
       </article>
 
@@ -143,11 +132,6 @@
     <section id="recordsScreen" class="screen">
       <article class="card">
         <h2>Tum Kayitlar</h2>
-        <div class="tool-row">
-          <button id="exportJsonBtn" class="tool-btn export" type="button">JSON disa aktar</button>
-          <button id="importJsonBtn" class="tool-btn import" type="button">JSON ice aktar</button>
-        </div>
-        <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
         <div class="control-row single">
           <input id="recordsSearchInput" type="text" placeholder="Sehir / ulke ara">
         </div>
@@ -169,88 +153,116 @@
         <div id="recordsList" class="list"></div>
       </article>
     </section>
-  </main>
 
-  <button id="openModalBtn" class="add-btn" type="button" aria-label="Sehir ekle">+</button>
+    <section id="addScreen" class="screen">
+      <article class="card">
+        <div class="screen-head">
+          <h2 id="addScreenTitle">Sehir Ekle</h2>
+          <button id="cancelAddBtn" class="ghost-btn" type="button">Vazgec</button>
+        </div>
+        <form id="cityForm" autocomplete="off">
+          <div class="field">
+            <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
+            <div id="citySuggestions" class="suggestions"></div>
+          </div>
+          <button id="useLocationBtn" class="tool-btn stats" type="button">Anlik konumdan al</button>
+          <input id="countryInput" type="text" placeholder="Ulke otomatik gelecek" readonly>
+          <input id="dateInput" type="date">
+          <select id="statusInput">
+            <option value="visited">Gezildi</option>
+            <option value="planned">Planlaniyor</option>
+            <option value="again">Tekrar gidilecek</option>
+          </select>
+          <div>
+            <label class="field-label" for="ratingOverallInput">Gezi puani (1-10)</label>
+            <input id="ratingOverallInput" type="number" min="1" max="10" step="1" placeholder="Orn: 8">
+          </div>
+          <div class="row3">
+            <div>
+              <label class="field-label" for="ratingFoodInput">Yemek</label>
+              <input id="ratingFoodInput" type="number" min="1" max="10" step="1" placeholder="1-10">
+            </div>
+            <div>
+              <label class="field-label" for="ratingTransportInput">Ulasim</label>
+              <input id="ratingTransportInput" type="number" min="1" max="10" step="1" placeholder="1-10">
+            </div>
+            <div>
+              <label class="field-label" for="ratingSafetyInput">Guvenlik</label>
+              <input id="ratingSafetyInput" type="number" min="1" max="10" step="1" placeholder="1-10">
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label class="field-label" for="budgetInput">Toplam harcama</label>
+              <input id="budgetInput" type="number" min="0" step="0.01" placeholder="Orn: 1250">
+            </div>
+            <div>
+              <label class="field-label" for="currencyInput">Para birimi</label>
+              <select id="currencyInput">
+                <option value="TRY">TRY</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="tripDaysInput">Seyahat suresi (gun)</label>
+            <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Orn: 4">
+          </div>
+          <div>
+            <label class="field-label" for="photoInput">Ani galerisi (foto)</label>
+            <input id="photoInput" class="file-input" type="file" accept="image/*" multiple>
+            <div class="photo-helper">Fotograflar otomatik boyutlandirilir (maks 1280px).</div>
+            <div class="photo-actions">
+              <button id="clearPhotosBtn" class="photo-clear" type="button">Fotograflari temizle</button>
+            </div>
+            <div id="photoPreview" class="photo-preview"></div>
+          </div>
+          <textarea id="noteInput" placeholder="Not (opsiyonel)"></textarea>
+          <button id="saveBtn" class="save-btn" type="submit">Kaydet</button>
+        </form>
+      </article>
+    </section>
+
+    <section id="summaryScreen" class="screen">
+      <article class="card">
+        <h2>Genel Sayfasi</h2>
+        <div class="tool-row">
+          <button id="exportJsonBtn" class="tool-btn export" type="button">JSON disa aktar</button>
+          <button id="importJsonBtn" class="tool-btn import" type="button">JSON ice aktar</button>
+        </div>
+        <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
+        <p class="hint">Yedekleme ve geri yukleme islemleri.</p>
+      </article>
+    </section>
+
+    <section id="countryScreen" class="screen">
+      <article class="card">
+        <div class="screen-head">
+          <h2 id="countryTitle">Ulke Detayi</h2>
+          <button id="countryBackBtn" class="ghost-btn" type="button">Geri</button>
+        </div>
+        <div id="countryMap"></div>
+        <div class="country-facts" style="margin-top:10px;">
+          <div class="country-fact"><small>Para birimi</small><strong id="countryCurrency">-</strong></div>
+          <div class="country-fact"><small>Nufus</small><strong id="countryPopulation">-</strong></div>
+          <div class="country-fact"><small>Dil</small><strong id="countryLanguage">-</strong></div>
+          <div class="country-fact"><small>Kayitli sehirler</small><strong id="countryCities">-</strong></div>
+        </div>
+      </article>
+    </section>
+  </main>
 
   <nav class="tabs" aria-label="Menu">
     <div class="tabs-inner">
-      <button class="tab-btn active" data-screen="home" type="button">Ana Sayfa</button>
+      <button class="tab-btn active" data-screen="home" type="button">Ana<br>Sayfa</button>
       <button class="tab-btn" data-screen="map" type="button">Harita</button>
       <button class="tab-btn" data-screen="records" type="button">Kayitlar</button>
+      <button class="tab-btn" data-screen="add" type="button">Ekle</button>
+      <button class="tab-btn" data-screen="summary" type="button">Genel</button>
     </div>
   </nav>
-
-  <div id="cityModal" class="modal" aria-hidden="true">
-    <div class="modal-box">
-      <div class="modal-head">
-        <h2 id="modalTitle">Sehir Ekle</h2>
-        <button id="closeModalBtn" class="close-btn" type="button">Kapat</button>
-      </div>
-      <form id="cityForm" autocomplete="off">
-        <div class="field">
-          <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
-          <div id="citySuggestions" class="suggestions"></div>
-        </div>
-        <button id="useLocationBtn" class="tool-btn stats" type="button">Anlik konumdan al</button>
-        <input id="countryInput" type="text" placeholder="Ulke otomatik gelecek" readonly>
-        <input id="dateInput" type="date">
-        <select id="statusInput">
-          <option value="visited">Gezildi</option>
-          <option value="planned">Planlaniyor</option>
-          <option value="again">Tekrar gidilecek</option>
-        </select>
-        <div>
-          <label class="field-label" for="ratingOverallInput">Gezi puani (1-10)</label>
-          <input id="ratingOverallInput" type="number" min="1" max="10" step="1" placeholder="Orn: 8">
-        </div>
-        <div class="row3">
-          <div>
-            <label class="field-label" for="ratingFoodInput">Yemek</label>
-            <input id="ratingFoodInput" type="number" min="1" max="10" step="1" placeholder="1-10">
-          </div>
-          <div>
-            <label class="field-label" for="ratingTransportInput">Ulasim</label>
-            <input id="ratingTransportInput" type="number" min="1" max="10" step="1" placeholder="1-10">
-          </div>
-          <div>
-            <label class="field-label" for="ratingSafetyInput">Guvenlik</label>
-            <input id="ratingSafetyInput" type="number" min="1" max="10" step="1" placeholder="1-10">
-          </div>
-        </div>
-        <div class="row2">
-          <div>
-            <label class="field-label" for="budgetInput">Toplam harcama</label>
-            <input id="budgetInput" type="number" min="0" step="0.01" placeholder="Orn: 1250">
-          </div>
-          <div>
-            <label class="field-label" for="currencyInput">Para birimi</label>
-            <select id="currencyInput">
-              <option value="TRY">TRY</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="field-label" for="tripDaysInput">Seyahat suresi (gun)</label>
-          <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Orn: 4">
-        </div>
-        <div>
-          <label class="field-label" for="photoInput">Ani galerisi (foto)</label>
-          <input id="photoInput" class="file-input" type="file" accept="image/*" multiple>
-          <div class="photo-helper">Fotograflar otomatik boyutlandirilir (maks 1280px).</div>
-          <div class="photo-actions">
-            <button id="clearPhotosBtn" class="photo-clear" type="button">Fotograflari temizle</button>
-          </div>
-          <div id="photoPreview" class="photo-preview"></div>
-        </div>
-        <textarea id="noteInput" placeholder="Not (opsiyonel)"></textarea>
-        <button id="saveBtn" class="save-btn" type="submit">Kaydet</button>
-      </form>
-    </div>
-  </div>
 
   <div id="photoLightbox" class="lightbox" aria-hidden="true">
     <div class="lightbox-inner">
@@ -271,12 +283,9 @@
       homeScreen: document.getElementById("homeScreen"),
       mapScreen: document.getElementById("mapScreen"),
       recordsScreen: document.getElementById("recordsScreen"),
-      statCity: document.getElementById("statCity"),
-      statCountry: document.getElementById("statCountry"),
-      statPlanned: document.getElementById("statPlanned"),
-      statAvgRating: document.getElementById("statAvgRating"),
-      statTotalBudget: document.getElementById("statTotalBudget"),
-      countryDistribution: document.getElementById("countryDistribution"),
+      addScreen: document.getElementById("addScreen"),
+      summaryScreen: document.getElementById("summaryScreen"),
+      countryScreen: document.getElementById("countryScreen"),
       heroImage: document.getElementById("heroImage"),
       heroBadge: document.getElementById("heroBadge"),
       recentList: document.getElementById("recentList"),
@@ -288,9 +297,8 @@
       exportJsonBtn: document.getElementById("exportJsonBtn"),
       importJsonBtn: document.getElementById("importJsonBtn"),
       importJsonInput: document.getElementById("importJsonInput"),
-      openModalBtn: document.getElementById("openModalBtn"),
-      closeModalBtn: document.getElementById("closeModalBtn"),
-      cityModal: document.getElementById("cityModal"),
+      addScreenTitle: document.getElementById("addScreenTitle"),
+      cancelAddBtn: document.getElementById("cancelAddBtn"),
       cityForm: document.getElementById("cityForm"),
       cityInput: document.getElementById("cityInput"),
       citySuggestions: document.getElementById("citySuggestions"),
@@ -309,9 +317,15 @@
       clearPhotosBtn: document.getElementById("clearPhotosBtn"),
       photoPreview: document.getElementById("photoPreview"),
       noteInput: document.getElementById("noteInput"),
-      modalTitle: document.getElementById("modalTitle"),
       saveBtn: document.getElementById("saveBtn"),
       tabs: document.querySelectorAll(".tab-btn"),
+      countryTitle: document.getElementById("countryTitle"),
+      countryBackBtn: document.getElementById("countryBackBtn"),
+      countryMap: document.getElementById("countryMap"),
+      countryCurrency: document.getElementById("countryCurrency"),
+      countryPopulation: document.getElementById("countryPopulation"),
+      countryLanguage: document.getElementById("countryLanguage"),
+      countryCities: document.getElementById("countryCities"),
       photoLightbox: document.getElementById("photoLightbox"),
       photoLightboxImg: document.getElementById("photoLightboxImg"),
       photoLightboxClose: document.getElementById("photoLightboxClose")
@@ -329,6 +343,10 @@
     let exploreMap;
     let exploreWorldLayer;
     let exploreMarkerLayer;
+    let countryMap;
+    let countryLayer;
+    let countryMarkerLayer;
+    let lastNonCountryScreen = "home";
 
     init();
 
@@ -353,6 +371,18 @@
       exploreMap.getPane("explorePinPane").style.zIndex = 650;
       exploreMarkerLayer = L.layerGroup().addTo(exploreMap);
       enforceVerticalBounds();
+
+      countryMap = L.map("countryMap", {
+        zoomControl: false,
+        attributionControl: false,
+        minZoom: 2,
+        maxZoom: 7
+      }).setView([20, 10], 2.4);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        subdomains: "abcd",
+        maxZoom: 19
+      }).addTo(countryMap);
+      countryMarkerLayer = L.layerGroup().addTo(countryMap);
     }
 
     function enforceVerticalBounds() {
@@ -372,12 +402,20 @@
     }
 
     function bindEvents() {
-      els.openModalBtn.addEventListener("click", () => openModal());
-      els.closeModalBtn.addEventListener("click", closeModal);
-      els.cityModal.addEventListener("click", e => { if (e.target === els.cityModal) closeModal(); });
+      els.cancelAddBtn.addEventListener("click", () => {
+        resetAddForm();
+        switchScreen("records");
+      });
+      els.countryBackBtn.addEventListener("click", () => switchScreen(lastNonCountryScreen || "home"));
       els.cityForm.addEventListener("submit", onSave);
       els.recordsList.addEventListener("click", onRecordAction);
-      els.tabs.forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.screen)));
+      els.tabs.forEach(btn => btn.addEventListener("click", () => {
+        if (btn.dataset.screen === "add") {
+          openAddScreen();
+          return;
+        }
+        switchScreen(btn.dataset.screen);
+      }));
       els.recordsSearchInput.addEventListener("input", renderRecords);
       els.recordsSortInput.addEventListener("change", renderRecords);
       els.recordsStatusFilterInput.addEventListener("change", renderRecords);
@@ -387,6 +425,7 @@
       els.useLocationBtn.addEventListener("click", useCurrentLocation);
       els.cityInput.addEventListener("input", onCityInput);
       els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
+      els.flagsGrid.addEventListener("click", onFlagClick);
       els.photoInput.addEventListener("change", onPhotoInputChange);
       els.clearPhotosBtn.addEventListener("click", () => {
         workingPhotos = [];
@@ -416,7 +455,7 @@
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
       });
-      window.addEventListener("resize", () => setTimeout(() => { exploreMap.invalidateSize(); }, 80));
+      window.addEventListener("resize", () => setTimeout(() => { exploreMap.invalidateSize(); countryMap.invalidateSize(); }, 80));
     }
 
     function onCityInput() {
@@ -617,9 +656,7 @@
       els.photoLightbox.classList.remove("open");
       els.photoLightbox.setAttribute("aria-hidden", "true");
       els.photoLightboxImg.src = "";
-      if (!els.cityModal.classList.contains("open")) {
-        document.body.classList.remove("modal-open");
-      }
+      document.body.classList.remove("modal-open");
     }
 
     async function loadWorldData() {
@@ -650,15 +687,25 @@
 
     function switchScreen(name) {
       closePhotoLightbox();
+      if (name !== "country") lastNonCountryScreen = name;
       els.homeScreen.classList.toggle("active", name === "home");
       els.mapScreen.classList.toggle("active", name === "map");
       els.recordsScreen.classList.toggle("active", name === "records");
+      els.addScreen.classList.toggle("active", name === "add");
+      els.summaryScreen.classList.toggle("active", name === "summary");
+      els.countryScreen.classList.toggle("active", name === "country");
       els.tabs.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === name));
       els.homeScreen.scrollTop = 0;
       els.mapScreen.scrollTop = 0;
       els.recordsScreen.scrollTop = 0;
+      els.addScreen.scrollTop = 0;
+      els.summaryScreen.scrollTop = 0;
+      els.countryScreen.scrollTop = 0;
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      setTimeout(() => { exploreMap.invalidateSize(); }, 90);
+      setTimeout(() => {
+        exploreMap.invalidateSize();
+        countryMap.invalidateSize();
+      }, 90);
     }
 
     function loadRecords() {
@@ -841,7 +888,10 @@
         };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
         else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
-        saveRecords(); closeModal(); renderAll();
+        saveRecords();
+        resetAddForm();
+        renderAll();
+        switchScreen("records");
       } catch (error) {
         alert(error.message || "Kayit kaydedilemedi.");
       } finally {
@@ -870,7 +920,7 @@
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       const id = button.dataset.id;
-      if (button.dataset.action === "edit") openModal(id);
+      if (button.dataset.action === "edit") openAddScreen(id);
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
         records = records.filter(item => item.id !== id);
@@ -879,17 +929,13 @@
       }
     }
 
-    function openModal(id = null) {
+    function openAddScreen(id = null) {
       editId = id;
-      els.cityForm.reset();
-      els.statusInput.value = "visited";
-      selectedCitySuggestion = null;
-      workingPhotos = [];
-      closeSuggestions();
+      resetAddForm();
       if (editId) {
         const item = records.find(record => record.id === editId);
         if (!item) return;
-        els.modalTitle.textContent = "Kaydi Duzenle";
+        els.addScreenTitle.textContent = "Kaydi Duzenle";
         els.cityInput.value = item.city;
         els.countryInput.value = item.country;
         els.dateInput.value = item.date || "";
@@ -904,67 +950,33 @@
         workingPhotos = Array.isArray(item.photos) ? [...item.photos] : [];
         els.noteInput.value = item.note || "";
       } else {
-        els.modalTitle.textContent = "Sehir Ekle";
-        els.currencyInput.value = "TRY";
+        els.addScreenTitle.textContent = "Sehir Ekle";
       }
       renderPhotoPreview();
-      els.cityModal.classList.add("open");
-      els.cityModal.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
+      switchScreen("add");
       setTimeout(() => els.cityInput.focus(), 40);
     }
 
-    function closeModal() {
+    function resetAddForm() {
       editId = null;
       selectedCitySuggestion = null;
       workingPhotos = [];
       closeSuggestions();
-      closePhotoLightbox();
-      els.cityModal.classList.remove("open");
-      els.cityModal.setAttribute("aria-hidden", "true");
-      if (!els.photoLightbox.classList.contains("open")) {
-        document.body.classList.remove("modal-open");
-      }
       els.cityForm.reset();
       els.statusInput.value = "visited";
       els.currencyInput.value = "TRY";
       els.photoInput.value = "";
+      els.addScreenTitle.textContent = "Sehir Ekle";
       renderPhotoPreview();
     }
 
     function renderAll() {
-      renderStats(); renderHero(); renderRecent(); renderRecords(); renderFlags(); renderExplorePins(); renderWorldLayers();
-    }
-
-    function renderStats() {
-      const countries = new Set(records.map(item => item.country.toLowerCase()));
-      els.statCity.textContent = String(records.length);
-      els.statCountry.textContent = String(countries.size);
-      els.statPlanned.textContent = String(records.filter(item => item.status === "planned").length);
-
-      const rated = records.filter(item => item.ratingOverall != null).map(item => item.ratingOverall);
-      const avg = rated.length ? (rated.reduce((a, b) => a + b, 0) / rated.length) : null;
-      els.statAvgRating.textContent = avg == null ? "-" : avg.toFixed(1) + "/10";
-
-      const groupedBudget = {};
-      records.forEach(item => {
-        if (item.budget == null) return;
-        const c = normalizeCurrency(item.currency || "TRY");
-        groupedBudget[c] = (groupedBudget[c] || 0) + item.budget;
-      });
-      const budgetText = Object.keys(groupedBudget).length
-        ? Object.entries(groupedBudget).map(([c, v]) => formatMoney(v, c)).join(" | ")
-        : "-";
-      els.statTotalBudget.textContent = budgetText;
-
-      const perCountry = {};
-      records.forEach(item => {
-        perCountry[item.country] = (perCountry[item.country] || 0) + 1;
-      });
-      const dist = Object.entries(perCountry).sort((a, b) => b[1] - a[1]).slice(0, 8);
-      els.countryDistribution.innerHTML = dist.length
-        ? dist.map(([country, count]) => "<div class='dist-item'><span>" + esc(country) + "</span><strong>" + count + " sehir</strong></div>").join("")
-        : "<div class='empty'>Dagilim verisi yok.</div>";
+      renderHero();
+      renderRecent();
+      renderRecords();
+      renderFlags();
+      renderExplorePins();
+      renderWorldLayers();
     }
 
     function renderHero() {
@@ -1026,7 +1038,129 @@
 
     function renderFlags() {
       const visited = getVisitedCodesLower();
-      els.flagsGrid.innerHTML = WORLD_CODES.map(code => "<img class='" + (visited.has(code) ? "flag visited" : "flag") + "' src='https://flagcdn.com/w20/" + code + ".png' width='20' height='10' loading='lazy' alt='" + code.toUpperCase() + " flag'>").join("");
+      const countryByCode = {};
+      records.forEach(item => {
+        if (!item.countryCode) return;
+        countryByCode[item.countryCode.toLowerCase()] = item.country;
+      });
+      els.flagsGrid.innerHTML = WORLD_CODES.map(code => {
+        const isVisited = visited.has(code);
+        const attrs = isVisited
+          ? " data-country-code='" + esc(code) + "' data-country-name='" + esc(countryByCode[code] || "") + "'"
+          : "";
+        return "<img class='" + (isVisited ? "flag visited" : "flag") + "' src='https://flagcdn.com/w20/" + code + ".png' width='20' height='10' loading='lazy' alt='" + code.toUpperCase() + " flag'" + attrs + ">";
+      }).join("");
+    }
+
+    async function onFlagClick(event) {
+      const flag = event.target.closest("img[data-country-code]");
+      if (!flag) return;
+      const code = String(flag.getAttribute("data-country-code") || "").toLowerCase();
+      const name = String(flag.getAttribute("data-country-name") || "");
+      if (!code) return;
+      await openCountryScreen(code, name);
+    }
+
+    async function openCountryScreen(countryCode, countryName) {
+      const code = countryCode.toLowerCase();
+      const countryRecords = records.filter(item => (item.countryCode || "").toLowerCase() === code);
+      const prettyName = countryName || (countryRecords[0] && countryRecords[0].country) || code.toUpperCase();
+      els.countryTitle.textContent = prettyName + " Detayi";
+      els.countryCities.textContent = countryRecords.length
+        ? countryRecords.map(item => item.city).join(", ")
+        : "Kayit bulunmuyor";
+      switchScreen("country");
+
+      await loadCountryFacts(code, prettyName);
+      renderCountryMap(code, countryRecords);
+    }
+
+    async function loadCountryFacts(countryCode, countryName) {
+      let facts = null;
+      try {
+        const alphaUrl = "https://restcountries.com/v3.1/alpha/" + encodeURIComponent(countryCode) + "?fields=name,currencies,languages,population";
+        const r = await fetch(alphaUrl);
+        if (r.ok) {
+          const j = await r.json();
+          facts = Array.isArray(j) ? j[0] : j;
+        }
+      } catch {}
+      if (!facts) {
+        try {
+          const byNameUrl = "https://restcountries.com/v3.1/name/" + encodeURIComponent(countryName) + "?fields=name,currencies,languages,population";
+          const r2 = await fetch(byNameUrl);
+          if (r2.ok) {
+            const j2 = await r2.json();
+            facts = Array.isArray(j2) ? j2[0] : j2;
+          }
+        } catch {}
+      }
+
+      if (!facts) {
+        els.countryCurrency.textContent = "-";
+        els.countryPopulation.textContent = "-";
+        els.countryLanguage.textContent = "-";
+        return;
+      }
+
+      const currencies = facts.currencies ? Object.values(facts.currencies).map(c => c.name || "").filter(Boolean) : [];
+      const languages = facts.languages ? Object.values(facts.languages).filter(Boolean) : [];
+      els.countryCurrency.textContent = currencies.length ? currencies.join(", ") : "-";
+      els.countryPopulation.textContent = Number.isFinite(Number(facts.population))
+        ? new Intl.NumberFormat("tr-TR").format(Number(facts.population))
+        : "-";
+      els.countryLanguage.textContent = languages.length ? languages.join(", ") : "-";
+    }
+
+    function renderCountryMap(countryCode, countryRecords) {
+      if (countryLayer) countryMap.removeLayer(countryLayer);
+      countryMarkerLayer.clearLayers();
+      const targetCode = countryCode.toUpperCase();
+
+      if (worldGeoJson) {
+        countryLayer = L.geoJSON(worldGeoJson, {
+          style: feature => {
+            const code = getFeatureCode(feature);
+            const active = code === targetCode;
+            return {
+              fillColor: active ? "#d92f2f" : "#5d6f84",
+              fillOpacity: active ? 0.72 : 0.16,
+              color: active ? "#12253b" : "#2b3d52",
+              weight: active ? 1.6 : 0.8,
+              opacity: 1
+            };
+          },
+          filter: feature => {
+            const code = getFeatureCode(feature);
+            return code === targetCode;
+          }
+        }).addTo(countryMap);
+      }
+
+      const points = [];
+      countryRecords.forEach(item => {
+        const marker = L.circleMarker([item.lat, item.lng], {
+          radius: 6,
+          color: "#12253b",
+          weight: 1.2,
+          fillColor: "#4ea1ff",
+          fillOpacity: 0.95
+        });
+        marker.bindPopup("<strong>" + esc(item.city) + "</strong><br>" + esc(formatCoords(item.lat, item.lng)));
+        marker.addTo(countryMarkerLayer);
+        points.push([item.lat, item.lng]);
+      });
+
+      const bounds = countryLayer ? countryLayer.getBounds() : null;
+      if (bounds && bounds.isValid()) {
+        countryMap.fitBounds(bounds, { padding: [16, 16] });
+      } else if (points.length > 1) {
+        countryMap.fitBounds(points, { padding: [20, 20] });
+      } else if (points.length === 1) {
+        countryMap.setView(points[0], 5);
+      } else {
+        countryMap.setView([20, 10], 2.4);
+      }
     }
 
     function renderExplorePins() {
