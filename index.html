@@ -111,13 +111,15 @@
       padding:0;
     }
     #homeMapImage{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:block;
-      border-radius:0;
-      background:transparent;
-    }
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  background:transparent;
+}
 
     #fullMap{
       position:absolute;
@@ -660,7 +662,7 @@
     const tileOptions = {
       subdomains:'abcd',
       maxZoom:19,
-      attribution:'&copy; OpenStreetMap &copy; CARTO'
+      attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
     };
 
     const fullMap = L.map('fullMap', {
@@ -672,9 +674,7 @@
       zoomControl:true
     }).setView([20, 8], 2.25);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom:19, attribution:'©OpenStreetMap, ©Carto'});
-// previous
-// L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', tileOptions).addTo(fullMap);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', tileOptions).addTo(fullMap);
 
     setTimeout(() => { fullMap.invalidateSize(); }, 250);
     window.addEventListener('resize', () => { fullMap.invalidateSize(); });
