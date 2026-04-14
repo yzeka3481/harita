@@ -592,6 +592,9 @@
     let worldGeoJson = null;
     let cloudSyncTimer = null;
     let cloudSyncBusy = false;
+    let unsubscribeCloudRecords = null;
+    let unsubscribeLegacyRecords = null;
+    let cloudSyncStatus = "";
 
     let globeRenderer;
     let globeScene;
@@ -907,8 +910,10 @@
           firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
         }
         firebaseAuth.onAuthStateChanged(user => {
+          detachCloudListeners();
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
           records = loadRecords();
+          cloudSyncStatus = currentUser ? "Bulut baglaniyor..." : "";
           renderAll();
           if (currentUser && currentUser.uid) {
             loadRecordsForCurrentUser()
@@ -919,6 +924,11 @@
               })
               .catch(error => {
                 console.warn("Arka plan bulut senkronu hatasi:", error);
+                cloudSyncStatus = "Bulut okunamadi.";
+                renderAuthPanel();
+              })
+              .finally(() => {
+                attachCloudListeners();
               });
           }
         });
@@ -943,7 +953,7 @@
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
         els.authHelpText.textContent = firebaseDb
-          ? "Bulut esitleme acik. Ayni hesapla mobil/web kayitlarin ortak gorunur."
+          ? ("Bulut esitleme acik. " + (cloudSyncStatus || "Senkron bekleniyor..."))
           : "Firestore baglanirsa mobil ve web kayitlari ortak gorunur.";
       } else {
         els.authStateText.textContent = "Hesap: Misafir modunda.";
@@ -1329,6 +1339,53 @@
       }
     }
 
+    function detachCloudListeners() {
+      if (typeof unsubscribeCloudRecords === "function") unsubscribeCloudRecords();
+      if (typeof unsubscribeLegacyRecords === "function") unsubscribeLegacyRecords();
+      unsubscribeCloudRecords = null;
+      unsubscribeLegacyRecords = null;
+    }
+
+    function attachCloudListeners() {
+      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+      detachCloudListeners();
+      const uid = currentUser.uid;
+      const colRef = firebaseDb.collection("users").doc(uid).collection("records");
+      const legacyDocRef = firebaseDb.collection("users").doc(uid).collection("appData").doc("records");
+
+      unsubscribeCloudRecords = colRef.onSnapshot(snap => {
+        const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
+        const cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        if (cloud.length) {
+          records = cloud;
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+          cloudSyncStatus = "Bulut esitlendi.";
+          renderAll();
+        } else if (!records.length) {
+          cloudSyncStatus = "Bulutta kayit yok.";
+          renderAuthPanel();
+        }
+      }, error => {
+        console.warn("Bulut canli dinleme hatasi:", error);
+        cloudSyncStatus = "Bulut dinleme hatasi.";
+        renderAuthPanel();
+      });
+
+      unsubscribeLegacyRecords = legacyDocRef.onSnapshot(snap => {
+        if (!snap.exists) return;
+        const legacyRaw = snap.data() && snap.data().records;
+        const legacyCloud = normalizeRecordsArray(legacyRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        if (!legacyCloud.length) return;
+        if (!records.length) {
+          records = legacyCloud;
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(legacyCloud));
+          renderAll();
+        }
+      }, error => {
+        console.warn("Legacy bulut dinleme hatasi:", error);
+      });
+    }
+
     function queueCloudSync() {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
@@ -1371,8 +1428,12 @@
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           deviceUpdatedAt: new Date().toISOString()
         }, { merge: true });
+        cloudSyncStatus = "Bulut esitlendi.";
+        renderAuthPanel();
       } catch (error) {
         console.warn("Bulut kayitlari yazilamadi:", error);
+        cloudSyncStatus = "Buluta yazma hatasi.";
+        renderAuthPanel();
       } finally {
         cloudSyncBusy = false;
       }
