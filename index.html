@@ -599,6 +599,7 @@
     let shownCloudPermissionAlert = false;
     let cloudSyncPending = false;
     let lastLocalMutationAt = 0;
+    let localDeleteTombstones = new Map();
 
     let globeRenderer;
     let globeScene;
@@ -1428,13 +1429,7 @@
           renderAuthPanel();
           return;
         }
-        const localSig = JSON.stringify((records || []).map(r => r.id).sort());
-        const cloudSig = JSON.stringify(cloud.map(r => r.id).sort());
-        if (localSig !== cloudSig || cloud.length !== (records || []).length) {
-          records = cloud;
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
-          renderAll();
-        }
+        applyCloudRecordsToUi(cloud);
         cloudSyncStatus = "Bulut esitlendi.";
         renderAuthPanel();
       } catch (error) {
@@ -1457,10 +1452,9 @@
         const cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) return;
         if (cloud.length) {
-          records = cloud;
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+          applyCloudRecordsToUi(cloud);
           cloudSyncStatus = "Bulut esitlendi.";
-          renderAll();
+          renderAuthPanel();
         } else if (!records.length) {
           cloudSyncStatus = "Bulutta kayit yok.";
           renderAuthPanel();
@@ -1479,9 +1473,7 @@
         if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) return;
         if (!legacyCloud.length) return;
         if (!records.length) {
-          records = legacyCloud;
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(legacyCloud));
-          renderAll();
+          applyCloudRecordsToUi(legacyCloud);
         }
       }, error => {
         console.warn("Legacy bulut dinleme hatasi:", error);
@@ -1501,6 +1493,51 @@
       if (shownCloudPermissionAlert) return;
       shownCloudPermissionAlert = true;
       alert("Bulut senkronu engellendi (permission-denied). Firestore Rules icin: users/{uid}/... yolunda sadece kendi uid'ine okuma/yazma izni vermelisin.");
+    }
+
+    function pruneDeleteTombstones() {
+      const now = Date.now();
+      localDeleteTombstones.forEach((ts, id) => {
+        if (!ts || (now - ts) > 120000) localDeleteTombstones.delete(id);
+      });
+    }
+
+    function filterCloudByTombstones(list) {
+      pruneDeleteTombstones();
+      return (Array.isArray(list) ? list : []).filter(item => !localDeleteTombstones.has(item.id));
+    }
+
+    function applyCloudRecordsToUi(cloudList) {
+      const cloud = filterCloudByTombstones(cloudList);
+      if (!Array.isArray(cloud) || !cloud.length) return false;
+      const localSig = JSON.stringify((records || []).map(r => r.id).sort());
+      const cloudSig = JSON.stringify(cloud.map(r => r.id).sort());
+      if (localSig !== cloudSig || cloud.length !== (records || []).length) {
+        records = cloud;
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+        renderAll();
+      }
+      return true;
+    }
+
+    async function deleteCloudRecordImmediately(recordId) {
+      if (!recordId || !currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+      try {
+        const uid = currentUser.uid;
+        await firebaseDb.collection("users").doc(uid).collection("records").doc(recordId).delete();
+        const legacyDocRef = firebaseDb.collection("users").doc(uid).collection("appData").doc("records");
+        await legacyDocRef.set({
+          records: normalizeRecordsArray(records).map(toCloudRecord),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          deviceUpdatedAt: new Date().toISOString()
+        }, { merge: true });
+        cloudSyncStatus = "Silme buluta yazildi.";
+        renderAuthPanel();
+      } catch (error) {
+        console.warn("Silinen kayit buluttan kaldirilamadi:", error);
+        handleCloudPermissionError(error);
+        queueCloudSync();
+      }
     }
 
     async function persistCloudRecords(forceRecords = null) {
@@ -1545,6 +1582,9 @@
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           deviceUpdatedAt: new Date().toISOString()
         }, { merge: true });
+        localDeleteTombstones.forEach((_, id) => {
+          if (payload.some(item => item.id === id)) localDeleteTombstones.delete(id);
+        });
         cloudSyncPending = false;
         cloudSyncStatus = "Bulut esitlendi (" + okWrites + "/" + payload.length + ").";
         renderAuthPanel();
@@ -1751,7 +1791,7 @@
       return { lat: Number(top.lat), lng: Number(top.lon), countryCode: code, city: resolvedCity, country: resolvedCountry };
     }
 
-    function onRecordAction(event) {
+    async function onRecordAction(event) {
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       if (button.dataset.action === "toggle-country") {
@@ -1771,9 +1811,11 @@
       if (button.dataset.action === "edit") openAddScreen(id);
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
+        localDeleteTombstones.set(id, Date.now());
         records = records.filter(item => item.id !== id);
         saveRecords();
         renderAll();
+        await deleteCloudRecordImmediately(id);
       }
     }
 
