@@ -1364,6 +1364,13 @@
         });
 
         await batch.commit();
+
+        const legacyDocRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
+        await legacyDocRef.set({
+          records: payload,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          deviceUpdatedAt: new Date().toISOString()
+        }, { merge: true });
       } catch (error) {
         console.warn("Bulut kayitlari yazilamadi:", error);
       } finally {
