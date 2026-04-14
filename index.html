@@ -481,6 +481,7 @@
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
@@ -577,6 +578,7 @@
     let firebaseReady = false;
     let authMode = "login";
     let firebaseAuth = null;
+    let firebaseDb = null;
     let editId = null;
     let heroCountry = "";
     let recentItems = [];
@@ -588,6 +590,8 @@
     let workingPhotos = [];
     let isLockingMap = false;
     let worldGeoJson = null;
+    let cloudSyncTimer = null;
+    let cloudSyncBusy = false;
 
     let globeRenderer;
     let globeScene;
@@ -897,13 +901,14 @@
         }
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
         firebaseAuth = firebase.auth();
+        firebaseDb = (firebase.firestore && typeof firebase.firestore === "function") ? firebase.firestore() : null;
         firebaseReady = true;
         if (firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence) {
           firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
         }
-        firebaseAuth.onAuthStateChanged(user => {
+        firebaseAuth.onAuthStateChanged(async user => {
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
-          records = loadRecords();
+          records = await loadRecordsForCurrentUser();
           renderAll();
         });
         firebaseAuth.getRedirectResult()
@@ -926,7 +931,9 @@
         els.authStateText.textContent = "Hesap: " + name;
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
-        els.authHelpText.textContent = "Girili hesapla kayitlar cihazda kullanici bazli ayrilir.";
+        els.authHelpText.textContent = firebaseDb
+          ? "Bulut esitleme acik. Ayni hesapla mobil/web kayitlarin ortak gorunur."
+          : "Firestore baglanirsa mobil ve web kayitlari ortak gorunur.";
       } else {
         els.authStateText.textContent = "Hesap: Misafir modunda.";
         els.openAuthBtn.hidden = false;
@@ -1227,34 +1234,105 @@
       }, 90);
     }
 
+    function normalizeRecordsArray(list) {
+      const input = Array.isArray(list) ? list : [];
+      return input.map(item => ({
+        id: item.id || crypto.randomUUID(),
+        city: String(item.city || "").trim(),
+        country: String(item.country || "").trim(),
+        countryCode: String(item.countryCode || "").toLowerCase(),
+        lat: Number(item.lat), lng: Number(item.lng),
+        status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
+        date: item.date || "",
+        ratingOverall: normalizeScore(item.ratingOverall),
+        ratingFood: normalizeScore(item.ratingFood),
+        ratingTransport: normalizeScore(item.ratingTransport),
+        ratingSafety: normalizeScore(item.ratingSafety),
+        budget: normalizeMoney(item.budget),
+        currency: normalizeCurrency(item.currency),
+        tripDays: normalizeDays(item.tripDays),
+        photos: normalizePhotos(item.photos),
+        note: item.note || "",
+        createdAt: item.createdAt || new Date().toISOString()
+      })).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
+    }
+
     function loadRecords() {
       try {
         const key = getRecordsStorageKey();
         const raw = localStorage.getItem(key) || (!currentUser ? localStorage.getItem(STORAGE_KEY) : "[]") || "[]";
         const parsed = JSON.parse(raw);
-        return parsed.map(item => ({
-          id: item.id || crypto.randomUUID(),
-          city: String(item.city || "").trim(),
-          country: String(item.country || "").trim(),
-          countryCode: String(item.countryCode || "").toLowerCase(),
-          lat: Number(item.lat), lng: Number(item.lng),
-          status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
-          date: item.date || "",
-          ratingOverall: normalizeScore(item.ratingOverall),
-          ratingFood: normalizeScore(item.ratingFood),
-          ratingTransport: normalizeScore(item.ratingTransport),
-          ratingSafety: normalizeScore(item.ratingSafety),
-          budget: normalizeMoney(item.budget),
-          currency: normalizeCurrency(item.currency),
-          tripDays: normalizeDays(item.tripDays),
-          photos: normalizePhotos(item.photos),
-          note: item.note || "",
-          createdAt: item.createdAt || new Date().toISOString()
-        })).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
+        return normalizeRecordsArray(parsed);
       } catch { return []; }
     }
 
-    function saveRecords() { localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records)); }
+    async function loadRecordsForCurrentUser() {
+      const local = loadRecords();
+      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return local;
+      try {
+        const docRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
+        const snap = await docRef.get();
+        const cloudRaw = snap.exists ? (snap.data() && snap.data().records) : [];
+        const cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        if (cloud.length) {
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+          return cloud;
+        }
+
+        if (local.length) {
+          await docRef.set({
+            records: local,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deviceUpdatedAt: new Date().toISOString()
+          }, { merge: true });
+          return local;
+        }
+
+        const guestRaw = localStorage.getItem(STORAGE_KEY + ":guest") || localStorage.getItem(STORAGE_KEY) || "[]";
+        const guest = normalizeRecordsArray(JSON.parse(guestRaw || "[]")).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        if (guest.length) {
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(guest));
+          await docRef.set({
+            records: guest,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deviceUpdatedAt: new Date().toISOString()
+          }, { merge: true });
+          return guest;
+        }
+        return [];
+      } catch (error) {
+        console.warn("Bulut kayitlari okunamadi:", error);
+        return local;
+      }
+    }
+
+    function queueCloudSync() {
+      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+      if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+      cloudSyncTimer = setTimeout(() => { persistCloudRecords(); }, 280);
+    }
+
+    async function persistCloudRecords() {
+      if (cloudSyncBusy || !currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+      cloudSyncBusy = true;
+      try {
+        const docRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
+        await docRef.set({
+          records,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          deviceUpdatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (error) {
+        console.warn("Bulut kayitlari yazilamadi:", error);
+      } finally {
+        cloudSyncBusy = false;
+      }
+    }
+
+    function saveRecords() {
+      localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+      queueCloudSync();
+    }
 
     function getRecordsStorageKey() {
       return currentUser && currentUser.uid ? (STORAGE_KEY + ":" + currentUser.uid) : (STORAGE_KEY + ":guest");
