@@ -906,10 +906,21 @@
         if (firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence) {
           firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
         }
-        firebaseAuth.onAuthStateChanged(async user => {
+        firebaseAuth.onAuthStateChanged(user => {
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
-          records = await loadRecordsForCurrentUser();
+          records = loadRecords();
           renderAll();
+          if (currentUser && currentUser.uid) {
+            loadRecordsForCurrentUser()
+              .then(cloudRecords => {
+                if (!Array.isArray(cloudRecords)) return;
+                records = cloudRecords;
+                renderAll();
+              })
+              .catch(error => {
+                console.warn("Arka plan bulut senkronu hatasi:", error);
+              });
+          }
         });
         firebaseAuth.getRedirectResult()
           .then(result => {
