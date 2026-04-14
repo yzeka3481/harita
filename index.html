@@ -457,8 +457,8 @@
       </div>
       <form id="authForm" class="auth-form">
         <input id="authNameInput" type="text" placeholder="Ad soyad (kayit olurken)" autocomplete="name" hidden>
-        <input id="authEmailInput" type="email" placeholder="E-posta" autocomplete="email" required>
-        <input id="authPasswordInput" type="password" placeholder="Sifre (min 6)" autocomplete="current-password" required>
+        <input id="authEmailInput" type="email" placeholder="E-posta" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+        <input id="authPasswordInput" type="password" placeholder="Sifre (min 6)" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" required>
         <button id="authSubmitBtn" class="save-btn" type="submit">Giris Yap</button>
       </form>
       <button id="authGoogleBtn" class="auth-google" type="button">Google ile Gir</button>
@@ -1049,16 +1049,20 @@
       if (code.includes("email-already-in-use")) return "Bu e-posta zaten kullaniliyor.";
       if (code.includes("invalid-email")) return "E-posta formati gecersiz.";
       if (code.includes("weak-password")) return "Sifre en az 6 karakter olmali.";
-      if (code.includes("user-not-found") || code.includes("wrong-password")) return "E-posta veya sifre hatali.";
+      if (code.includes("user-not-found") || code.includes("wrong-password") || code.includes("invalid-credential") || code.includes("invalid-login-credentials")) return "E-posta veya sifre hatali.";
+      if (code.includes("user-disabled")) return "Bu hesap devre disi birakilmis.";
       if (code.includes("popup-closed-by-user")) return "Google giris penceresi kapatildi.";
       if (code.includes("popup-blocked")) return "Tarayici popup engelledi. Tekrar deneyin.";
       if (code.includes("cancelled-popup-request")) return "Google giris istegi iptal edildi. Tekrar deneyin.";
       if (code.includes("unauthorized-domain")) return "Bu alan adi Firebase Authentication > Settings > Authorized domains listesine eklenmeli.";
       if (code.includes("operation-not-supported-in-this-environment")) return "Bu ortam popup girisini desteklemiyor. Redirect ile tekrar deneyin.";
       if (code.includes("network-request-failed")) return "Ag baglantisi nedeniyle giris tamamlanamadi. Internet baglantini kontrol edip tekrar dene.";
+      if (code.includes("invalid-api-key")) return "Firebase API key gecersiz veya bu domaine izin verilmiyor.";
       if (code.includes("account-exists-with-different-credential")) return "Bu e-posta farkli bir yontemle kayitli.";
       if (code.includes("too-many-requests")) return "Cok fazla deneme yapildi, lutfen sonra tekrar dene.";
-      return (error && error.message) ? error.message : "Islem sirasinda hata olustu.";
+      return (error && error.message)
+        ? (error.message + (code ? " (" + code + ")" : ""))
+        : (code ? ("Islem sirasinda hata olustu (" + code + ").") : "Islem sirasinda hata olustu.");
     }
 
     async function searchCitySuggestions(query) {
