@@ -1291,21 +1291,27 @@
       const local = loadRecords();
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return local;
       try {
-        const docRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
-        const snap = await docRef.get();
-        const cloudRaw = snap.exists ? (snap.data() && snap.data().records) : [];
+        const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
+        const snap = await colRef.get();
+        const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
         const cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         if (cloud.length) {
           localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
           return cloud;
         }
 
+        const legacyDocRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
+        const legacySnap = await legacyDocRef.get();
+        const legacyRaw = legacySnap.exists ? (legacySnap.data() && legacySnap.data().records) : [];
+        const legacyCloud = normalizeRecordsArray(legacyRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        if (legacyCloud.length) {
+          await persistCloudRecords(legacyCloud);
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(legacyCloud));
+          return legacyCloud;
+        }
+
         if (local.length) {
-          await docRef.set({
-            records: local,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            deviceUpdatedAt: new Date().toISOString()
-          }, { merge: true });
+          await persistCloudRecords(local);
           return local;
         }
 
@@ -1313,11 +1319,7 @@
         const guest = normalizeRecordsArray(JSON.parse(guestRaw || "[]")).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         if (guest.length) {
           localStorage.setItem(getRecordsStorageKey(), JSON.stringify(guest));
-          await docRef.set({
-            records: guest,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            deviceUpdatedAt: new Date().toISOString()
-          }, { merge: true });
+          await persistCloudRecords(guest);
           return guest;
         }
         return [];
@@ -1333,16 +1335,35 @@
       cloudSyncTimer = setTimeout(() => { persistCloudRecords(); }, 280);
     }
 
-    async function persistCloudRecords() {
-      if (cloudSyncBusy || !currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+    async function persistCloudRecords(forceRecords = null) {
+      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+      if (cloudSyncBusy) {
+        if (!Array.isArray(forceRecords)) queueCloudSync();
+        return;
+      }
       cloudSyncBusy = true;
       try {
-        const docRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
-        await docRef.set({
-          records,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          deviceUpdatedAt: new Date().toISOString()
-        }, { merge: true });
+        const payload = normalizeRecordsArray(Array.isArray(forceRecords) ? forceRecords : records);
+        const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
+        const snap = await colRef.get();
+        const existingIds = new Set(snap.docs.map(doc => doc.id));
+        const batch = firebaseDb.batch();
+
+        payload.forEach(item => {
+          const docRef = colRef.doc(item.id);
+          existingIds.delete(item.id);
+          batch.set(docRef, {
+            ...item,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deviceUpdatedAt: new Date().toISOString()
+          }, { merge: true });
+        });
+
+        existingIds.forEach(id => {
+          batch.delete(colRef.doc(id));
+        });
+
+        await batch.commit();
       } catch (error) {
         console.warn("Bulut kayitlari yazilamadi:", error);
       } finally {
