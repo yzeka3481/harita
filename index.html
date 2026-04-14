@@ -1009,7 +1009,13 @@
       const provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       els.authGoogleBtn.disabled = true;
+      const ua = String((navigator && navigator.userAgent) || "").toLowerCase();
+      const looksMobile = /android|iphone|ipad|ipod|mobile/.test(ua) || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
       try {
+        if (looksMobile) {
+          await firebaseAuth.signInWithRedirect(provider);
+          return;
+        }
         await firebaseAuth.signInWithPopup(provider);
         closeAuthModal();
       } catch (error) {
