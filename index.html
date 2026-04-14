@@ -596,6 +596,9 @@
     let unsubscribeLegacyRecords = null;
     let cloudSyncStatus = "";
     let cloudPullTimer = null;
+    let shownCloudPermissionAlert = false;
+    let cloudSyncPending = false;
+    let lastLocalMutationAt = 0;
 
     let globeRenderer;
     let globeScene;
@@ -1366,6 +1369,7 @@
         return [];
       } catch (error) {
         console.warn("Bulut kayitlari okunamadi:", error);
+        handleCloudPermissionError(error);
         return local;
       }
     }
@@ -1419,6 +1423,11 @@
         }
 
         if (!cloud.length) return;
+        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) {
+          cloudSyncStatus = "Yerel degisiklik buluta yaziliyor...";
+          renderAuthPanel();
+          return;
+        }
         const localSig = JSON.stringify((records || []).map(r => r.id).sort());
         const cloudSig = JSON.stringify(cloud.map(r => r.id).sort());
         if (localSig !== cloudSig || cloud.length !== (records || []).length) {
@@ -1430,6 +1439,7 @@
         renderAuthPanel();
       } catch (error) {
         console.warn("Server bulut cekme hatasi:", error);
+        handleCloudPermissionError(error);
         cloudSyncStatus = "Server senkronu basarisiz.";
         renderAuthPanel();
       }
@@ -1445,6 +1455,7 @@
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
         const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
         const cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) return;
         if (cloud.length) {
           records = cloud;
           localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
@@ -1456,6 +1467,7 @@
         }
       }, error => {
         console.warn("Bulut canli dinleme hatasi:", error);
+        handleCloudPermissionError(error);
         cloudSyncStatus = "Bulut dinleme hatasi.";
         renderAuthPanel();
       });
@@ -1464,6 +1476,7 @@
         if (!snap.exists) return;
         const legacyRaw = snap.data() && snap.data().records;
         const legacyCloud = normalizeRecordsArray(legacyRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) return;
         if (!legacyCloud.length) return;
         if (!records.length) {
           records = legacyCloud;
@@ -1472,6 +1485,7 @@
         }
       }, error => {
         console.warn("Legacy bulut dinleme hatasi:", error);
+        handleCloudPermissionError(error);
       });
     }
 
@@ -1479,6 +1493,14 @@
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
       cloudSyncTimer = setTimeout(() => { persistCloudRecords(); }, 280);
+    }
+
+    function handleCloudPermissionError(error) {
+      const code = error && error.code ? String(error.code) : "";
+      if (!code.includes("permission-denied")) return;
+      if (shownCloudPermissionAlert) return;
+      shownCloudPermissionAlert = true;
+      alert("Bulut senkronu engellendi (permission-denied). Firestore Rules icin: users/{uid}/... yolunda sadece kendi uid'ine okuma/yazma izni vermelisin.");
     }
 
     async function persistCloudRecords(forceRecords = null) {
@@ -1523,10 +1545,13 @@
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           deviceUpdatedAt: new Date().toISOString()
         }, { merge: true });
+        cloudSyncPending = false;
         cloudSyncStatus = "Bulut esitlendi (" + okWrites + "/" + payload.length + ").";
         renderAuthPanel();
       } catch (error) {
         console.warn("Bulut kayitlari yazilamadi:", error);
+        handleCloudPermissionError(error);
+        cloudSyncPending = false;
         cloudSyncStatus = "Buluta yazma hatasi: " + (error && error.code ? error.code : "bilinmiyor");
         renderAuthPanel();
       } finally {
@@ -1536,6 +1561,8 @@
 
     function saveRecords() {
       localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+      cloudSyncPending = true;
+      lastLocalMutationAt = Date.now();
       queueCloudSync();
     }
 
