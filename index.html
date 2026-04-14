@@ -49,8 +49,8 @@
     .insight-stat{text-align:center}
     .insight-stat strong{display:block;font-size:34px;line-height:1;color:#ffffff}
     .insight-stat span{display:block;font-size:12px;color:#d4e8ff;margin-top:4px}
-    .insight-ring{width:76px;height:76px;border-radius:999px;background:conic-gradient(#ffd166 0 var(--pct,35%),rgba(255,255,255,.24) var(--pct,35%) 100%);position:relative;justify-self:center}
-    .insight-ring::after{content:"";position:absolute;inset:13px;border-radius:999px;background:rgba(7,26,48,.62)}
+    .insight-ring{width:82px;height:82px;border-radius:999px;position:relative;justify-self:center;display:grid;place-items:center;background:radial-gradient(circle at 35% 24%,#4db6eb,#1f7fb4 62%,#145f8f 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.28),0 8px 18px rgba(5,20,38,.28)}
+    .insight-globe-img{width:92%;height:92%;display:block;object-fit:contain}
     .insight-foot{margin-top:10px;font-size:12px;color:#d8ecff;text-align:center}
     .recent-shell{position:relative;padding:0 10px}
     .recent-carousel{position:relative;height:206px;touch-action:pan-y;overflow:hidden}
@@ -218,7 +218,9 @@
             <strong id="homeVisitedCountries">0</strong>
             <span>Gidilen ulke</span>
           </div>
-          <div id="homeInsightRing" class="insight-ring" style="--pct:0%"></div>
+          <div id="homeInsightRing" class="insight-ring" aria-hidden="true">
+            <img class="insight-globe-img" src="./world-icon.png" alt="Dunya ikonu">
+          </div>
           <div class="insight-stat">
             <strong id="homeVisitedCities">0</strong>
             <span>Gidilen sehir</span>
@@ -1729,7 +1731,6 @@
 
       els.homeVisitedCountries.textContent = formatInteger(countryCount);
       els.homeVisitedCities.textContent = formatInteger(cityCount);
-      els.homeInsightRing.style.setProperty("--pct", pct + "%");
       els.homeInsightFoot.textContent = countryCount
         ? ("Dunya ulkelerinin yaklasik %" + pct + " kadari gezildi.")
         : "Ilk kaydini ekle, seyahat ilerlemeni burada gorelim.";
