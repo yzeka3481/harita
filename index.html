@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.0";
+    const APP_VERSION = "v2.6.1";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -1290,7 +1290,7 @@
         photos: normalizePhotos(item.photos),
         note: item.note || "",
         createdAt: item.createdAt || new Date().toISOString()
-      })).filter(item => item.city && item.country);
+      }));
     }
 
     function toCloudRecord(item) {
@@ -1529,10 +1529,13 @@
       const sortBy = String(els.recordsSortInput.value || "newest");
 
       let list = [...records].filter(item => {
+        const city = String(item.city || "").toLowerCase();
+        const country = String(item.country || "").toLowerCase();
+        const note = String(item.note || "").toLowerCase();
         const hitQuery = !q ||
-          item.city.toLowerCase().includes(q) ||
-          item.country.toLowerCase().includes(q) ||
-          String(item.note || "").toLowerCase().includes(q);
+          city.includes(q) ||
+          country.includes(q) ||
+          note.includes(q);
         const hitStatus = !statusFilter || item.status === statusFilter;
         return hitQuery && hitStatus;
       });
@@ -1555,6 +1558,16 @@
           list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       }
       return list;
+    }
+
+    function hasActiveRecordFilters() {
+      return !!String(els.recordsSearchInput.value || "").trim() || !!String(els.recordsStatusFilterInput.value || "");
+    }
+
+    function resetRecordFilters() {
+      els.recordsSearchInput.value = "";
+      els.recordsStatusFilterInput.value = "";
+      els.recordsSortInput.value = "newest";
     }
 
     function exportJson() {
@@ -2086,11 +2099,20 @@
     }
 
     function renderRecords() {
-      const visible = getVisibleRecords();
-      if (!visible.length) { els.recordsList.innerHTML = "<div class='empty'>Filtreye uygun kayit bulunmuyor.</div>"; return; }
+      let visible = getVisibleRecords();
+      if (!visible.length && records.length && hasActiveRecordFilters()) {
+        resetRecordFilters();
+        visible = getVisibleRecords();
+      }
+      if (!visible.length) {
+        els.recordsList.innerHTML = records.length
+          ? "<div class='empty'>Kayitlar var ama gorunemedi. Filtreler sifirlandi, tekrar dene.</div>"
+          : "<div class='empty'>Filtreye uygun kayit bulunmuyor.</div>";
+        return;
+      }
       const groups = new Map();
       visible.forEach(item => {
-        const countryName = item.country || "Ulke yok";
+        const countryName = item.country || "Ulke bilinmiyor";
         const rawKey = item.countryCode || countryName;
         const key = String(rawKey || "").trim().toLowerCase();
         if (!groups.has(key)) groups.set(key, { key, country: countryName, items: [] });
@@ -2103,7 +2125,7 @@
       els.recordsList.innerHTML = groupList.map(group => {
         const isOpen = expandedRecordCountries.has(group.key);
         const rows = group.items.map(item =>
-          "<article class='item'><div class='item-head'><h3>" + esc(item.city) + ", " + esc(item.country) + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status]) + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
+          "<article class='item'><div class='item-head'><h3>" + esc(item.city || "Sehir bilinmiyor") + ", " + esc(item.country || "Ulke bilinmiyor") + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status] || "Durum yok") + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
         ).join("");
         return (
           "<section class='country-group " + (isOpen ? "open" : "") + "'>" +
