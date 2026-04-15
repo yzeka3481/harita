@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.4";
+    const APP_VERSION = "v2.6.5";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -1364,9 +1364,25 @@
     async function fetchCloudRecords(uid) {
       if (!uid || !firebaseReady || !firebaseDb) return [];
       const colRef = firebaseDb.collection("users").doc(uid).collection("records");
-      const snap = await colRef.get();
-      return normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
+      let snap;
+      try {
+        snap = await colRef.get({ source: "server" });
+      } catch {
+        snap = await colRef.get();
+      }
+      const primary = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      if (primary.length) return primary;
+
+      // Backward-compatible fallback for older clients/data model.
+      try {
+        const legacyRef = firebaseDb.collection("users").doc(uid).collection("appData").doc("records");
+        const legacySnap = await legacyRef.get();
+        const legacyRows = legacySnap.exists ? (legacySnap.data() && legacySnap.data().records) : [];
+        return normalizeRecordsArray(legacyRows).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      } catch {
+        return [];
+      }
     }
 
     async function forceReloadCloudRecords() {
@@ -1516,6 +1532,18 @@
             }
             console.warn("Kayit buluta yazilamadi:", item && item.id, writeError);
           }
+        }
+        // Keep legacy path in sync for backward compatibility on stale mobile/web caches.
+        try {
+          const legacyDocRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
+          await legacyDocRef.set({
+            records: payload.map(toCloudRecordLite),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deviceUpdatedAt: new Date().toISOString(),
+            compatVersion: APP_VERSION
+          }, { merge: true });
+        } catch (legacyError) {
+          console.warn("Legacy senkron yazimi atlandi:", legacyError);
         }
         cloudSyncPending = false;
         cloudSyncStatus = "Bulut esitlendi (" + okWrites + "/" + payload.length + ").";
