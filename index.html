@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.8";
+    const APP_VERSION = "v2.6.5";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -920,13 +920,40 @@
           detachCloudListeners();
           shownCloudPermissionAlert = false;
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
-          records = currentUser ? [] : loadRecords();
+          records = loadRecords();
           cloudSyncStatus = currentUser ? "Bulut baglaniyor (server)..." : "";
           renderAll();
           if (!currentUser || !currentUser.uid) return;
           forceReloadCloudRecords()
             .then(cloudRecords => {
-              records = Array.isArray(cloudRecords) ? cloudRecords : [];
+              let finalRecords = Array.isArray(cloudRecords) ? cloudRecords : [];
+              const guestKeys = [STORAGE_KEY + ":guest", STORAGE_KEY];
+              for (const guestKey of guestKeys) {
+                const rawGuest = localStorage.getItem(guestKey);
+                if (rawGuest && rawGuest !== "[]") {
+                  try {
+                    const guestRecords = normalizeRecordsArray(JSON.parse(rawGuest));
+                    if (guestRecords.length > 0) {
+                      let merged = false;
+                      const cloudIds = new Set(finalRecords.map(r => r.id));
+                      for (const g of guestRecords) {
+                        if (!cloudIds.has(g.id)) {
+                          finalRecords.push(g);
+                          cloudIds.add(g.id);
+                          merged = true;
+                        }
+                      }
+                      if (merged) {
+                        finalRecords.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+                        setTimeout(() => persistCloudRecords(finalRecords), 500);
+                      }
+                    }
+                    localStorage.removeItem(guestKey);
+                  } catch (e) { console.warn("Guest migration error:", e); }
+                }
+              }
+              records = mergeCloudWithLocalPhotos(finalRecords, records);
+              localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
               renderAll();
               subscribeCloudRecordsRealtime();
             })
@@ -954,10 +981,10 @@
     function renderAuthPanel() {
       if (currentUser) {
         const name = currentUser.name || currentUser.email || "Kullanici";
-        const uidShort = String(currentUser.uid || "").slice(0, 8);
-        els.authStateText.textContent = "Hesap: " + name + " (uid:" + uidShort + " / kayit:" + records.length + ")";
+        els.authStateText.textContent = "Hesap: " + name;
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
+        const uidShort = String(currentUser.uid || "").slice(0, 8);
         els.authHelpText.textContent = firebaseDb
           ? ("Bulut esitleme acik. " + (cloudSyncStatus || "Senkron bekleniyor...") + " [uid:" + uidShort + " / kayit:" + records.length + "]")
           : "Firestore baglanirsa mobil ve web kayitlari ortak gorunur.";
@@ -1385,67 +1412,21 @@
       }
     }
 
-    function parseFsValue(v) {
-      if (!v || typeof v !== "object") return null;
-      if ("stringValue" in v) return String(v.stringValue || "");
-      if ("integerValue" in v) return Number(v.integerValue);
-      if ("doubleValue" in v) return Number(v.doubleValue);
-      if ("booleanValue" in v) return !!v.booleanValue;
-      if ("timestampValue" in v) return String(v.timestampValue || "");
-      if ("nullValue" in v) return null;
-      if ("arrayValue" in v) return ((v.arrayValue && v.arrayValue.values) || []).map(parseFsValue);
-      if ("mapValue" in v) {
-        const out = {};
-        const fields = (v.mapValue && v.mapValue.fields) || {};
-        Object.keys(fields).forEach(k => { out[k] = parseFsValue(fields[k]); });
-        return out;
-      }
-      return null;
-    }
-
-    function parseFsDoc(doc) {
-      const fields = (doc && doc.fields) || {};
-      const out = {};
-      Object.keys(fields).forEach(k => { out[k] = parseFsValue(fields[k]); });
-      const name = String((doc && doc.name) || "");
-      const id = name.split("/").pop() || crypto.randomUUID();
-      return { id, ...out };
-    }
-
-    async function fetchCloudRecordsByRest(uid) {
-      if (!currentUser || !uid || !FIREBASE_CONFIG || !FIREBASE_CONFIG.projectId) return [];
-      const token = await currentUser.getIdToken(true);
-      const projectId = String(FIREBASE_CONFIG.projectId);
-      const url = "https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(projectId) + "/databases/(default)/documents/users/" + encodeURIComponent(uid) + "/records?pageSize=500";
-      const response = await fetch(url, { headers: { Authorization: "Bearer " + token } });
-      if (!response.ok) throw new Error("REST read failed: " + response.status);
-      const data = await response.json();
-      const docs = Array.isArray(data.documents) ? data.documents : [];
-      const rows = docs.map(parseFsDoc);
-      return normalizeRecordsArray(rows).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    }
-
     async function forceReloadCloudRecords() {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return [];
+      const uid = currentUser.uid;
+      const colRef = firebaseDb.collection("users").doc(uid).collection("records");
+      let snap;
       try {
-        let cloud = await fetchCloudRecords(currentUser.uid);
-        if (!cloud.length) {
-          try {
-            const restCloud = await fetchCloudRecordsByRest(currentUser.uid);
-            if (restCloud.length) cloud = restCloud;
-          } catch (restErr) {
-            console.warn("REST bulut okuma basarisiz:", restErr);
-          }
-        }
-        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
-        cloudSyncStatus = "Serverdan guncel veri alindi (" + cloud.length + ").";
-        renderAuthPanel();
-        return cloud;
-      } catch (error) {
-        console.warn("forceReloadCloudRecords hatasi:", error);
-        handleCloudPermissionError(error);
-        return [];
+        snap = await colRef.get({ source: "server" });
+      } catch {
+        snap = await colRef.get();
       }
+      const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      cloudSyncStatus = "Serverdan guncel veri alindi.";
+      renderAuthPanel();
+      return cloud;
     }
 
     async function loadRecordsForCurrentUser() {
@@ -1474,33 +1455,15 @@
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
         const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        const isFromCache = !!(snap && snap.metadata && snap.metadata.fromCache);
-        if (!cloud.length) {
-          if (isFromCache) {
-            cloudSyncStatus = "Bulut cache bos, server verisi bekleniyor...";
-            renderAuthPanel();
-            forceReloadCloudRecords().then(rows => {
-              if (Array.isArray(rows) && rows.length) {
-                records = rows;
-                renderAll();
-              }
-            }).catch(() => {});
-            return;
-          }
-          if (records.length) {
-            cloudSyncStatus = "Bulut bos gorundu, yerel veri korundu.";
-            renderAuthPanel();
-            return;
-          }
-        }
+        const cloudMerged = mergeCloudWithLocalPhotos(cloud, records);
         const localSig = recordsSignature(records || []);
-        const cloudSig = recordsSignature(cloud);
+        const cloudSig = recordsSignature(cloudMerged);
         if (localSig !== cloudSig) {
-          records = cloud;
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+          records = cloudMerged;
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
           renderAll();
         }
-        cloudSyncStatus = "Bulut esitlendi (canli" + (isFromCache ? "/cache" : "/server") + ").";
+        cloudSyncStatus = "Bulut esitlendi (canli).";
         renderAuthPanel();
       }, error => {
         console.warn("Bulut canli dinleme hatasi:", error);
@@ -1644,12 +1607,11 @@
       }
       cloudSyncPending = true;
       lastLocalMutationAt = Date.now();
-      if (currentUser && currentUser.uid && firebaseReady && firebaseDb) {
-        // Auth acikken localStorage sadece cache'tir; kalici kaynak Firestore olmalidir.
+      if (syncNow && currentUser && currentUser.uid && firebaseReady && firebaseDb) {
         await persistCloudRecords(records);
-        return;
+      } else {
+        queueCloudSync();
       }
-      if (syncNow) queueCloudSync();
     }
 
     function getRecordsStorageKey() {
