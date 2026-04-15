@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.7";
+    const APP_VERSION = "v2.6.8";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -1644,11 +1644,12 @@
       }
       cloudSyncPending = true;
       lastLocalMutationAt = Date.now();
-      if (syncNow && currentUser && currentUser.uid && firebaseReady && firebaseDb) {
+      if (currentUser && currentUser.uid && firebaseReady && firebaseDb) {
+        // Auth acikken localStorage sadece cache'tir; kalici kaynak Firestore olmalidir.
         await persistCloudRecords(records);
-      } else {
-        queueCloudSync();
+        return;
       }
+      if (syncNow) queueCloudSync();
     }
 
     function getRecordsStorageKey() {
