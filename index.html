@@ -40,9 +40,10 @@
     .home-map-wrap{margin:0 0 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2}
     .globe-title-plain{position:absolute;top:-54px;left:0;z-index:6;font-size:24px;font-weight:800;letter-spacing:.4px;color:#f2f7ff;text-shadow:0 2px 10px rgba(0,0,0,.42);pointer-events:none;display:flex;align-items:center;gap:8px}
     .version-chip{font-size:11px;line-height:1;padding:4px 7px;border-radius:999px;background:rgba(10,30,54,.62);border:1px solid rgba(255,255,255,.24);color:#dceeff;letter-spacing:.2px}
-    .home-globe{width:min(86vw,390px);aspect-ratio:1/1;border-radius:999px;overflow:hidden;position:relative;background:transparent;border:none;touch-action:none;user-select:none;-webkit-user-select:none}
-    #homeMiniMap{width:100%;height:100%;background:transparent}
-    #homeMiniMap canvas{width:100%!important;height:100%!important;display:block}
+    .home-globe{width:min(92vw,620px);margin:20px auto;perspective:1400px;position:relative;background:transparent;border:none;touch-action:none;user-select:none;-webkit-user-select:none}
+    #homeMiniMap{width:100%;height:auto;aspect-ratio:2/1;transform:rotateX(36deg) rotateZ(-3deg) rotateY(16deg);box-shadow:-25px 35px 54px rgba(4,10,18,0.75);border-radius:18px;overflow:hidden;background:#96ccff;border:1px solid rgba(255,255,255,0.4);transition:transform 0.5s cubic-bezier(0.2,0.8,0.2,1)}
+    #homeMiniMap:hover{transform:rotateX(20deg) rotateZ(0deg) rotateY(5deg);box-shadow:-12px 20px 40px rgba(4,10,18,0.5)}
+    #homeMiniMap canvas{width:100%!important;height:100%!important;display:block;filter:saturate(1.15) contrast(1.05)}
     .home-globe:after{content:none}
     .home-insight{border:1px solid rgba(255,255,255,.24);background:linear-gradient(135deg,#1b3e67,#275888 55%,#3d7db0);border-radius:18px;padding:14px 12px;margin:8px 0 12px;box-shadow:0 10px 26px rgba(8,24,48,.35)}
     .home-insight h2{margin:0 0 10px;font-size:16px;color:#f0f8ff}
@@ -673,132 +674,13 @@
 
     function initHomeGlobe3D() {
       if (!els.homeMiniMap) return;
-      const container = els.homeMiniMap;
-      container.innerHTML = "";
-      globeFallbackCanvas = null;
-      globeFallbackCtx = null;
-      globeDragging = false;
-
-      if (!window.THREE) {
-        initHomeGlobeFallback(container);
-        bindHomeGlobeDrag(container);
-        return;
-      }
-
-      try {
-        globeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      } catch {
-        globeRenderer = null;
-        initHomeGlobeFallback(container);
-        return;
-      }
-      globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      container.appendChild(globeRenderer.domElement);
-
-      globeScene = new THREE.Scene();
-      globeCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-      globeCamera.position.set(0, 0, 3.15);
-
-      globeTextureCanvas = document.createElement("canvas");
-      globeTextureCanvas.width = 2048;
-      globeTextureCanvas.height = 1024;
-      globeTextureCtx = globeTextureCanvas.getContext("2d");
-      globeTexture = new THREE.CanvasTexture(globeTextureCanvas);
-      globeTexture.needsUpdate = true;
-
-      const geometry = new THREE.SphereGeometry(1, 96, 96);
-      const material = new THREE.MeshBasicMaterial({
-        map: globeTexture,
-        color: 0xffffff
-      });
-      globeMesh = new THREE.Mesh(geometry, material);
-      globeMesh.scale.set(1.03, 1.03, 1.03);
-      globeMesh.rotation.y = -0.35;
-      globeMesh.rotation.x = -0.08;
-      globeScene.add(globeMesh);
-
-      bindHomeGlobeDrag(container);
-      resizeHomeGlobe();
-      if (!globeAnimationId) animateHomeGlobe();
+      els.homeMiniMap.innerHTML = '<img src="./harita.jpg" style="width:100%; height:100%; object-fit:cover; display:block;" alt="Harita">';
     }
 
-    function initHomeGlobeFallback(container) {
-      globeFallbackCanvas = document.createElement("canvas");
-      globeFallbackCanvas.setAttribute("aria-label", "Dunya kuresi");
-      globeFallbackCanvas.style.width = "100%";
-      globeFallbackCanvas.style.height = "100%";
-      globeFallbackCanvas.style.display = "block";
-      container.appendChild(globeFallbackCanvas);
-      globeFallbackCtx = globeFallbackCanvas.getContext("2d");
-      resizeHomeGlobe();
-      if (!globeAnimationId) animateHomeGlobe();
-    }
-
-    function bindHomeGlobeDrag(container) {
-      if (!container || container.dataset.dragBound === "1") return;
-      container.dataset.dragBound = "1";
-      container.addEventListener("pointerdown", e => {
-        globeDragging = true;
-        globeLastX = e.clientX;
-        globeLastY = e.clientY;
-        globeAutoResumeAt = Number.POSITIVE_INFINITY;
-        if (container.setPointerCapture) container.setPointerCapture(e.pointerId);
-      });
-      container.addEventListener("pointermove", e => {
-        if (!globeDragging) return;
-        const dx = e.clientX - globeLastX;
-        const dy = e.clientY - globeLastY;
-        globeLastX = e.clientX;
-        globeLastY = e.clientY;
-
-        if (globeMesh) {
-          globeMesh.rotation.y += dx * 0.0105;
-          globeMesh.rotation.x = Math.max(-0.52, Math.min(0.52, globeMesh.rotation.x + dy * 0.0042));
-        } else {
-          globeLon += dx * 0.56;
-          globeLat = Math.max(-42, Math.min(42, globeLat - dy * 0.26));
-          drawFallbackGlobeFrame();
-        }
-      });
-      const endDrag = e => {
-        globeDragging = false;
-        globeAutoResumeAt = Date.now() + 800;
-        if (container.releasePointerCapture && e && e.pointerId != null) {
-          try { container.releasePointerCapture(e.pointerId); } catch {}
-        }
-      };
-      container.addEventListener("pointerup", endDrag);
-      container.addEventListener("pointercancel", endDrag);
-      container.addEventListener("pointerleave", endDrag);
-    }
-
-    function resizeHomeGlobe() {
-      if (!els.homeMiniMap) return;
-      const size = Math.max(220, Math.floor(els.homeMiniMap.clientWidth || 320));
-      if (globeRenderer && globeCamera) {
-        globeRenderer.setSize(size, size, false);
-        globeCamera.aspect = 1;
-        globeCamera.updateProjectionMatrix();
-      }
-      if (globeFallbackCanvas) {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        globeFallbackCanvas.width = Math.floor(size * dpr);
-        globeFallbackCanvas.height = Math.floor(size * dpr);
-      }
-    }
-
-    function animateHomeGlobe() {
-      globeAnimationId = requestAnimationFrame(animateHomeGlobe);
-      const canAutoSpin = !globeDragging && Date.now() >= globeAutoResumeAt;
-      if (globeRenderer && globeScene && globeCamera && globeMesh) {
-        if (canAutoSpin) globeMesh.rotation.y += 0.0038;
-        globeRenderer.render(globeScene, globeCamera);
-      } else if (globeFallbackCtx && globeFallbackCanvas) {
-        if (canAutoSpin) globeLon += 0.28;
-        if (globeLon > 180) globeLon -= 360;
-        drawFallbackGlobeFrame();
-      }
-    }
+    function initHomeGlobeFallback() {}
+    function bindHomeGlobeDrag() {}
+    function resizeHomeGlobe() {}
+    function animateHomeGlobe() {}
 
     function enforceVerticalBounds() {
       const minLat = -58;
@@ -1974,9 +1856,8 @@
         return;
       }
 
-      if (!heroCountry || !countries.includes(heroCountry)) {
-        heroCountry = countries[Math.floor(Math.random() * countries.length)];
-      }
+      // En son eklenen (listenin en basindaki) ulkeyi tespit et
+      heroCountry = records[0].country;
 
       setHeroImageByCountry(heroCountry);
       els.heroBadge.textContent = heroCountry;
@@ -1986,11 +1867,11 @@
       const normalized = String(country || "world").toLowerCase();
       const seed = encodeURIComponent(normalized.replace(/\s+/g, "-"));
       const daily = Math.floor(Date.now() / 86400000);
-      const query = encodeURIComponent(country + " landscape travel");
+      // Unsplash source artik calismadigi icin LoremFlickr ile landmark (en bilinen yerler) aramasi yapiliyor.
       const fallback = "https://picsum.photos/seed/" + seed + "-" + daily + "/1200/700";
-
+      const q = encodeURIComponent(country + ",landmark,famous");
       const candidates = [
-        "https://source.unsplash.com/featured/1200x700/?" + query,
+        "https://loremflickr.com/1200/700/" + q,
         "https://loremflickr.com/1200/700/" + encodeURIComponent(country) + ",landscape",
         fallback
       ];
@@ -2027,11 +1908,11 @@
       const h = globeTextureCanvas.height;
       const ctx = globeTextureCtx;
 
-      ctx.fillStyle = "#6f8fb3";
+      ctx.fillStyle = "#AEE3F5";
       ctx.fillRect(0, 0, w, h);
 
       if (worldGeoJson && Array.isArray(worldGeoJson.features)) {
-        drawEquirectFeatures(ctx, worldGeoJson.features, w, h, () => ({ fill: "#dde3ea", stroke: "rgba(95,111,131,.55)", line: 0.9 }));
+        drawEquirectFeatures(ctx, worldGeoJson.features, w, h, () => ({ fill: "#C8D9E6", stroke: "#B0C4D6", line: 1 }));
         drawEquirectFeatures(
           ctx,
           worldGeoJson.features,
@@ -2039,7 +1920,7 @@
           h,
           feature => isVisitedFeature(feature, visitedCodes, visitedNames)
             || featureContainsVisitedPoint(feature, visitedPoints)
-            ? { fill: "#ff3b42", stroke: "rgba(125,18,25,.82)", line: 1.05 }
+            ? { fill: "#FF4757", stroke: "#fff", line: 1.5 }
             : null
         );
       }
