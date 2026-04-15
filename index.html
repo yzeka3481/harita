@@ -396,8 +396,11 @@
           <button id="exportJsonBtn" class="tool-btn export" type="button">JSON disa aktar</button>
           <button id="importJsonBtn" class="tool-btn import" type="button">JSON ice aktar</button>
         </div>
+        <div class="control-row single" style="margin-bottom:0;">
+          <button id="deleteAllBtn" class="tool-btn del" type="button" style="background:#87344a;color:#fff;">Tum Veriyi Sil</button>
+        </div>
         <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
-        <p class="hint">Yedekleme ve geri yukleme islemleri.</p>
+        <p class="hint">Yedekleme, geri yukleme ve silme islemleri.</p>
       </article>
     </section>
 
@@ -527,6 +530,7 @@
       exportJsonBtn: document.getElementById("exportJsonBtn"),
       importJsonBtn: document.getElementById("importJsonBtn"),
       importJsonInput: document.getElementById("importJsonInput"),
+      deleteAllBtn: document.getElementById("deleteAllBtn"),
       authStateText: document.getElementById("authStateText"),
       openAuthBtn: document.getElementById("openAuthBtn"),
       logoutBtn: document.getElementById("logoutBtn"),
@@ -846,6 +850,7 @@
       els.exportJsonBtn.addEventListener("click", exportJson);
       els.importJsonBtn.addEventListener("click", () => els.importJsonInput.click());
       els.importJsonInput.addEventListener("change", onImportJson);
+      els.deleteAllBtn.addEventListener("click", onDeleteAllData);
       els.cityInput.addEventListener("input", onCityInput);
       els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
       els.flagsGrid.addEventListener("click", onFlagClick);
@@ -1681,6 +1686,43 @@
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+    }
+
+    async function onDeleteAllData() {
+      if (!confirm("Tum kayitlari silmek istediginize emin misiniz? Bu islem geri alinamaz!")) return;
+      records = [];
+      localStorage.removeItem(getRecordsStorageKey());
+      
+      if (currentUser && currentUser.uid && firebaseReady && firebaseDb) {
+        cloudSyncBusy = true;
+        cloudSyncStatus = "Buluttan siliniyor...";
+        renderAuthPanel();
+        try {
+          const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
+          const snap = await colRef.get();
+          const chunks = [];
+          for (let i = 0; i < snap.docs.length; i += 500) {
+            chunks.push(snap.docs.slice(i, i + 500));
+          }
+          for (const chunk of chunks) {
+            const batch = firebaseDb.batch();
+            chunk.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+          }
+          try {
+             await firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records").delete();
+          } catch(e) {}
+          cloudSyncStatus = "Tum veriler temizlendi.";
+        } catch (e) {
+          console.warn("Buluttan silme hatasi:", e);
+          cloudSyncStatus = "Buluttan silinirken hata oldu.";
+        }
+        cloudSyncBusy = false;
+        renderAuthPanel();
+      }
+      
+      renderAll();
+      alert("Tum veriler basariyla silindi.");
     }
 
     async function onImportJson(event) {
