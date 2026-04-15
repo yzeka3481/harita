@@ -1437,7 +1437,14 @@
           }
         }
 
-        if (!cloud.length) return;
+        if (!cloud.length) {
+          if (!cloudSyncPending || (Date.now() - lastLocalMutationAt) > 9000) {
+            applyCloudRecordsToUi([], { allowEmpty: true });
+            cloudSyncStatus = "Bulut kayitlari bos.";
+            renderAuthPanel();
+          }
+          return;
+        }
         if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) {
           cloudSyncStatus = "Yerel degisiklik buluta yaziliyor...";
           renderAuthPanel();
@@ -1469,7 +1476,8 @@
           applyCloudRecordsToUi(cloud);
           cloudSyncStatus = "Bulut esitlendi.";
           renderAuthPanel();
-        } else if (!records.length) {
+        } else if (!cloudSyncPending || (Date.now() - lastLocalMutationAt) > 9000) {
+          applyCloudRecordsToUi([], { allowEmpty: true });
           cloudSyncStatus = "Bulutta kayit yok.";
           renderAuthPanel();
         }
@@ -1543,9 +1551,18 @@
       return JSON.stringify(rows);
     }
 
-    function applyCloudRecordsToUi(cloudList) {
+    function applyCloudRecordsToUi(cloudList, options = {}) {
+      const allowEmpty = !!(options && options.allowEmpty);
       const cloud = filterCloudByTombstones(mergeCloudWithLocalPhotos(cloudList, records));
-      if (!Array.isArray(cloud) || !cloud.length) return false;
+      if (!Array.isArray(cloud) || !cloud.length) {
+        if (allowEmpty) {
+          records = [];
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify([]));
+          renderAll();
+          return true;
+        }
+        return false;
+      }
       const localSig = recordsSignature(records || []);
       const cloudSig = recordsSignature(cloud);
       if (localSig !== cloudSig) {
