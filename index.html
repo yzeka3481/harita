@@ -954,10 +954,10 @@
     function renderAuthPanel() {
       if (currentUser) {
         const name = currentUser.name || currentUser.email || "Kullanici";
-        els.authStateText.textContent = "Hesap: " + name;
+        const uidShort = String(currentUser.uid || "").slice(0, 8);
+        els.authStateText.textContent = "Hesap: " + name + " (uid:" + uidShort + " / kayit:" + records.length + ")";
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
-        const uidShort = String(currentUser.uid || "").slice(0, 8);
         els.authHelpText.textContent = firebaseDb
           ? ("Bulut esitleme acik. " + (cloudSyncStatus || "Senkron bekleniyor...") + " [uid:" + uidShort + " / kayit:" + records.length + "]")
           : "Firestore baglanirsa mobil ve web kayitlari ortak gorunur.";
