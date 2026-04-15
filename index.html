@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.1";
+    const APP_VERSION = "v2.6.2";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -920,11 +920,11 @@
           detachCloudListeners();
           shownCloudPermissionAlert = false;
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
-          records = loadRecords();
-          cloudSyncStatus = currentUser ? "Bulut baglaniyor..." : "";
+          records = currentUser ? [] : loadRecords();
+          cloudSyncStatus = currentUser ? "Bulut baglaniyor (server)..." : "";
           renderAll();
           if (!currentUser || !currentUser.uid) return;
-          loadRecordsForCurrentUser()
+          forceReloadCloudRecords()
             .then(cloudRecords => {
               records = Array.isArray(cloudRecords) ? cloudRecords : [];
               renderAll();
@@ -957,8 +957,9 @@
         els.authStateText.textContent = "Hesap: " + name;
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
+        const uidShort = String(currentUser.uid || "").slice(0, 8);
         els.authHelpText.textContent = firebaseDb
-          ? ("Bulut esitleme acik. " + (cloudSyncStatus || "Senkron bekleniyor..."))
+          ? ("Bulut esitleme acik. " + (cloudSyncStatus || "Senkron bekleniyor...") + " [uid:" + uidShort + " / kayit:" + records.length + "]")
           : "Firestore baglanirsa mobil ve web kayitlari ortak gorunur.";
       } else {
         els.authStateText.textContent = "Hesap: Misafir modunda.";
@@ -1350,6 +1351,24 @@
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     }
 
+    async function forceReloadCloudRecords() {
+      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return [];
+      const uid = currentUser.uid;
+      const colRef = firebaseDb.collection("users").doc(uid).collection("records");
+      let snap;
+      try {
+        snap = await colRef.get({ source: "server" });
+      } catch {
+        snap = await colRef.get();
+      }
+      const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+      cloudSyncStatus = "Serverdan guncel veri alindi.";
+      renderAuthPanel();
+      return cloud;
+    }
+
     async function loadRecordsForCurrentUser() {
       const local = loadRecords();
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return local;
@@ -1391,7 +1410,7 @@
           localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
           renderAll();
         }
-        cloudSyncStatus = "Bulut esitlendi.";
+        cloudSyncStatus = "Bulut esitlendi (canli).";
         renderAuthPanel();
       }, error => {
         console.warn("Bulut canli dinleme hatasi:", error);
