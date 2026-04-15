@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Sehir Haritam</title>
+  <title>Şehir Haritam</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     :root{color-scheme:dark;--bg:#142640;--panel:#213a5b;--panel2:#2a4a70;--line:#4f7398;--text:#f0f7ff;--muted:#c6d9ef;--primary:#61b0ff;--primary2:#3d8fe8;--tabh:68px}
@@ -55,10 +55,10 @@
     .insight-globe-img{width:92%;height:92%;display:block;object-fit:contain;filter:brightness(1.06) saturate(1.06);transition:filter .35s ease}
     .insight-total{font-size:11px;font-weight:800;letter-spacing:.2px;color:#d8ebff;background:rgba(10,30,54,.55);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:2px 8px;line-height:1.2}
     .insight-foot{margin-top:10px;font-size:12px;color:#d8ecff;text-align:center}
-    .recent-shell{position:relative;padding:0 10px}
+    .recent-shell{position:relative;padding:0 4px}
     .recent-carousel{position:relative;height:150px;touch-action:pan-y;overflow:hidden}
     .recent-stage{position:relative;height:100%;perspective:900px}
-    .recent-card{position:absolute;inset:6px 14px 6px;border-radius:16px;padding:12px 14px 10px;background:linear-gradient(180deg,#f8fbff,#e9f1fa);color:#1f2f45;box-shadow:0 12px 24px rgba(7,18,34,.28);opacity:0;transform:translateX(0) scale(.9);transition:transform .28s ease,opacity .28s ease,filter .28s ease;pointer-events:none}
+    .recent-card{position:absolute;inset:4px 6px;border-radius:14px;padding:10px 12px 8px;background:linear-gradient(180deg,#f8fbff,#e9f1fa);color:#1f2f45;box-shadow:0 10px 20px rgba(7,18,34,.26);opacity:0;transform:translateX(0) scale(.9);transition:transform .28s ease,opacity .28s ease,filter .28s ease;pointer-events:none}
     .recent-card.active{opacity:1;transform:translateX(0) scale(1);z-index:3;filter:none}
     .recent-card.prev{opacity:0;transform:translateX(-40px) scale(.9);z-index:2;pointer-events:none}
     .recent-card.next{opacity:0;transform:translateX(40px) scale(.9);z-index:2;pointer-events:none}
@@ -198,16 +198,16 @@
   <main class="app">
     <section id="homeScreen" class="screen active">
       <article class="hero">
-        <img id="heroImage" alt="Ulke fotografi" src="">
+        <img id="heroImage" alt="Ülke Fotoğrafı" src="">
         <div class="hero-content">
           <div class="hero-head">
-            <span id="heroBadge" class="badge">Ulke yok</span>
+            <span id="heroBadge" class="badge">Ülke yok</span>
           </div>
         </div>
       </article>
 
       <section class="home-map-wrap">
-        <div class="globe-title-plain">Sehir Haritam <span id="appVersionChip" class="version-chip">v-</span></div>
+        <div class="globe-title-plain">Şehir Haritam <span id="appVersionChip" class="version-chip">v-</span></div>
         <div class="home-globe" aria-label="Dunya kuresi">
           <div id="homeMiniMap"></div>
         </div>
@@ -218,30 +218,30 @@
         <div class="insight-grid">
           <div class="insight-stat">
             <strong id="homeVisitedCountries">0</strong>
-            <span>Gidilen ulke</span>
+            <span>Gidilen Ülke</span>
           </div>
           <div class="insight-center">
             <div id="homeInsightRing" class="insight-ring" aria-hidden="true">
               <img class="insight-globe-img" src="./world-icon.png" alt="Dunya ikonu">
             </div>
-            <span id="homeInsightTotal" class="insight-total">Toplam 195 Ulke</span>
+            <span id="homeInsightTotal" class="insight-total">Toplam 195 Ülke</span>
           </div>
           <div class="insight-stat">
             <strong id="homeVisitedCities">0</strong>
-            <span>Gidilen sehir</span>
+            <span>Gidilen Şehir</span>
           </div>
         </div>
-        <div id="homeInsightFoot" class="insight-foot">Yeni kayitlarla bu kart otomatik guncellenir.</div>
+        <div id="homeInsightFoot" class="insight-foot">Yeni kayıtlarla bu kart otomatik güncellenir.</div>
       </article>
 
       <article class="card recent-block">
-        <h2>Son Eklenen 3 Sehir</h2>
+        <h2>Son Eklenen 3 Şehir</h2>
         <div id="recentList" class="list"></div>
       </article>
 
       <article class="card">
         <h2>Dunya Bayraklari</h2>
-        <p class="hint">Gidilen ulkeler parlak, digerleri soluk.</p>
+        <p class="hint">Gidilen Ülkeler parlak, digerleri soluk.</p>
         <div id="flagsGrid" class="flags-grid"></div>
       </article>
     </section>
@@ -252,7 +252,7 @@
 
     <section id="recordsScreen" class="screen">
       <article class="card">
-        <h2>Tum Kayitlar</h2>
+        <h2>Tüm Kayıtlar</h2>
         <div class="control-row single">
           <input id="recordsSearchInput" type="text" placeholder="Sehir / ulke ara">
         </div>
@@ -352,7 +352,7 @@
           <div id="authStateText" class="auth-state">Hesap: Misafir modunda.</div>
           <div class="auth-actions">
             <button id="openAuthBtn" class="auth-btn primary" type="button">Giris / Kayit</button>
-            <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Cikis</button>
+            <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Çıkış</button>
           </div>
         </div>
       </article>
@@ -461,7 +461,7 @@
         <input id="authNameInput" type="text" placeholder="Ad soyad (kayit olurken)" autocomplete="name" hidden>
         <input id="authEmailInput" type="email" placeholder="E-posta" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" required>
         <input id="authPasswordInput" type="password" placeholder="Sifre (min 6)" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" required>
-        <button id="authSubmitBtn" class="save-btn" type="submit">Giris Yap</button>
+        <button id="authSubmitBtn" class="save-btn" type="submit">Giriş Yap</button>
       </form>
       <button id="authGoogleBtn" class="auth-google" type="button">Google ile Gir</button>
       <p id="authHelpText" class="auth-help">Firebase baglandiginda hesapla giris yapabilirsin.</p>
@@ -1862,15 +1862,15 @@
 
     const COUNTRY_IMAGE_IDS = {
       "turkey": "1524231757912-21f4fe3a7200", "türkiye": "1524231757912-21f4fe3a7200",
-      "italy": "https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=1200", 
-      "italya": "https://images.pexels.com/photos/1797161/pexels-photo-1797161.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "italy": "1552832232098-c31f5070f32b", 
+      "italya": "1552832232098-c31f5070f32b",
       "france": "1499856871958-5b9627545d1a", "fransa": "1499856871958-5b9627545d1a",
       "germany": "1467269204594-9661b134dd2b", "almanya": "1467269204594-9661b134dd2b",
       "spain": "1541334698-c116d97c36a6", "ispanya": "1541334698-c116d97c36a6",
       "usa": "1485738422979-f5c462d49f74", "amerika": "1485738422979-f5c462d49f74", "abd": "1485738422979-f5c462d49f74",
       "uk": "1513635269975-596950dad949", "ingiltere": "1513635269975-596950dad949",
-      "greece": "https://images.pexels.com/photos/164336/pexels-photo-164336.jpeg?auto=compress&cs=tinysrgb&w=1200", 
-      "yunanistan": "https://images.pexels.com/photos/164336/pexels-photo-164336.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "greece": "1469820265263-d14cf05c6d36", 
+      "yunanistan": "1469820265263-d14cf05c6d36",
       "russia": "1513622470522-26c3ec8cbce7", "rusya": "1513622470522-26c3ec8cbce7",
       "egypt": "1539650116574-82af4dc55ff3", "mısır": "1539650116574-82af4dc55ff3",
       "japan": "1493976040374-85c8e12f0c0e", "japonya": "1493976040374-85c8e12f0c0e",
@@ -2100,7 +2100,7 @@
       els.homeVisitedCountries.textContent = formatInteger(countryCount);
       els.homeVisitedCities.textContent = formatInteger(cityCount);
       els.homeInsightRing.style.setProperty("--pctv", String(pct));
-      if (els.homeInsightTotal) els.homeInsightTotal.textContent = "Toplam 195 Ulke";
+      if (els.homeInsightTotal) els.homeInsightTotal.textContent = "Toplam 195 Ülke";
       els.homeInsightFoot.textContent = countryCount
         ? ("Dunya ulkelerinin yaklasik %" + pct + " kadari " + (travelled.length ? "gezildi." : "kaydedildi."))
         : "Ilk kaydini ekle, seyahat ilerlemeni burada gorelim.";
@@ -2187,7 +2187,7 @@
       els.recordsList.innerHTML = groupList.map(group => {
         const isOpen = expandedRecordCountries.has(group.key);
         const rows = group.items.map(item =>
-          "<article class='item'><div class='item-head'><h3>" + esc(item.city || "Sehir bilinmiyor") + ", " + esc(item.country || "Ulke bilinmiyor") + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status] || "Durum yok") + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Duzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
+          "<article class='item'><div class='item-head'><h3>" + esc(item.city || "Sehir bilinmiyor") + ", " + esc(item.country || "Ulke bilinmiyor") + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status] || "Durum yok") + "</span></div><p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Düzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
         ).join("");
         return (
           "<section class='country-group " + (isOpen ? "open" : "") + "'>" +
@@ -2335,7 +2335,7 @@
 
       ctx.font = "500 24px Segoe UI";
       ctx.fillStyle = "rgba(235,246,255,.9)";
-      ctx.fillText("Sehir Haritam ile olusturuldu", 136, 1738);
+      ctx.fillText("Şehir Haritam ile olusturuldu", 136, 1738);
       ctx.fillText(new Date().toLocaleDateString("tr-TR"), 828, 1738);
 
       const dataUrl = canvas.toDataURL("image/png");
