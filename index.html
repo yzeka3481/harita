@@ -669,6 +669,26 @@
     let countryMarkerLayer;
     let lastNonCountryScreen = "home";
 
+    // Splash ekrani bagimsiz olarak gizle - init() hata verse bile calisiyor
+    (function hideSplashSafe() {
+      var splash = document.getElementById("splashScreen");
+      if (!splash) return;
+      var removed = false;
+      function dismissSplash() {
+        if (removed) return;
+        removed = true;
+        splash.style.opacity = "0";
+        splash.style.pointerEvents = "none";
+        setTimeout(function() {
+          if (splash.parentNode) splash.parentNode.removeChild(splash);
+        }, 800);
+      }
+      // En fazla 2.5 saniye bekle - ne olursa olsun kapat
+      setTimeout(dismissSplash, 2000);
+      // init() bittikten sonra da kapat
+      document.addEventListener("appReady", dismissSplash, { once: true });
+    })();
+
     init();
 
     function init() {
@@ -679,14 +699,8 @@
       initAuth();
       loadWorldData();
       renderAll();
-      // Splash screen gizle
-      const splash = document.getElementById("splashScreen");
-      if (splash) {
-        setTimeout(() => {
-          splash.classList.add("hidden");
-          setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
-        }, 1500);
-      }
+      // Splash'a "hazır" sinyali gönder
+      setTimeout(() => document.dispatchEvent(new Event("appReady")), 200);
     }
 
     function initMaps() {
