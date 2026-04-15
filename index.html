@@ -1437,14 +1437,7 @@
           }
         }
 
-        if (!cloud.length) {
-          if (!cloudSyncPending || (Date.now() - lastLocalMutationAt) > 9000) {
-            applyCloudRecordsToUi([], { allowEmpty: true });
-            cloudSyncStatus = "Bulut kayitlari bos.";
-            renderAuthPanel();
-          }
-          return;
-        }
+        if (!cloud.length) return;
         if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) {
           cloudSyncStatus = "Yerel degisiklik buluta yaziliyor...";
           renderAuthPanel();
@@ -1476,8 +1469,7 @@
           applyCloudRecordsToUi(cloud);
           cloudSyncStatus = "Bulut esitlendi.";
           renderAuthPanel();
-        } else if (!cloudSyncPending || (Date.now() - lastLocalMutationAt) > 9000) {
-          applyCloudRecordsToUi([], { allowEmpty: true });
+        } else if (!records.length) {
           cloudSyncStatus = "Bulutta kayit yok.";
           renderAuthPanel();
         }
@@ -1551,18 +1543,9 @@
       return JSON.stringify(rows);
     }
 
-    function applyCloudRecordsToUi(cloudList, options = {}) {
-      const allowEmpty = !!(options && options.allowEmpty);
+    function applyCloudRecordsToUi(cloudList) {
       const cloud = filterCloudByTombstones(mergeCloudWithLocalPhotos(cloudList, records));
-      if (!Array.isArray(cloud) || !cloud.length) {
-        if (allowEmpty) {
-          records = [];
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify([]));
-          renderAll();
-          return true;
-        }
-        return false;
-      }
+      if (!Array.isArray(cloud) || !cloud.length) return false;
       const localSig = recordsSignature(records || []);
       const cloudSig = recordsSignature(cloud);
       if (localSig !== cloudSig) {
@@ -2169,9 +2152,16 @@
     function renderHomeInsights() {
       const travelled = records.filter(item => isTravelled(item.status));
       const base = travelled.length ? travelled : records;
-      const countries = new Set(base.map(item => normalizeKey(item.country)).filter(Boolean));
-      const cities = new Set(base.map(item => normalizeKey(item.city) + "|" + normalizeKey(item.country)).filter(v => v !== "|"));
-      const countryCount = countries.size;
+      const countriesByCode = new Set(base.map(item => String(item.countryCode || "").trim().toLowerCase()).filter(Boolean));
+      const countriesByName = new Set(base.map(item => normalizeKey(item.country)).filter(Boolean));
+      const cities = new Set(base.map(item => {
+        const city = normalizeKey(item.city);
+        const country = normalizeKey(item.country);
+        if (city || country) return city + "|" + country;
+        if (Number.isFinite(item.lat) && Number.isFinite(item.lng)) return String(item.lat) + "|" + String(item.lng);
+        return "";
+      }).filter(Boolean));
+      const countryCount = countriesByCode.size || countriesByName.size;
       const cityCount = cities.size;
       const pct = Math.max(0, Math.min(100, Math.round((countryCount / 195) * 100)));
 
