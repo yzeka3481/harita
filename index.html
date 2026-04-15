@@ -1538,7 +1538,11 @@
     async function persistCloudRecords(forceRecords = null) {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       if (cloudSyncBusy) {
-        if (!Array.isArray(forceRecords)) queueCloudSync();
+        if (Array.isArray(forceRecords)) {
+          setTimeout(() => persistCloudRecords(forceRecords), 600);
+        } else {
+          queueCloudSync();
+        }
         return;
       }
       cloudSyncBusy = true;
@@ -1742,26 +1746,32 @@
         const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.records) ? parsed.records : []);
         if (!incoming.length) throw new Error("Iceride kayit bulunamadi.");
 
-        const normalized = incoming.map(item => ({
-          id: item.id || crypto.randomUUID(),
-          city: String(item.city || "").trim(),
-          country: String(item.country || "").trim(),
-          countryCode: String(item.countryCode || "").toLowerCase(),
-          lat: Number(item.lat),
-          lng: Number(item.lng),
-          status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
-          date: item.date || "",
-          ratingOverall: normalizeScore(item.ratingOverall),
-          ratingFood: normalizeScore(item.ratingFood),
-          ratingTransport: normalizeScore(item.ratingTransport),
-          ratingSafety: normalizeScore(item.ratingSafety),
-          budget: normalizeMoney(item.budget),
-          currency: normalizeCurrency(item.currency),
-          tripDays: normalizeDays(item.tripDays),
-          photos: normalizePhotos(item.photos),
-          note: String(item.note || ""),
-          createdAt: item.createdAt || new Date().toISOString()
-        })).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
+        const seenIds = new Set();
+        const normalized = incoming.map(item => {
+          let nid = item.id;
+          if (!nid || seenIds.has(nid)) nid = crypto.randomUUID();
+          seenIds.add(nid);
+          return {
+            id: nid,
+            city: String(item.city || "").trim(),
+            country: String(item.country || "").trim(),
+            countryCode: String(item.countryCode || "").toLowerCase(),
+            lat: Number(item.lat),
+            lng: Number(item.lng),
+            status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
+            date: item.date || "",
+            ratingOverall: normalizeScore(item.ratingOverall),
+            ratingFood: normalizeScore(item.ratingFood),
+            ratingTransport: normalizeScore(item.ratingTransport),
+            ratingSafety: normalizeScore(item.ratingSafety),
+            budget: normalizeMoney(item.budget),
+            currency: normalizeCurrency(item.currency),
+            tripDays: normalizeDays(item.tripDays),
+            photos: normalizePhotos(item.photos),
+            note: String(item.note || ""),
+            createdAt: item.createdAt || new Date().toISOString()
+          };
+        }).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
 
         if (!normalized.length) throw new Error("Gecerli kayit yok.");
         records = normalized.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
