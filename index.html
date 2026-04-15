@@ -689,7 +689,8 @@
       document.addEventListener("appReady", dismissSplash, { once: true });
     })();
 
-    init();
+    // Tum const'lar yuklendikten sonra calistir
+    setTimeout(init, 0);
 
     function init() {
       const versionEl = document.getElementById("appVersionChip");
@@ -1928,31 +1929,29 @@
       els.heroBadge.textContent = heroCountry;
     }
 
-    const COUNTRY_IMAGE_IDS = {
-      "turkey": "1524231757912-21f4fe3a7200", "türkiye": "1524231757912-21f4fe3a7200",
-      "italy": "1552832232098-c31f5070f32b", 
-      "italya": "1552832232098-c31f5070f32b",
-      "france": "1499856871958-5b9627545d1a", "fransa": "1499856871958-5b9627545d1a",
-      "germany": "1467269204594-9661b134dd2b", "almanya": "1467269204594-9661b134dd2b",
-      "spain": "1541334698-c116d97c36a6", "ispanya": "1541334698-c116d97c36a6",
-      "usa": "1485738422979-f5c462d49f74", "amerika": "1485738422979-f5c462d49f74", "abd": "1485738422979-f5c462d49f74",
-      "uk": "1513635269975-596950dad949", "ingiltere": "1513635269975-596950dad949",
-      "greece": "1469820265263-d14cf05c6d36", 
-      "yunanistan": "1469820265263-d14cf05c6d36",
-      "russia": "1513622470522-26c3ec8cbce7", "rusya": "1513622470522-26c3ec8cbce7",
-      "egypt": "1539650116574-82af4dc55ff3", "mısır": "1539650116574-82af4dc55ff3",
-      "japan": "1493976040374-85c8e12f0c0e", "japonya": "1493976040374-85c8e12f0c0e",
-      "brazil": "1483729558449-99ef09a8c325", "brezilya": "1483729558449-99ef09a8c325",
-      "india": "1524492412937-b28074a5d7da", "hindistan": "1524492412937-b28074a5d7da",
-      "netherlands": "1512466651474-4b53efbca636", "hollanda": "1512466651474-4b53efbca636",
-      "switzerland": "1530122037265-a5f1f91d3b99", "isviçre": "1530122037265-a5f1f91d3b99",
-      "canada": "1476839598466-23eeebbbdc10", "kanada": "1476839598466-23eeebbbdc10",
-      "australia": "1523482580672-f109ba8cb9be", "avustralya": "1523482580672-f109ba8cb9be",
-      "mexico": "1518105779142-d978f4772274", "meksika": "1518105779142-d978f4772274",
-      "thailand": "1552465011-b4e21bf6e79a", "tayland": "1552465011-b4e21bf6e79a"
-    };
-
     function setHeroImageByCountry(country) {
+      const COUNTRY_IMAGE_IDS = {
+        "turkey": "1524231757912-21f4fe3a7200", "türkiye": "1524231757912-21f4fe3a7200",
+        "italy": "1552832232098-c31f5070f32b",
+        "italya": "1552832232098-c31f5070f32b",
+        "france": "1499856871958-5b9627545d1a", "fransa": "1499856871958-5b9627545d1a",
+        "germany": "1467269204594-9661b134dd2b", "almanya": "1467269204594-9661b134dd2b",
+        "spain": "1541334698-c116d97c36a6", "ispanya": "1541334698-c116d97c36a6",
+        "usa": "1485738422979-f5c462d49f74", "amerika": "1485738422979-f5c462d49f74", "abd": "1485738422979-f5c462d49f74",
+        "uk": "1513635269975-596950dad949", "ingiltere": "1513635269975-596950dad949",
+        "greece": "1469820265263-d14cf05c6d36", "yunanistan": "1469820265263-d14cf05c6d36",
+        "russia": "1513622470522-26c3ec8cbce7", "rusya": "1513622470522-26c3ec8cbce7",
+        "mısır": "1539650116574-82af4dc55ff3", "egypt": "1539650116574-82af4dc55ff3",
+        "japan": "1493976040374-85c8e12f0c0e", "japonya": "1493976040374-85c8e12f0c0e",
+        "brazil": "1483729558449-99ef09a8c325", "brezilya": "1483729558449-99ef09a8c325",
+        "india": "1524492412937-b28074a5d7da", "hindistan": "1524492412937-b28074a5d7da",
+        "netherlands": "1512466651474-4b53efbca636", "hollanda": "1512466651474-4b53efbca636",
+        "isviçre": "1530122037265-a5f1f91d3b99", "switzerland": "1530122037265-a5f1f91d3b99",
+        "canada": "1476839598466-23eeebbbdc10", "kanada": "1476839598466-23eeebbbdc10",
+        "australia": "1523482580672-f109ba8cb9be", "avustralya": "1523482580672-f109ba8cb9be",
+        "mexico": "1518105779142-d978f4772274", "meksika": "1518105779142-d978f4772274",
+        "thailand": "1552465011-b4e21bf6e79a", "tayland": "1552465011-b4e21bf6e79a"
+      };
       const normalized = String(country || "world").toLowerCase().trim();
       let candidates = [];
       
@@ -2230,8 +2229,8 @@
       rotateRecent(dx < 0 ? 1 : -1);
     }
 
-    const VTYPE_LABEL = { holiday:"🏖️ Tatil", business:"💼 İş Gezisi", daytrip:"🚶 Günübirlik", transit:"✈️ Transit" };
     function vtypeBadge(vtype) {
+      const VTYPE_LABEL = { holiday:"🏖️ Tatil", business:"💼 İş Gezisi", daytrip:"🚶 Günübirlik", transit:"✈️ Transit" };
       const v = vtype || "holiday";
       return `<span class='vtype vtype-${esc(v)}'>${VTYPE_LABEL[v] || v}</span>`;
     }
