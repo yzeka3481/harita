@@ -593,13 +593,10 @@
     let cloudSyncTimer = null;
     let cloudSyncBusy = false;
     let unsubscribeCloudRecords = null;
-    let unsubscribeLegacyRecords = null;
     let cloudSyncStatus = "";
-    let cloudPullTimer = null;
     let shownCloudPermissionAlert = false;
     let cloudSyncPending = false;
     let lastLocalMutationAt = 0;
-    let localDeleteTombstones = new Map();
     let shownQuotaAlert = false;
 
     let globeRenderer;
@@ -917,29 +914,24 @@
         }
         firebaseAuth.onAuthStateChanged(user => {
           detachCloudListeners();
-          stopCloudPulling();
+          shownCloudPermissionAlert = false;
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
           records = loadRecords();
           cloudSyncStatus = currentUser ? "Bulut baglaniyor..." : "";
           renderAll();
-          if (currentUser && currentUser.uid) {
-            loadRecordsForCurrentUser()
-              .then(cloudRecords => {
-                if (!Array.isArray(cloudRecords)) return;
-                records = cloudRecords;
-                renderAll();
-              })
-              .catch(error => {
-                console.warn("Arka plan bulut senkronu hatasi:", error);
-                cloudSyncStatus = "Bulut okunamadi.";
-                renderAuthPanel();
-              })
-              .finally(() => {
-                attachCloudListeners();
-                startCloudPulling();
-                pullCloudRecordsFromServer();
-              });
-          }
+          if (!currentUser || !currentUser.uid) return;
+          loadRecordsForCurrentUser()
+            .then(cloudRecords => {
+              records = Array.isArray(cloudRecords) ? cloudRecords : [];
+              renderAll();
+              subscribeCloudRecordsRealtime();
+            })
+            .catch(error => {
+              console.warn("Bulut ilk yukleme hatasi:", error);
+              cloudSyncStatus = "Bulut okunamadi.";
+              renderAuthPanel();
+              subscribeCloudRecordsRealtime();
+            });
         });
         firebaseAuth.getRedirectResult()
           .then(result => {
@@ -1327,23 +1319,14 @@
     function mergeCloudWithLocalPhotos(cloudList, localList) {
       const cloud = normalizeRecordsArray(cloudList);
       const local = normalizeRecordsArray(localList);
-      const cloudIds = new Set(cloud.map(item => item.id));
       const localById = new Map(local.map(item => [item.id, item]));
-
-      const merged = cloud.map(item => {
+      return cloud.map(item => {
         const localItem = localById.get(item.id);
         const cloudPhotos = normalizePhotos(item.photos);
         const localPhotos = localItem ? normalizePhotos(localItem.photos) : [];
         const photos = cloudPhotos.length ? cloudPhotos : localPhotos;
         return { ...item, photos };
-      });
-
-      // Bulutta olmayan yerel kayıtları da ekle (başka cihazdan henüz sync olmamış kayıtlar)
-      local.forEach(item => {
-        if (!cloudIds.has(item.id)) merged.push(item);
-      });
-
-      return merged.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     }
 
     function loadRecords() {
@@ -1355,40 +1338,26 @@
       } catch { return []; }
     }
 
+    async function fetchCloudRecords(uid) {
+      if (!uid || !firebaseReady || !firebaseDb) return [];
+      const colRef = firebaseDb.collection("users").doc(uid).collection("records");
+      const snap = await colRef.get();
+      return normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }
+
     async function loadRecordsForCurrentUser() {
       const local = loadRecords();
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return local;
       try {
-        const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
-        const snap = await colRef.get();
-        const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
-        const cloud = mergeCloudWithLocalPhotos(cloudRaw, local);
+        const cloud = await fetchCloudRecords(currentUser.uid);
         if (cloud.length) {
           localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
           return cloud;
         }
-
-        const legacyDocRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
-        const legacySnap = await legacyDocRef.get();
-        const legacyRaw = legacySnap.exists ? (legacySnap.data() && legacySnap.data().records) : [];
-        const legacyCloud = mergeCloudWithLocalPhotos(legacyRaw, local);
-        if (legacyCloud.length) {
-          await persistCloudRecords(legacyCloud);
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(legacyCloud));
-          return legacyCloud;
-        }
-
         if (local.length) {
           await persistCloudRecords(local);
           return local;
-        }
-
-        const guestRaw = localStorage.getItem(STORAGE_KEY + ":guest") || localStorage.getItem(STORAGE_KEY) || "[]";
-        const guest = normalizeRecordsArray(JSON.parse(guestRaw || "[]")).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        if (guest.length) {
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(guest));
-          await persistCloudRecords(guest);
-          return guest;
         }
         return [];
       } catch (error) {
@@ -1400,114 +1369,38 @@
 
     function detachCloudListeners() {
       if (typeof unsubscribeCloudRecords === "function") unsubscribeCloudRecords();
-      if (typeof unsubscribeLegacyRecords === "function") unsubscribeLegacyRecords();
       unsubscribeCloudRecords = null;
-      unsubscribeLegacyRecords = null;
     }
 
-    function stopCloudPulling() {
-      if (cloudPullTimer) clearInterval(cloudPullTimer);
-      cloudPullTimer = null;
-    }
-
-    function startCloudPulling() {
-      stopCloudPulling();
-      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
-      cloudPullTimer = setInterval(() => { pullCloudRecordsFromServer(); }, 12000);
-    }
-
-    async function pullCloudRecordsFromServer() {
-      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
-      try {
-        const uid = currentUser.uid;
-        const colRef = firebaseDb.collection("users").doc(uid).collection("records");
-        const legacyDocRef = firebaseDb.collection("users").doc(uid).collection("appData").doc("records");
-
-        let cloud = [];
-        try {
-          const snap = await colRef.get({ source: "server" });
-          const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
-          cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        } catch (e) {
-          const snap = await colRef.get();
-          const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
-          cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        }
-
-        if (!cloud.length) {
-          try {
-            const legacySnap = await legacyDocRef.get({ source: "server" });
-            const legacyRaw = legacySnap.exists ? (legacySnap.data() && legacySnap.data().records) : [];
-            cloud = normalizeRecordsArray(legacyRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-          } catch (e2) {
-            const legacySnap = await legacyDocRef.get();
-            const legacyRaw = legacySnap.exists ? (legacySnap.data() && legacySnap.data().records) : [];
-            cloud = normalizeRecordsArray(legacyRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-          }
-        }
-
-        if (!cloud.length) return;
-        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 4000) {
-          cloudSyncStatus = "Yerel degisiklik buluta yaziliyor...";
-          renderAuthPanel();
-          return;
-        }
-        applyCloudRecordsToUi(cloud);
-        cloudSyncStatus = "Bulut esitlendi.";
-        renderAuthPanel();
-      } catch (error) {
-        console.warn("Server bulut cekme hatasi:", error);
-        handleCloudPermissionError(error);
-        cloudSyncStatus = "Server senkronu basarisiz.";
-        renderAuthPanel();
-      }
-    }
-
-    function attachCloudListeners() {
+    function subscribeCloudRecordsRealtime() {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       detachCloudListeners();
       const uid = currentUser.uid;
       const colRef = firebaseDb.collection("users").doc(uid).collection("records");
-      const legacyDocRef = firebaseDb.collection("users").doc(uid).collection("appData").doc("records");
-
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
-        const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
-        const cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 4000) return;
-        if (cloud.length) {
-          applyCloudRecordsToUi(cloud);
-          cloudSyncStatus = "Bulut esitlendi.";
-          renderAuthPanel();
-        } else if (!records.length) {
-          cloudSyncStatus = "Bulutta kayit yok.";
-          renderAuthPanel();
+        const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        const localSig = recordsSignature(records || []);
+        const cloudSig = recordsSignature(cloud);
+        if (localSig !== cloudSig) {
+          records = cloud;
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+          renderAll();
         }
+        cloudSyncStatus = "Bulut esitlendi.";
+        renderAuthPanel();
       }, error => {
         console.warn("Bulut canli dinleme hatasi:", error);
         handleCloudPermissionError(error);
         cloudSyncStatus = "Bulut dinleme hatasi.";
         renderAuthPanel();
       });
-
-      unsubscribeLegacyRecords = legacyDocRef.onSnapshot(snap => {
-        if (!snap.exists) return;
-        const legacyRaw = snap.data() && snap.data().records;
-        const legacyCloud = normalizeRecordsArray(legacyRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 4000) return;
-        if (!legacyCloud.length) return;
-        if (!records.length) {
-          applyCloudRecordsToUi(legacyCloud);
-        }
-      }, error => {
-        console.warn("Legacy bulut dinleme hatasi:", error);
-        handleCloudPermissionError(error);
-      });
     }
 
     function queueCloudSync() {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
-      cloudSyncTimer = setTimeout(() => { persistCloudRecords(); }, 1500);
+      cloudSyncTimer = setTimeout(() => { persistCloudRecords(records); }, 350);
     }
 
     function handleCloudPermissionError(error) {
@@ -1516,18 +1409,6 @@
       if (shownCloudPermissionAlert) return;
       shownCloudPermissionAlert = true;
       alert("Bulut senkronu engellendi (permission-denied). Firestore Rules icin: users/{uid}/... yolunda sadece kendi uid'ine okuma/yazma izni vermelisin.");
-    }
-
-    function pruneDeleteTombstones() {
-      const now = Date.now();
-      localDeleteTombstones.forEach((ts, id) => {
-        if (!ts || (now - ts) > 120000) localDeleteTombstones.delete(id);
-      });
-    }
-
-    function filterCloudByTombstones(list) {
-      pruneDeleteTombstones();
-      return (Array.isArray(list) ? list : []).filter(item => !localDeleteTombstones.has(item.id));
     }
 
     function recordsSignature(list) {
@@ -1552,37 +1433,9 @@
       return JSON.stringify(rows);
     }
 
-    function applyCloudRecordsToUi(cloudList) {
-      const cloud = filterCloudByTombstones(mergeCloudWithLocalPhotos(cloudList, records));
-      if (!Array.isArray(cloud)) return false;
-      const localSig = recordsSignature(records || []);
-      const cloudSig = recordsSignature(cloud);
-      if (localSig !== cloudSig) {
-        records = cloud;
-        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
-        renderAll();
-      }
-      return true;
-    }
-
     async function deleteCloudRecordImmediately(recordId) {
       if (!recordId || !currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
-      try {
-        const uid = currentUser.uid;
-        await firebaseDb.collection("users").doc(uid).collection("records").doc(recordId).delete();
-        const legacyDocRef = firebaseDb.collection("users").doc(uid).collection("appData").doc("records");
-        await legacyDocRef.set({
-          records: normalizeRecordsArray(records).map(toCloudRecord),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          deviceUpdatedAt: new Date().toISOString()
-        }, { merge: true });
-        cloudSyncStatus = "Silme buluta yazildi.";
-        renderAuthPanel();
-      } catch (error) {
-        console.warn("Silinen kayit buluttan kaldirilamadi:", error);
-        handleCloudPermissionError(error);
-        queueCloudSync();
-      }
+      await persistCloudRecords(records);
     }
 
     async function persistCloudRecords(forceRecords = null) {
@@ -1620,16 +1473,6 @@
           });
           await deleteBatch.commit();
         }
-
-        const legacyDocRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
-        await legacyDocRef.set({
-          records: payload.map(toCloudRecord),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          deviceUpdatedAt: new Date().toISOString()
-        }, { merge: true });
-        localDeleteTombstones.forEach((_, id) => {
-          if (payload.some(item => item.id === id)) localDeleteTombstones.delete(id);
-        });
         cloudSyncPending = false;
         cloudSyncStatus = "Bulut esitlendi (" + okWrites + "/" + payload.length + ").";
         renderAuthPanel();
@@ -1890,7 +1733,6 @@
       if (button.dataset.action === "edit") openAddScreen(id);
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
-        localDeleteTombstones.set(id, Date.now());
         records = records.filter(item => item.id !== id);
         await saveRecords({ syncNow: true });
         renderAll();
