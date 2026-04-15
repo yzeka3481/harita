@@ -1327,14 +1327,23 @@
     function mergeCloudWithLocalPhotos(cloudList, localList) {
       const cloud = normalizeRecordsArray(cloudList);
       const local = normalizeRecordsArray(localList);
+      const cloudIds = new Set(cloud.map(item => item.id));
       const localById = new Map(local.map(item => [item.id, item]));
-      return cloud.map(item => {
+
+      const merged = cloud.map(item => {
         const localItem = localById.get(item.id);
         const cloudPhotos = normalizePhotos(item.photos);
         const localPhotos = localItem ? normalizePhotos(localItem.photos) : [];
         const photos = cloudPhotos.length ? cloudPhotos : localPhotos;
         return { ...item, photos };
-      }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      });
+
+      // Bulutta olmayan yerel kayıtları da ekle (başka cihazdan henüz sync olmamış kayıtlar)
+      local.forEach(item => {
+        if (!cloudIds.has(item.id)) merged.push(item);
+      });
+
+      return merged.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     }
 
     function loadRecords() {
@@ -1438,7 +1447,7 @@
         }
 
         if (!cloud.length) return;
-        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) {
+        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 4000) {
           cloudSyncStatus = "Yerel degisiklik buluta yaziliyor...";
           renderAuthPanel();
           return;
@@ -1464,7 +1473,7 @@
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
         const cloudRaw = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
         const cloud = normalizeRecordsArray(cloudRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) return;
+        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 4000) return;
         if (cloud.length) {
           applyCloudRecordsToUi(cloud);
           cloudSyncStatus = "Bulut esitlendi.";
@@ -1484,7 +1493,7 @@
         if (!snap.exists) return;
         const legacyRaw = snap.data() && snap.data().records;
         const legacyCloud = normalizeRecordsArray(legacyRaw).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 9000) return;
+        if (cloudSyncPending && (Date.now() - lastLocalMutationAt) < 4000) return;
         if (!legacyCloud.length) return;
         if (!records.length) {
           applyCloudRecordsToUi(legacyCloud);
@@ -1498,7 +1507,7 @@
     function queueCloudSync() {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
-      cloudSyncTimer = setTimeout(() => { persistCloudRecords(); }, 280);
+      cloudSyncTimer = setTimeout(() => { persistCloudRecords(); }, 1500);
     }
 
     function handleCloudPermissionError(error) {
@@ -1545,7 +1554,7 @@
 
     function applyCloudRecordsToUi(cloudList) {
       const cloud = filterCloudByTombstones(mergeCloudWithLocalPhotos(cloudList, records));
-      if (!Array.isArray(cloud) || !cloud.length) return false;
+      if (!Array.isArray(cloud)) return false;
       const localSig = recordsSignature(records || []);
       const cloudSig = recordsSignature(cloud);
       if (localSig !== cloudSig) {
