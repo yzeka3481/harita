@@ -115,8 +115,8 @@
     .vtype-daytrip{background:rgba(50,200,180,.18);color:#7ef0d8;border:1px solid rgba(50,200,180,.35)}
     .vtype-transit{background:rgba(150,170,200,.18);color:#c0d2e8;border:1px solid rgba(150,170,200,.35)}
     /* Splash Screen */
-    #splashScreen{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:linear-gradient(160deg,#0d2540 0%,#142f52 50%,#0a1e35 100%);transition:opacity .6s ease,visibility .6s ease}
-    #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    #splashScreen{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:linear-gradient(160deg,#0d2540 0%,#142f52 50%,#0a1e35 100%);transition:opacity .7s ease}
+    #splashScreen.hidden{opacity:0;pointer-events:none}
     .splash-logo{width:90px;height:90px;border-radius:28px;background:linear-gradient(145deg,#1e5fa8,#3487d9);display:flex;align-items:center;justify-content:center;box-shadow:0 20px 50px rgba(30,90,180,.45),inset 0 1px 0 rgba(255,255,255,.2);animation:splashPulse 2s ease-in-out infinite}
     @keyframes splashPulse{0%,100%{box-shadow:0 20px 50px rgba(30,90,180,.45),inset 0 1px 0 rgba(255,255,255,.2)}50%{box-shadow:0 24px 60px rgba(30,90,180,.65),inset 0 1px 0 rgba(255,255,255,.2)}}
     .splash-logo svg{width:52px;height:52px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:splashRotate 3s ease-in-out infinite}
@@ -682,7 +682,10 @@
       // Splash screen gizle
       const splash = document.getElementById("splashScreen");
       if (splash) {
-        setTimeout(() => splash.classList.add("hidden"), 1600);
+        setTimeout(() => {
+          splash.classList.add("hidden");
+          setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 800);
+        }, 1500);
       }
     }
 
