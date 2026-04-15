@@ -600,6 +600,7 @@
     let cloudSyncPending = false;
     let lastLocalMutationAt = 0;
     let localDeleteTombstones = new Map();
+    let shownQuotaAlert = false;
 
     let globeRenderer;
     let globeScene;
@@ -1153,7 +1154,7 @@
       }
 
       try {
-        const resized = await Promise.all(selected.map(file => resizeImageFile(file, 1280, 1280, 0.82)));
+        const resized = await Promise.all(selected.map(file => resizeImageFile(file, 960, 960, 0.72)));
         workingPhotos = workingPhotos.concat(resized.filter(Boolean)).slice(0, 8);
         renderPhotoPreview();
       } catch {
@@ -1613,7 +1614,23 @@
     }
 
     function saveRecords() {
-      localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+      let wrote = tryWriteLocalRecordsSnapshot(records);
+      if (!wrote) {
+        const step1 = compactRecordsForLocalStorage(records, "keep-latest-one-photo");
+        wrote = tryWriteLocalRecordsSnapshot(step1);
+      }
+      if (!wrote) {
+        const step2 = compactRecordsForLocalStorage(records, "no-photos");
+        wrote = tryWriteLocalRecordsSnapshot(step2);
+      }
+      if (!wrote) {
+        const step3 = compactRecordsForLocalStorage(records, "limit-record-count");
+        wrote = tryWriteLocalRecordsSnapshot(step3);
+      }
+      if (!wrote && !shownQuotaAlert) {
+        shownQuotaAlert = true;
+        alert("Tarayici depolama kotasi doldu. Sehirler kaydedildi ancak bazi fotograflar yerel onbellekten cikarildi. Tam fotograf senkronu icin Firebase Storage onerebilirim.");
+      }
       cloudSyncPending = true;
       lastLocalMutationAt = Date.now();
       queueCloudSync();
@@ -2692,6 +2709,39 @@
         .map(v => String(v || "").trim())
         .filter(v => v.startsWith("data:image/") || v.startsWith("http://") || v.startsWith("https://"))
         .slice(0, 8);
+    }
+
+    function isQuotaExceededError(error) {
+      const msg = String((error && error.message) || "").toLowerCase();
+      const name = String((error && error.name) || "").toLowerCase();
+      return name.includes("quota") || msg.includes("quota") || msg.includes("exceeded");
+    }
+
+    function tryWriteLocalRecordsSnapshot(list) {
+      const key = getRecordsStorageKey();
+      try {
+        localStorage.setItem(key, JSON.stringify(list));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function compactRecordsForLocalStorage(list, mode) {
+      const src = normalizeRecordsArray(list);
+      if (mode === "keep-latest-one-photo") {
+        return src.map((item, idx) => ({
+          ...item,
+          photos: idx < 40 ? normalizePhotos(item.photos).slice(0, 1) : []
+        }));
+      }
+      if (mode === "no-photos") {
+        return src.map(item => ({ ...item, photos: [] }));
+      }
+      if (mode === "limit-record-count") {
+        return src.slice(0, 220).map(item => ({ ...item, photos: [] }));
+      }
+      return src;
     }
 
     function formatMoney(amount, currency) {
