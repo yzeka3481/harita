@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.6";
+    const APP_VERSION = "v2.6.7";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -1385,22 +1385,67 @@
       }
     }
 
+    function parseFsValue(v) {
+      if (!v || typeof v !== "object") return null;
+      if ("stringValue" in v) return String(v.stringValue || "");
+      if ("integerValue" in v) return Number(v.integerValue);
+      if ("doubleValue" in v) return Number(v.doubleValue);
+      if ("booleanValue" in v) return !!v.booleanValue;
+      if ("timestampValue" in v) return String(v.timestampValue || "");
+      if ("nullValue" in v) return null;
+      if ("arrayValue" in v) return ((v.arrayValue && v.arrayValue.values) || []).map(parseFsValue);
+      if ("mapValue" in v) {
+        const out = {};
+        const fields = (v.mapValue && v.mapValue.fields) || {};
+        Object.keys(fields).forEach(k => { out[k] = parseFsValue(fields[k]); });
+        return out;
+      }
+      return null;
+    }
+
+    function parseFsDoc(doc) {
+      const fields = (doc && doc.fields) || {};
+      const out = {};
+      Object.keys(fields).forEach(k => { out[k] = parseFsValue(fields[k]); });
+      const name = String((doc && doc.name) || "");
+      const id = name.split("/").pop() || crypto.randomUUID();
+      return { id, ...out };
+    }
+
+    async function fetchCloudRecordsByRest(uid) {
+      if (!currentUser || !uid || !FIREBASE_CONFIG || !FIREBASE_CONFIG.projectId) return [];
+      const token = await currentUser.getIdToken(true);
+      const projectId = String(FIREBASE_CONFIG.projectId);
+      const url = "https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(projectId) + "/databases/(default)/documents/users/" + encodeURIComponent(uid) + "/records?pageSize=500";
+      const response = await fetch(url, { headers: { Authorization: "Bearer " + token } });
+      if (!response.ok) throw new Error("REST read failed: " + response.status);
+      const data = await response.json();
+      const docs = Array.isArray(data.documents) ? data.documents : [];
+      const rows = docs.map(parseFsDoc);
+      return normalizeRecordsArray(rows).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }
+
     async function forceReloadCloudRecords() {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return [];
-      const uid = currentUser.uid;
-      const colRef = firebaseDb.collection("users").doc(uid).collection("records");
-      let snap;
       try {
-        snap = await colRef.get({ source: "server" });
-      } catch {
-        snap = await colRef.get();
+        let cloud = await fetchCloudRecords(currentUser.uid);
+        if (!cloud.length) {
+          try {
+            const restCloud = await fetchCloudRecordsByRest(currentUser.uid);
+            if (restCloud.length) cloud = restCloud;
+          } catch (restErr) {
+            console.warn("REST bulut okuma basarisiz:", restErr);
+          }
+        }
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+        cloudSyncStatus = "Serverdan guncel veri alindi (" + cloud.length + ").";
+        renderAuthPanel();
+        return cloud;
+      } catch (error) {
+        console.warn("forceReloadCloudRecords hatasi:", error);
+        handleCloudPermissionError(error);
+        return [];
       }
-      const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
-      cloudSyncStatus = "Serverdan guncel veri alindi.";
-      renderAuthPanel();
-      return cloud;
     }
 
     async function loadRecordsForCurrentUser() {
@@ -1434,6 +1479,12 @@
           if (isFromCache) {
             cloudSyncStatus = "Bulut cache bos, server verisi bekleniyor...";
             renderAuthPanel();
+            forceReloadCloudRecords().then(rows => {
+              if (Array.isArray(rows) && rows.length) {
+                records = rows;
+                renderAll();
+              }
+            }).catch(() => {});
             return;
           }
           if (records.length) {
