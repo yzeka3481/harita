@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.2";
+    const APP_VERSION = "v2.6.3";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -1370,23 +1370,15 @@
     }
 
     async function loadRecordsForCurrentUser() {
-      const local = loadRecords();
-      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return local;
+      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return [];
       try {
         const cloud = await fetchCloudRecords(currentUser.uid);
-        if (cloud.length) {
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
-          return cloud;
-        }
-        if (local.length) {
-          await persistCloudRecords(local);
-          return local;
-        }
-        return [];
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+        return cloud;
       } catch (error) {
         console.warn("Bulut kayitlari okunamadi:", error);
         handleCloudPermissionError(error);
-        return local;
+        return [];
       }
     }
 
@@ -1458,7 +1450,15 @@
 
     async function deleteCloudRecordImmediately(recordId) {
       if (!recordId || !currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
-      await persistCloudRecords(records);
+      try {
+        const docRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(recordId);
+        await docRef.delete();
+        cloudSyncStatus = "Kayit buluttan silindi.";
+        renderAuthPanel();
+      } catch (error) {
+        console.warn("Buluttan silme hatasi:", error);
+        handleCloudPermissionError(error);
+      }
     }
 
     async function persistCloudRecords(forceRecords = null) {
@@ -1471,12 +1471,9 @@
       try {
         const payload = normalizeRecordsArray(Array.isArray(forceRecords) ? forceRecords : records);
         const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
-        const snap = await colRef.get();
-        const existingIds = new Set(snap.docs.map(doc => doc.id));
         let okWrites = 0;
         for (const item of payload) {
           const docRef = colRef.doc(item.id);
-          existingIds.delete(item.id);
           try {
             await docRef.set({
               ...toCloudRecord(item),
@@ -1487,14 +1484,6 @@
           } catch (writeError) {
             console.warn("Kayit buluta yazilamadi:", item && item.id, writeError);
           }
-        }
-
-        if (existingIds.size) {
-          const deleteBatch = firebaseDb.batch();
-          existingIds.forEach(id => {
-            deleteBatch.delete(colRef.doc(id));
-          });
-          await deleteBatch.commit();
         }
         cloudSyncPending = false;
         cloudSyncStatus = "Bulut esitlendi (" + okWrites + "/" + payload.length + ").";
