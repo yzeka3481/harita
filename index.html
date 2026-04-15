@@ -38,7 +38,8 @@
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
     .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
     .home-map-wrap{margin:0 0 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2}
-    .globe-title-plain{position:absolute;top:-54px;left:0;z-index:6;font-size:24px;font-weight:800;letter-spacing:.4px;color:#f2f7ff;text-shadow:0 2px 10px rgba(0,0,0,.42);pointer-events:none}
+    .globe-title-plain{position:absolute;top:-54px;left:0;z-index:6;font-size:24px;font-weight:800;letter-spacing:.4px;color:#f2f7ff;text-shadow:0 2px 10px rgba(0,0,0,.42);pointer-events:none;display:flex;align-items:center;gap:8px}
+    .version-chip{font-size:11px;line-height:1;padding:4px 7px;border-radius:999px;background:rgba(10,30,54,.62);border:1px solid rgba(255,255,255,.24);color:#dceeff;letter-spacing:.2px}
     .home-globe{width:min(86vw,390px);aspect-ratio:1/1;border-radius:999px;overflow:hidden;position:relative;background:transparent;border:none;touch-action:none;user-select:none;-webkit-user-select:none}
     #homeMiniMap{width:100%;height:100%;background:transparent}
     #homeMiniMap canvas{width:100%!important;height:100%!important;display:block}
@@ -207,7 +208,7 @@
       </article>
 
       <section class="home-map-wrap">
-        <div class="globe-title-plain">Sehir Haritam</div>
+        <div class="globe-title-plain">Sehir Haritam <span id="appVersionChip" class="version-chip">v-</span></div>
         <div class="home-globe" aria-label="Dunya kuresi">
           <div id="homeMiniMap"></div>
         </div>
@@ -483,6 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
+    const APP_VERSION = "v2.6.0";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -626,6 +628,8 @@
     init();
 
     function init() {
+      const versionEl = document.getElementById("appVersionChip");
+      if (versionEl) versionEl.textContent = APP_VERSION;
       initMaps();
       bindEvents();
       initAuth();
