@@ -60,8 +60,8 @@
     .recent-stage{position:relative;height:100%;perspective:900px}
     .recent-card{position:absolute;inset:10px 14px 6px;border-radius:20px;padding:16px 16px 14px;background:linear-gradient(180deg,#f8fbff,#e9f1fa);color:#1f2f45;box-shadow:0 16px 32px rgba(7,18,34,.28);opacity:0;transform:translateX(0) scale(.9);transition:transform .28s ease,opacity .28s ease,filter .28s ease;pointer-events:none}
     .recent-card.active{opacity:1;transform:translateX(0) scale(1);z-index:3;filter:none}
-    .recent-card.prev{opacity:.72;transform:translateX(-28px) scale(.93) rotateY(8deg);z-index:2;filter:saturate(.85)}
-    .recent-card.next{opacity:.72;transform:translateX(28px) scale(.93) rotateY(-8deg);z-index:2;filter:saturate(.85)}
+    .recent-card.prev{opacity:0;transform:translateX(-40px) scale(.9);z-index:2;pointer-events:none}
+    .recent-card.next{opacity:0;transform:translateX(40px) scale(.9);z-index:2;pointer-events:none}
     .recent-card.far{opacity:0;transform:translateX(0) scale(.88);z-index:1}
     .recent-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
     .recent-top h3{margin:0;font-size:18px;color:#14263d}
@@ -671,7 +671,7 @@
 
     function initHomeGlobe3D() {
       if (!els.homeMiniMap) return;
-      els.homeMiniMap.innerHTML = '<img src="./harita.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="Harita">';
+      els.homeMiniMap.innerHTML = '<img src="./harita.png" style="width:100%; height:100%; object-fit:contain; display:block;" alt="Harita">';
     }
 
     function initHomeGlobeFallback() {}
@@ -1862,13 +1862,15 @@
 
     const COUNTRY_IMAGE_IDS = {
       "turkey": "1524231757912-21f4fe3a7200", "türkiye": "1524231757912-21f4fe3a7200",
-      "italy": "1515542718115-4ca7f88ebcc3", "italya": "1515542718115-4ca7f88ebcc3",
+      "italy": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Colosseum_in_Rome%2C_Italy_-_April_2007.jpg/1200px-Colosseum_in_Rome%2C_Italy_-_April_2007.jpg", 
+      "italya": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Colosseum_in_Rome%2C_Italy_-_April_2007.jpg/1200px-Colosseum_in_Rome%2C_Italy_-_April_2007.jpg",
       "france": "1499856871958-5b9627545d1a", "fransa": "1499856871958-5b9627545d1a",
       "germany": "1467269204594-9661b134dd2b", "almanya": "1467269204594-9661b134dd2b",
       "spain": "1541334698-c116d97c36a6", "ispanya": "1541334698-c116d97c36a6",
       "usa": "1485738422979-f5c462d49f74", "amerika": "1485738422979-f5c462d49f74", "abd": "1485738422979-f5c462d49f74",
       "uk": "1513635269975-596950dad949", "ingiltere": "1513635269975-596950dad949",
-      "greece": "1530841387394-0518f5b56b66", "yunanistan": "1530841387394-0518f5b56b66",
+      "greece": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Oia_kikn_5129.jpg/1200px-Oia_kikn_5129.jpg", 
+      "yunanistan": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Oia_kikn_5129.jpg/1200px-Oia_kikn_5129.jpg",
       "russia": "1513622470522-26c3ec8cbce7", "rusya": "1513622470522-26c3ec8cbce7",
       "egypt": "1539650116574-82af4dc55ff3", "mısır": "1539650116574-82af4dc55ff3",
       "japan": "1493976040374-85c8e12f0c0e", "japonya": "1493976040374-85c8e12f0c0e",
@@ -1886,9 +1888,13 @@
       const normalized = String(country || "world").toLowerCase().trim();
       let candidates = [];
       
-      // Eger onceden tanimli harika bir gorsel kimligimiz varsa onu birinci aday yap
-      if (COUNTRY_IMAGE_IDS[normalized]) {
-        candidates.push(`https://images.unsplash.com/photo-${COUNTRY_IMAGE_IDS[normalized]}?auto=format&fit=crop&w=1200&h=700&q=80`);
+      const predefined = COUNTRY_IMAGE_IDS[normalized];
+      if (predefined) {
+        if (predefined.startsWith("http")) {
+          candidates.push(predefined);
+        } else {
+          candidates.push(`https://images.unsplash.com/photo-${predefined}?auto=format&fit=crop&w=1200&h=700&q=80`);
+        }
       }
 
       // Rastgele sacma gorseller gelmemesi icin genel (guvenilir) doga manzara seed'i uretiliyor
@@ -2177,9 +2183,7 @@
         groups.get(key).items.push(item);
       });
       const groupList = [...groups.values()].sort((a, b) => a.country.localeCompare(b.country, "tr"));
-      if (!expandedRecordCountries.size) {
-        groupList.forEach(group => expandedRecordCountries.add(group.key));
-      }
+
       els.recordsList.innerHTML = groupList.map(group => {
         const isOpen = expandedRecordCountries.has(group.key);
         const rows = group.items.map(item =>
