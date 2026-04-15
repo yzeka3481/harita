@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.5";
+    const APP_VERSION = "v2.6.6";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -1429,6 +1429,19 @@
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
         const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        const isFromCache = !!(snap && snap.metadata && snap.metadata.fromCache);
+        if (!cloud.length) {
+          if (isFromCache) {
+            cloudSyncStatus = "Bulut cache bos, server verisi bekleniyor...";
+            renderAuthPanel();
+            return;
+          }
+          if (records.length) {
+            cloudSyncStatus = "Bulut bos gorundu, yerel veri korundu.";
+            renderAuthPanel();
+            return;
+          }
+        }
         const localSig = recordsSignature(records || []);
         const cloudSig = recordsSignature(cloud);
         if (localSig !== cloudSig) {
@@ -1436,7 +1449,7 @@
           localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
           renderAll();
         }
-        cloudSyncStatus = "Bulut esitlendi (canli).";
+        cloudSyncStatus = "Bulut esitlendi (canli" + (isFromCache ? "/cache" : "/server") + ").";
         renderAuthPanel();
       }, error => {
         console.warn("Bulut canli dinleme hatasi:", error);
