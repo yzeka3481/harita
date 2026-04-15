@@ -484,7 +484,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const APP_VERSION = "v2.6.3";
+    const APP_VERSION = "v2.6.4";
     const STORAGE_KEY = "travel-map-v2";
     const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
@@ -1296,8 +1296,8 @@
 
     function toCloudRecord(item) {
       const safePhotos = normalizePhotos(item.photos)
-        .filter(url => typeof url === "string" && url.startsWith("data:image/") && url.length <= 600000)
-        .slice(0, 2);
+        .filter(url => typeof url === "string" && url.startsWith("data:image/") && url.length <= 220000)
+        .slice(0, 1);
       return {
         id: item.id || crypto.randomUUID(),
         city: String(item.city || "").trim(),
@@ -1319,6 +1319,24 @@
         createdAt: item.createdAt || new Date().toISOString(),
         photoCountLocal: normalizePhotos(item.photos).length
       };
+    }
+
+    function toCloudRecordLite(item) {
+      const base = toCloudRecord(item);
+      return {
+        ...base,
+        photos: []
+      };
+    }
+
+    function isCloudPayloadTooLargeError(error) {
+      const code = String((error && error.code) || "").toLowerCase();
+      const msg = String((error && error.message) || "").toLowerCase();
+      return code.includes("invalid-argument")
+        || code.includes("resource-exhausted")
+        || msg.includes("maximum document size")
+        || msg.includes("payload")
+        || msg.includes("too large");
     }
 
     function mergeCloudWithLocalPhotos(cloudList, localList) {
@@ -1482,6 +1500,20 @@
             }, { merge: true });
             okWrites += 1;
           } catch (writeError) {
+            if (isCloudPayloadTooLargeError(writeError)) {
+              try {
+                await docRef.set({
+                  ...toCloudRecordLite(item),
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  deviceUpdatedAt: new Date().toISOString(),
+                  cloudPhotoStripped: true
+                }, { merge: true });
+                okWrites += 1;
+                continue;
+              } catch (liteError) {
+                console.warn("Lite kayit da buluta yazilamadi:", item && item.id, liteError);
+              }
+            }
             console.warn("Kayit buluta yazilamadi:", item && item.id, writeError);
           }
         }
