@@ -1294,7 +1294,7 @@
         photos: normalizePhotos(item.photos),
         note: item.note || "",
         createdAt: item.createdAt || new Date().toISOString()
-      })).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
+      })).filter(item => item.city && item.country);
     }
 
     function toCloudRecord(item) {
@@ -2151,8 +2151,9 @@
 
     function renderHomeInsights() {
       const travelled = records.filter(item => isTravelled(item.status));
-      const countries = new Set(travelled.map(item => normalizeKey(item.country)).filter(Boolean));
-      const cities = new Set(travelled.map(item => normalizeKey(item.city) + "|" + normalizeKey(item.country)).filter(v => v !== "|"));
+      const base = travelled.length ? travelled : records;
+      const countries = new Set(base.map(item => normalizeKey(item.country)).filter(Boolean));
+      const cities = new Set(base.map(item => normalizeKey(item.city) + "|" + normalizeKey(item.country)).filter(v => v !== "|"));
       const countryCount = countries.size;
       const cityCount = cities.size;
       const pct = Math.max(0, Math.min(100, Math.round((countryCount / 195) * 100)));
@@ -2162,7 +2163,7 @@
       els.homeInsightRing.style.setProperty("--pctv", String(pct));
       if (els.homeInsightTotal) els.homeInsightTotal.textContent = "Toplam 195 Ulke";
       els.homeInsightFoot.textContent = countryCount
-        ? ("Dunya ulkelerinin yaklasik %" + pct + " kadari gezildi.")
+        ? ("Dunya ulkelerinin yaklasik %" + pct + " kadari " + (travelled.length ? "gezildi." : "kaydedildi."))
         : "Ilk kaydini ekle, seyahat ilerlemeni burada gorelim.";
     }
 
@@ -2234,6 +2235,9 @@
         groups.get(key).items.push(item);
       });
       const groupList = [...groups.values()].sort((a, b) => a.country.localeCompare(b.country, "tr"));
+      if (!expandedRecordCountries.size) {
+        groupList.forEach(group => expandedRecordCountries.add(group.key));
+      }
       els.recordsList.innerHTML = groupList.map(group => {
         const isOpen = expandedRecordCountries.has(group.key);
         const rows = group.items.map(item =>
