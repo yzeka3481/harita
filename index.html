@@ -1521,12 +1521,34 @@
       return (Array.isArray(list) ? list : []).filter(item => !localDeleteTombstones.has(item.id));
     }
 
+    function recordsSignature(list) {
+      const rows = normalizeRecordsArray(list).map(item =>
+        [
+          item.id,
+          item.city,
+          item.country,
+          item.countryCode,
+          item.status,
+          item.date || "",
+          String(item.lat),
+          String(item.lng),
+          String(item.budget ?? ""),
+          String(item.tripDays ?? ""),
+          String(item.ratingOverall ?? ""),
+          String((item.note || "").slice(0, 64)),
+          String((item.photos || []).length),
+          item.createdAt || ""
+        ].join("|")
+      ).sort();
+      return JSON.stringify(rows);
+    }
+
     function applyCloudRecordsToUi(cloudList) {
       const cloud = filterCloudByTombstones(mergeCloudWithLocalPhotos(cloudList, records));
       if (!Array.isArray(cloud) || !cloud.length) return false;
-      const localSig = JSON.stringify((records || []).map(r => r.id).sort());
-      const cloudSig = JSON.stringify(cloud.map(r => r.id).sort());
-      if (localSig !== cloudSig || cloud.length !== (records || []).length) {
+      const localSig = recordsSignature(records || []);
+      const cloudSig = recordsSignature(cloud);
+      if (localSig !== cloudSig) {
         records = cloud;
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
         renderAll();
@@ -1613,7 +1635,8 @@
       }
     }
 
-    function saveRecords() {
+    async function saveRecords(options = {}) {
+      const syncNow = !!(options && options.syncNow);
       let wrote = tryWriteLocalRecordsSnapshot(records);
       if (!wrote) {
         const step1 = compactRecordsForLocalStorage(records, "keep-latest-one-photo");
@@ -1633,7 +1656,11 @@
       }
       cloudSyncPending = true;
       lastLocalMutationAt = Date.now();
-      queueCloudSync();
+      if (syncNow && currentUser && currentUser.uid && firebaseReady && firebaseDb) {
+        await persistCloudRecords(records);
+      } else {
+        queueCloudSync();
+      }
     }
 
     function getRecordsStorageKey() {
@@ -1724,7 +1751,7 @@
 
         if (!normalized.length) throw new Error("Gecerli kayit yok.");
         records = normalized.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        saveRecords();
+        await saveRecords({ syncNow: true });
         renderAll();
         alert("JSON ice aktarma tamamlandi: " + records.length + " kayit.");
       } catch (error) {
@@ -1767,10 +1794,23 @@
           geo = { lat: old.lat, lng: old.lng, countryCode: old.countryCode };
           codeResolved = old.countryCode;
         } else {
-          geo = await geocode(city, country);
-          cityResolved = geo.city || cityResolved;
-          countryResolved = geo.country || countryResolved;
-          codeResolved = geo.countryCode;
+          try {
+            geo = await geocode(city, country);
+            cityResolved = geo.city || cityResolved;
+            countryResolved = geo.country || countryResolved;
+            codeResolved = geo.countryCode;
+          } catch (geoError) {
+            const fallback = await searchCitySuggestions(city);
+            if (Array.isArray(fallback) && fallback.length) {
+              const top = fallback[0];
+              geo = { lat: top.lat, lng: top.lng, countryCode: top.countryCode };
+              cityResolved = top.city || cityResolved;
+              countryResolved = top.country || countryResolved;
+              codeResolved = top.countryCode || codeResolved;
+            } else {
+              throw geoError;
+            }
+          }
         }
         if (!countryResolved) throw new Error("Lutfen onerilerden bir sehir secin.");
         const payload = {
@@ -1793,7 +1833,7 @@
         };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
         else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
-        saveRecords();
+        await saveRecords({ syncNow: true });
         resetAddForm();
         renderAll();
         switchScreen("records");
@@ -1843,7 +1883,7 @@
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
         localDeleteTombstones.set(id, Date.now());
         records = records.filter(item => item.id !== id);
-        saveRecords();
+        await saveRecords({ syncNow: true });
         renderAll();
         await deleteCloudRecordImmediately(id);
       }
