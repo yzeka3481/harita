@@ -1948,28 +1948,34 @@
 
     function setHeroImageByCountry(country) {
       const COUNTRY_IMAGE_IDS = {
-        "turkey": "1524231757912-21f4fe3a7200", "türkiye": "1524231757912-21f4fe3a7200",
-        "italy": "venice-grand-canal-italy-1naE8177_bI",
-        "italya": "venice-grand-canal-italy-1naE8177_bI",
+        "turkey": "1524231757912-21f4fe3a7200", "turkiye": "1524231757912-21f4fe3a7200", "türkiye": "1524231757912-21f4fe3a7200",
+        "italy": "1525874684-3c608d2c7701", "italia": "1525874684-3c608d2c7701", "italya": "1525874684-3c608d2c7701",
         "france": "1499856871958-5b9627545d1a", "fransa": "1499856871958-5b9627545d1a",
-        "germany": "1467269204594-9661b134dd2b", "almanya": "1467269204594-9661b134dd2b",
-        "spain": "1541334698-c116d97c36a6", "ispanya": "1541334698-c116d97c36a6",
-        "usa": "1485738422979-f5c462d49f74", "amerika": "1485738422979-f5c462d49f74", "abd": "1485738422979-f5c462d49f74",
-        "uk": "1513635269975-596950dad949", "ingiltere": "1513635269975-596950dad949",
-        "greece": "1469820265263-d14cf05c6d36", "yunanistan": "1469820265263-d14cf05c6d36",
+        "germany": "1467269204594-9661b134dd2b", "almanya": "1467269204594-9661b134dd2b", "deutschland": "1467269204594-9661b134dd2b",
+        "spain": "1541334698-c116d97c36a6", "ispanya": "1541334698-c116d97c36a6", "espana": "1541334698-c116d97c36a6", "españa": "1541334698-c116d97c36a6",
+        "usa": "1485738422979-f5c462d49f74", "united states": "1485738422979-f5c462d49f74", "united states of america": "1485738422979-f5c462d49f74", "amerika": "1485738422979-f5c462d49f74", "abd": "1485738422979-f5c462d49f74",
+        "uk": "1513635269975-596950dad949", "united kingdom": "1513635269975-596950dad949", "ingiltere": "1513635269975-596950dad949", "england": "1513635269975-596950dad949",
+        "greece": "1469820265263-d14cf05c6d36", "yunanistan": "1469820265263-d14cf05c6d36", "ellada": "1469820265263-d14cf05c6d36",
         "russia": "1513622470522-26c3ec8cbce7", "rusya": "1513622470522-26c3ec8cbce7",
-        "mısır": "1539650116574-82af4dc55ff3", "egypt": "1539650116574-82af4dc55ff3",
+        "misir": "1539650116574-82af4dc55ff3", "mısır": "1539650116574-82af4dc55ff3", "egypt": "1539650116574-82af4dc55ff3",
         "japan": "1493976040374-85c8e12f0c0e", "japonya": "1493976040374-85c8e12f0c0e",
-        "brazil": "1483729558449-99ef09a8c325", "brezilya": "1483729558449-99ef09a8c325",
+        "brazil": "1483729558449-99ef09a8c325", "brezilya": "1483729558449-99ef09a8c325", "brasil": "1483729558449-99ef09a8c325",
         "india": "1524492412937-b28074a5d7da", "hindistan": "1524492412937-b28074a5d7da",
         "netherlands": "1512466651474-4b53efbca636", "hollanda": "1512466651474-4b53efbca636",
-        "isviçre": "1530122037265-a5f1f91d3b99", "switzerland": "1530122037265-a5f1f91d3b99",
+        "isvicre": "1530122037265-a5f1f91d3b99", "isviçre": "1530122037265-a5f1f91d3b99", "switzerland": "1530122037265-a5f1f91d3b99",
         "canada": "1476839598466-23eeebbbdc10", "kanada": "1476839598466-23eeebbbdc10",
         "australia": "1523482580672-f109ba8cb9be", "avustralya": "1523482580672-f109ba8cb9be",
         "mexico": "1518105779142-d978f4772274", "meksika": "1518105779142-d978f4772274",
         "thailand": "1552465011-b4e21bf6e79a", "tayland": "1552465011-b4e21bf6e79a"
       };
-      const normalized = String(country || "world").toLowerCase().trim();
+      // Türkçe İ → i, Ş → s gibi özel karakterleri normalize et
+      const normalized = String(country || "world")
+        .toLowerCase()
+        .replace(/\u0130/g, "i")   // İ → i (Türkçe büyük I noktalı)
+        .replace(/\u0131/g, "i")   // ı → i (Türkçe küçük ısız I)
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")  // aksanları kaldır
+        .normalize("NFC")
+        .trim();
       let candidates = [];
       
       const predefined = COUNTRY_IMAGE_IDS[normalized];
