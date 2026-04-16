@@ -314,24 +314,33 @@
           <button id="cancelAddBtn" class="ghost-btn" type="button">Vazgec</button>
         </div>
         <form id="cityForm" autocomplete="off">
-          <div class="field">
-            <input id="cityInput" type="text" placeholder="Sehir adi (Orn: Roma)" required>
-            <div id="citySuggestions" class="suggestions"></div>
+          <div class="row2">
+            <div class="field">
+              <input id="cityInput" type="text" placeholder="Şehir (Ör: Roma)" required>
+              <div id="citySuggestions" class="suggestions"></div>
+            </div>
+            <div>
+              <input id="countryInput" type="text" placeholder="Ülke (otomatik)" readonly>
+            </div>
           </div>
-          <input id="countryInput" type="text" placeholder="Ulke otomatik gelecek" readonly>
-          <select id="statusInput">
-            <option value="visited">Gezildi</option>
-            <option value="planned">Planlanıyor</option>
-            <option value="again">Tekrar gidilecek</option>
-          </select>
-          <div>
-            <label class="field-label">Ziyaret Tipi</label>
-            <select id="visitTypeInput">
-              <option value="holiday">🏖️ Tatil</option>
-              <option value="business">💼 İş Gezisi</option>
-              <option value="daytrip">🚶 Günübirlik</option>
-              <option value="transit">✈️ Transit</option>
-            </select>
+          <div class="row2">
+            <div>
+              <label class="field-label">Gezildi bilgisi</label>
+              <select id="statusInput">
+                <option value="visited">Gezildi</option>
+                <option value="planned">Planlanıyor</option>
+                <option value="again">Tekrar gidilecek</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Ziyaret Tipi</label>
+              <select id="visitTypeInput">
+                <option value="holiday">🏖️ Tatil</option>
+                <option value="business">💼 İş Gezisi</option>
+                <option value="daytrip">🚶 Günübirlik</option>
+                <option value="transit">✈️ Transit</option>
+              </select>
+            </div>
           </div>
           <div class="row2">
             <div>
@@ -339,8 +348,8 @@
               <input id="dateInput" type="date">
             </div>
             <div>
-              <label class="field-label" for="tripDaysInput">Seyahat suresi (gun)</label>
-              <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Orn: 4">
+              <label class="field-label" for="tripDaysInput">Süre (gün)</label>
+              <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Ör: 4">
             </div>
           </div>
           <div class="row3">
