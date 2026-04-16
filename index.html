@@ -89,6 +89,12 @@
     .list{display:grid;gap:10px}
     .item{border:1px solid rgba(97,176,255,0.14);border-radius:16px;background:linear-gradient(140deg,rgba(18,50,95,0.88) 0%,rgba(11,32,68,0.94) 100%);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:14px;box-shadow:0 4px 20px rgba(0,6,20,0.3);transition:border-color .2s,box-shadow .2s}
     .item:hover{border-color:rgba(97,176,255,0.32);box-shadow:0 6px 28px rgba(4,20,60,0.38)}
+    .item.item-green{border-color:rgba(63,212,160,0.4);background:linear-gradient(140deg,rgba(20,60,40,0.88) 0%,rgba(10,40,25,0.94) 100%);}
+    .item.item-yellow{border-color:rgba(242,190,79,0.4);background:linear-gradient(140deg,rgba(80,60,20,0.88) 0%,rgba(50,35,10,0.94) 100%);}
+    .item.item-red{border-color:rgba(255,107,107,0.4);background:linear-gradient(140deg,rgba(80,30,30,0.88) 0%,rgba(50,15,15,0.94) 100%);}
+    .star-rating{display:inline-flex;gap:4px;margin-top:4px}
+    .star-rating span{font-size:24px;color:#355c84;cursor:pointer;line-height:1;transition:color .2s}
+    .star-rating span.active{color:#f9c74f}
     .item-top-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
     .item-cityname{font-size:16px;font-weight:800;color:#eef7ff;letter-spacing:-.2px;line-height:1.2}
     .item-info-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
@@ -111,8 +117,15 @@
     .records-actions{display:flex;gap:8px;margin-top:10px}
     .records-actions button{flex:1;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s}
     .records-actions button:hover{opacity:.8}
+    .btn-detail{background:linear-gradient(135deg,#138A72,#1ABC9C)}
     .btn-edit{background:linear-gradient(135deg,#2c5e96,#3d7fc4)}
     .btn-del{background:linear-gradient(135deg,#7a2435,#a53348)}
+    .city-detail-modal{position:fixed;inset:0;z-index:7800;background:rgba(3,9,18,.8);display:none;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity .2s;pointer-events:none}
+    .city-detail-modal.open{display:flex;opacity:1;pointer-events:auto}
+    .city-detail-panel{width:min(94vw,420px);border:1px solid rgba(255,255,255,.24);border-radius:16px;background:linear-gradient(180deg,#173a5f,#133250);padding:24px 16px;position:relative}
+    .city-detail-close{position:absolute;top:12px;right:16px;background:transparent;border:none;color:#dbeafc;font-size:24px;line-height:1;cursor:pointer}
+    .city-detail-title{margin:0 0 16px;font-size:20px;color:#fff;text-align:center;}
+    .chart-container{position:relative;height:300px;width:100%;}
     .country-group{border:1px solid rgba(97,176,255,0.16);border-radius:16px;background:rgba(10,28,58,0.92);overflow:hidden;box-shadow:0 4px 18px rgba(0,6,24,0.28);transition:border-color .2s,box-shadow .2s}
     .country-group.open{border-color:rgba(97,176,255,0.38);box-shadow:0 6px 28px rgba(6,30,90,0.32)}
     .country-toggle{width:100%;border:none;background:transparent;color:#eef7ff;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;cursor:pointer;transition:background .15s}
@@ -383,9 +396,37 @@
               <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Ör: 4">
             </div>
           </div>
-          <div>
-            <label class="field-label" for="ratingOverallInput">Genel Puan (1-10)</label>
-            <input id="ratingOverallInput" type="number" min="1" max="10" step="1" placeholder="1-10">
+          <div class="row2">
+            <div>
+              <label class="field-label">Yemek</label>
+              <div class="star-rating" data-for="ratingFoodInput">
+                <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+              </div>
+              <input id="ratingFoodInput" type="hidden" value="0">
+            </div>
+            <div>
+              <label class="field-label">Ulaşım</label>
+              <div class="star-rating" data-for="ratingTransportInput">
+                <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+              </div>
+              <input id="ratingTransportInput" type="hidden" value="0">
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label class="field-label">Güvenlik</label>
+              <div class="star-rating" data-for="ratingSafetyInput">
+                <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+              </div>
+              <input id="ratingSafetyInput" type="hidden" value="0">
+            </div>
+            <div>
+              <label class="field-label">Konaklama</label>
+              <div class="star-rating" data-for="ratingAccommodationInput">
+                <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+              </div>
+              <input id="ratingAccommodationInput" type="hidden" value="0">
+            </div>
           </div>
           <div class="row2">
             <div>
@@ -543,8 +584,19 @@
     </div>
   </div>
 
+  <div id="cityDetailModal" class="city-detail-modal" aria-hidden="true">
+    <div class="city-detail-panel">
+      <button id="cityDetailCloseBtn" class="city-detail-close" type="button" aria-label="Kapat">×</button>
+      <h3 id="cityDetailTitle" class="city-detail-title">Şehir Detayı</h3>
+      <div class="chart-container">
+        <canvas id="cityDetailChart"></canvas>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     window.FIREBASE_CONFIG = {
       apiKey: "AIzaSyA15GUvhvIXx9MR_YmGwE14UbuJlBv_h1o",
@@ -627,7 +679,10 @@
       countryInput: document.getElementById("countryInput"),
       dateInput: document.getElementById("dateInput"),
       statusInput: document.getElementById("statusInput"),
-      ratingOverallInput: document.getElementById("ratingOverallInput"),
+      ratingFoodInput: document.getElementById("ratingFoodInput"),
+      ratingTransportInput: document.getElementById("ratingTransportInput"),
+      ratingSafetyInput: document.getElementById("ratingSafetyInput"),
+      ratingAccommodationInput: document.getElementById("ratingAccommodationInput"),
       budgetInput: document.getElementById("budgetInput"),
       currencyInput: document.getElementById("currencyInput"),
       tripDaysInput: document.getElementById("tripDaysInput"),
@@ -648,7 +703,11 @@
       photoLightbox: document.getElementById("photoLightbox"),
       photoLightboxImg: document.getElementById("photoLightboxImg"),
       photoLightboxClose: document.getElementById("photoLightboxClose"),
-      homeInsightTotal: document.getElementById("homeInsightTotal")
+      homeInsightTotal: document.getElementById("homeInsightTotal"),
+      cityDetailModal: document.getElementById("cityDetailModal"),
+      cityDetailCloseBtn: document.getElementById("cityDetailCloseBtn"),
+      cityDetailTitle: document.getElementById("cityDetailTitle"),
+      cityDetailChart: document.getElementById("cityDetailChart")
     };
 
     let records = loadRecords();
@@ -700,6 +759,7 @@
     let countryLayer;
     let countryMarkerLayer;
     let lastNonCountryScreen = "home";
+    let cityDetailChartInstance = null;
 
     // Splash ekrani bagimsiz olarak gizle - init() hata verse bile calisiyor
     (function hideSplashSafe() {
@@ -856,12 +916,99 @@
       document.addEventListener("keydown", e => {
         if (e.key !== "Escape") return;
         if (els.authModal.classList.contains("open")) closeAuthModal();
+        if (els.cityDetailModal.classList.contains("open")) closeCityDetailModal();
         closePhotoLightbox();
       });
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
       });
+      els.cityDetailCloseBtn.addEventListener("click", closeCityDetailModal);
+      els.cityDetailModal.addEventListener("click", e => {
+        if (e.target === els.cityDetailModal) closeCityDetailModal();
+      });
+      document.querySelectorAll(".star-rating").forEach(group => {
+        const spans = group.querySelectorAll("span");
+        const hiddenInput = document.getElementById(group.dataset.for);
+        const updateStars = (val) => spans.forEach(s => s.classList.toggle("active", Number(s.dataset.val) <= val));
+        group.addEventListener("mouseleave", () => updateStars(Number(hiddenInput.value)));
+        spans.forEach(span => {
+          span.addEventListener("mouseenter", () => updateStars(Number(span.dataset.val)));
+          span.addEventListener("click", () => {
+            if (hiddenInput.value === span.dataset.val) hiddenInput.value = "0";
+            else hiddenInput.value = span.dataset.val;
+            updateStars(Number(hiddenInput.value));
+          });
+        });
+      });
       window.addEventListener("resize", () => setTimeout(() => { resizeHomeGlobe(); exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
+    }
+
+    function updateStarRatingUI(inputId, val) {
+      const el = document.getElementById(inputId);
+      if (el) el.value = val || 0;
+      const group = document.querySelector(`.star-rating[data-for='${inputId}']`);
+      if (group) {
+        group.querySelectorAll("span").forEach(s => s.classList.toggle("active", Number(s.dataset.val) <= (val || 0)));
+      }
+    }
+
+    function closeCityDetailModal() {
+      els.cityDetailModal.classList.remove("open");
+      els.cityDetailModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    function openCityDetailModal(recordId) {
+      const record = records.find(r => r.id === recordId);
+      if (!record) return;
+
+      els.cityDetailTitle.textContent = record.city + " Detayı";
+      els.cityDetailModal.classList.add("open");
+      els.cityDetailModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+
+      const rs = [
+        record.ratingFood || 0,
+        record.ratingTransport || 0,
+        record.ratingSafety || 0,
+        record.ratingAccommodation || 0
+      ];
+
+      if (cityDetailChartInstance) {
+        cityDetailChartInstance.destroy();
+      }
+
+      cityDetailChartInstance = new Chart(els.cityDetailChart, {
+        type: 'radar',
+        data: {
+          labels: ['Yemek', 'Ulaşım', 'Güvenlik', 'Konaklama'],
+          datasets: [{
+            label: 'Puan (1-5)',
+            data: rs,
+            backgroundColor: 'rgba(97, 176, 255, 0.4)',
+            borderColor: 'rgba(97, 176, 255, 1)',
+            pointBackgroundColor: 'rgba(97, 176, 255, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(97, 176, 255, 1)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+              grid: { color: 'rgba(255, 255, 255, 0.1)' },
+              pointLabels: { color: '#dce9ff', font: { size: 12, family: "'Plus Jakarta Sans'" } },
+              ticks: { display: false, min: 0, max: 5, stepSize: 1 }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
     }
 
     function onCityInput() {
@@ -1349,6 +1496,7 @@
         ratingFood: normalizeScore(item.ratingFood),
         ratingTransport: normalizeScore(item.ratingTransport),
         ratingSafety: normalizeScore(item.ratingSafety),
+        ratingAccommodation: normalizeScore(item.ratingAccommodation),
         budget: normalizeMoney(item.budget),
         currency: normalizeCurrency(item.currency),
         tripDays: normalizeDays(item.tripDays),
@@ -1762,6 +1910,7 @@
             ratingFood: normalizeScore(item.ratingFood),
             ratingTransport: normalizeScore(item.ratingTransport),
             ratingSafety: normalizeScore(item.ratingSafety),
+            ratingAccommodation: normalizeScore(item.ratingAccommodation),
             budget: normalizeMoney(item.budget),
             currency: normalizeCurrency(item.currency),
             tripDays: normalizeDays(item.tripDays),
@@ -1790,7 +1939,12 @@
       const date = els.dateInput.value;
       const status = els.statusInput.value;
       const visitType = els.visitTypeInput ? els.visitTypeInput.value : "holiday";
-      const ratingOverall = normalizeScore(els.ratingOverallInput.value);
+      const ratingFood = normalizeScore(els.ratingFoodInput.value);
+      const ratingTransport = normalizeScore(els.ratingTransportInput.value);
+      const ratingSafety = normalizeScore(els.ratingSafetyInput.value);
+      const ratingAccommodation = normalizeScore(els.ratingAccommodationInput.value);
+      const r_vals = [ratingFood, ratingTransport, ratingSafety, ratingAccommodation].filter(x => x && x > 0);
+      const ratingOverall = r_vals.length ? Math.round((r_vals.reduce((a,b)=>a+b,0) / r_vals.length) * 2) : null;
       const budget = normalizeMoney(els.budgetInput.value);
       const currency = normalizeCurrency(els.currencyInput.value);
       const tripDays = normalizeDays(els.tripDaysInput.value);
@@ -1843,6 +1997,10 @@
           status,
           visitType,
           ratingOverall,
+          ratingFood,
+          ratingTransport,
+          ratingSafety,
+          ratingAccommodation,
           budget,
           currency,
           tripDays,
@@ -1896,6 +2054,7 @@
         return;
       }
       const id = button.dataset.id;
+      if (button.dataset.action === "detail") openCityDetailModal(id);
       if (button.dataset.action === "edit") openAddScreen(id);
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
@@ -1918,7 +2077,10 @@
         els.dateInput.value = item.date || "";
         els.statusInput.value = item.status;
         if (els.visitTypeInput) els.visitTypeInput.value = item.visitType || "holiday";
-        els.ratingOverallInput.value = item.ratingOverall ?? "";
+        updateStarRatingUI("ratingFoodInput", item.ratingFood);
+        updateStarRatingUI("ratingTransportInput", item.ratingTransport);
+        updateStarRatingUI("ratingSafetyInput", item.ratingSafety);
+        updateStarRatingUI("ratingAccommodationInput", item.ratingAccommodation);
         els.budgetInput.value = item.budget ?? "";
         els.currencyInput.value = item.currency || "TRY";
         els.tripDaysInput.value = item.tripDays || "";
@@ -1938,6 +2100,7 @@
       workingPhotos = [];
       closeSuggestions();
       els.cityForm.reset();
+      ["ratingFoodInput", "ratingTransportInput", "ratingSafetyInput", "ratingAccommodationInput"].forEach(id => updateStarRatingUI(id, 0));
       els.statusInput.value = "visited";
       if (els.visitTypeInput) els.visitTypeInput.value = "holiday";
       els.currencyInput.value = "TRY";
@@ -2318,16 +2481,27 @@
         const rows = group.items.map(item => {
           const hasDate = item.date;
           const hasDays = item.tripDays && Number(item.tripDays) > 0;
-          const hasRating = item.ratingOverall != null;
           const hasBudget = item.budget != null;
+          const scores = [item.ratingFood, item.ratingTransport, item.ratingSafety, item.ratingAccommodation].filter(v => v != null && v > 0);
+          const avgScore = scores.length ? (scores.reduce((a,b)=>a+b,0) / scores.length) : 0;
+          const starsHtml = Array.from({length: 5}, (_, i) => `<span style="color:${i < Math.round(avgScore) ? '#f9c74f' : '#658bb2'}; font-size:13px; letter-spacing:2px; line-height: 1;">★</span>`).join("");
+          const ratingLabels = ["", "Yetersiz Deneyim", "Kısıtlı Deneyim", "Kapsamlı Deneyim", "Tam Deneyim"];
+          const criteriaHtml = scores.length > 0 ? `<span style="font-size:11px; opacity:0.8; margin-left:6px; font-weight:500;">(${scores.length}/4 Kriter: ${ratingLabels[scores.length]})</span>` : "";
+          
           const infoChips = [
             hasDate ? "<span class='iinfo'>📅 " + esc(formatDate(item.date)) + "</span>" : "",
             hasDays ? "<span class='iinfo'>⏱ " + item.tripDays + " gün</span>" : "",
-            hasRating ? "<span class='iinfo'>⭐ " + item.ratingOverall + "/10</span>" : "",
+            avgScore > 0 ? "<span class='iinfo' style='display:inline-flex;align-items:center;padding:5px 8px;'>" + starsHtml + criteriaHtml + "</span>" : "",
             hasBudget ? "<span class='iinfo'>💰 " + esc(formatMoney(item.budget, item.currency || "TRY")) + "</span>" : ""
           ].filter(Boolean).join("");
+          let cardColorClass = "";
+          if (item.ratingOverall != null) {
+            if (item.ratingOverall >= 8) cardColorClass = "item-green";
+            else if (item.ratingOverall >= 5) cardColorClass = "item-yellow";
+            else if (item.ratingOverall >= 0) cardColorClass = "item-red";
+          }
           return (
-            "<article class='item'>" +
+            "<article class='item " + cardColorClass + "'>" +
               "<div class='item-top-row'>" +
                 "<span class='item-cityname'>" + esc(item.city || "Şehir bilinmiyor") + "</span>" +
                 "<span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status] || "-") + "</span>" +
@@ -2337,6 +2511,7 @@
               renderGalleryRow(item.photos) +
               (item.note ? "<p class='item-note'>" + esc(item.note) + "</p>" : "") +
               "<div class='records-actions'>" +
+                "<button class='btn-detail' data-action='detail' data-id='" + esc(item.id) + "'>🔍 Detay</button>" +
                 "<button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>✏️ Düzenle</button>" +
                 "<button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>🗑 Sil</button>" +
               "</div>" +
@@ -2795,6 +2970,7 @@
       if (item.ratingFood != null) detailScores.push("Yemek " + item.ratingFood);
       if (item.ratingTransport != null) detailScores.push("Ulasim " + item.ratingTransport);
       if (item.ratingSafety != null) detailScores.push("Guvenlik " + item.ratingSafety);
+      if (item.ratingAccommodation != null) detailScores.push("Konaklama " + item.ratingAccommodation);
       if (detailScores.length) parts.push(detailScores.join(" | "));
 
       if (item.budget != null) {
@@ -2820,7 +2996,7 @@
     function normalizeScore(value) {
       if (value === "" || value == null) return null;
       const n = Number(value);
-      if (!Number.isFinite(n)) return null;
+      if (!Number.isFinite(n) || n === 0) return null;
       return Math.max(1, Math.min(10, Math.round(n)));
     }
 
