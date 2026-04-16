@@ -360,19 +360,9 @@
               <input id="tripDaysInput" type="number" min="1" step="1" placeholder="Ör: 4">
             </div>
           </div>
-          <div class="row3">
-            <div>
-              <label class="field-label" for="ratingFoodInput">Yemek</label>
-              <input id="ratingFoodInput" type="number" min="1" max="10" step="1" placeholder="1-10">
-            </div>
-            <div>
-              <label class="field-label" for="ratingTransportInput">Ulasim</label>
-              <input id="ratingTransportInput" type="number" min="1" max="10" step="1" placeholder="1-10">
-            </div>
-            <div>
-              <label class="field-label" for="ratingSafetyInput">Guvenlik</label>
-              <input id="ratingSafetyInput" type="number" min="1" max="10" step="1" placeholder="1-10">
-            </div>
+          <div>
+            <label class="field-label" for="ratingOverallInput">Genel Puan (1-10)</label>
+            <input id="ratingOverallInput" type="number" min="1" max="10" step="1" placeholder="1-10">
           </div>
           <div class="row2">
             <div>
@@ -610,9 +600,7 @@
       countryInput: document.getElementById("countryInput"),
       dateInput: document.getElementById("dateInput"),
       statusInput: document.getElementById("statusInput"),
-      ratingFoodInput: document.getElementById("ratingFoodInput"),
-      ratingTransportInput: document.getElementById("ratingTransportInput"),
-      ratingSafetyInput: document.getElementById("ratingSafetyInput"),
+      ratingOverallInput: document.getElementById("ratingOverallInput"),
       budgetInput: document.getElementById("budgetInput"),
       currencyInput: document.getElementById("currencyInput"),
       tripDaysInput: document.getElementById("tripDaysInput"),
@@ -1753,10 +1741,7 @@
       const date = els.dateInput.value;
       const status = els.statusInput.value;
       const visitType = els.visitTypeInput ? els.visitTypeInput.value : "holiday";
-      const ratingFood = normalizeScore(els.ratingFoodInput.value);
-      const ratingTransport = normalizeScore(els.ratingTransportInput.value);
-      const ratingSafety = normalizeScore(els.ratingSafetyInput.value);
-      const ratingOverall = computeOverallRating([ratingFood, ratingTransport, ratingSafety]);
+      const ratingOverall = normalizeScore(els.ratingOverallInput.value);
       const budget = normalizeMoney(els.budgetInput.value);
       const currency = normalizeCurrency(els.currencyInput.value);
       const tripDays = normalizeDays(els.tripDaysInput.value);
@@ -1809,9 +1794,6 @@
           status,
           visitType,
           ratingOverall,
-          ratingFood,
-          ratingTransport,
-          ratingSafety,
           budget,
           currency,
           tripDays,
@@ -1887,9 +1869,7 @@
         els.dateInput.value = item.date || "";
         els.statusInput.value = item.status;
         if (els.visitTypeInput) els.visitTypeInput.value = item.visitType || "holiday";
-        els.ratingFoodInput.value = item.ratingFood ?? "";
-        els.ratingTransportInput.value = item.ratingTransport ?? "";
-        els.ratingSafetyInput.value = item.ratingSafety ?? "";
+        els.ratingOverallInput.value = item.ratingOverall ?? "";
         els.budgetInput.value = item.budget ?? "";
         els.currencyInput.value = item.currency || "TRY";
         els.tripDaysInput.value = item.tripDays || "";
