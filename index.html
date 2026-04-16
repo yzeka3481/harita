@@ -86,8 +86,16 @@
     .recent-dot.active{width:20px;background:#74bcff}
     .card.recent-block{border:none;background:transparent;box-shadow:none;padding:0}
     .card.recent-block h2{margin:0 0 8px}
-    .list{display:grid;gap:8px}.item{border:1px solid var(--glass-border);border-radius:12px;background:rgba(16,42,78,0.68);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:12px}.item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
-    .item h3{margin:0;font-size:15px;font-weight:700}.item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.chip{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid transparent;font-weight:600}
+    .list{display:grid;gap:10px}
+    .item{border:1px solid rgba(97,176,255,0.14);border-radius:16px;background:linear-gradient(140deg,rgba(18,50,95,0.88) 0%,rgba(11,32,68,0.94) 100%);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:14px;box-shadow:0 4px 20px rgba(0,6,20,0.3);transition:border-color .2s,box-shadow .2s}
+    .item:hover{border-color:rgba(97,176,255,0.32);box-shadow:0 6px 28px rgba(4,20,60,0.38)}
+    .item-top-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
+    .item-cityname{font-size:16px;font-weight:800;color:#eef7ff;letter-spacing:-.2px;line-height:1.2}
+    .item-info-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+    .iinfo{font-size:11px;color:#a8d0f5;background:rgba(97,176,255,0.1);border:1px solid rgba(97,176,255,0.18);border-radius:999px;padding:3px 9px;white-space:nowrap}
+    .item-note{margin:10px 0 0;font-size:12px;color:#8fb8e0;font-style:italic;line-height:1.55;padding:8px 10px;background:rgba(97,176,255,0.06);border-left:2px solid rgba(97,176,255,0.3);border-radius:0 6px 6px 0}
+    .item p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}
+    .chip{font-size:11px;border-radius:999px;padding:4px 9px;border:1px solid transparent;font-weight:700;white-space:nowrap}
     .meta-line{margin-top:6px;font-size:12px;color:#bdd0ea;line-height:1.4}
     .dist-list{display:grid;gap:8px}
     .dist-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:12px;color:#d7e6f7;padding:8px;border:1px solid #3a5f86;border-radius:8px;background:#143156}
@@ -100,14 +108,22 @@
     #exploreMapWrap{width:100%;aspect-ratio:9/16;max-height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom));margin:0 auto}
     #exploreMap{width:100%;height:100%;background:#6fa8dc;border:none}
     #exploreMap .leaflet-container{background:#6fa8dc}
-    .records-actions{display:flex;gap:8px;margin-top:8px}.records-actions button{flex:1;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer}.btn-edit{background:#325b85}.btn-del{background:#87344a}
-    .country-group{border:1px solid #36577c;border-radius:12px;background:rgba(20,49,84,.88);overflow:hidden}
-    .country-toggle{width:100%;border:none;background:transparent;color:#eef7ff;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;cursor:pointer}
-    .country-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800}
-    .country-count{font-size:11px;border-radius:999px;padding:3px 7px;background:rgba(126,193,255,.2);color:#d7eaff}
-    .country-caret{font-size:14px;transition:transform .2s ease;color:#cde3ff}
+    .records-actions{display:flex;gap:8px;margin-top:10px}
+    .records-actions button{flex:1;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s}
+    .records-actions button:hover{opacity:.8}
+    .btn-edit{background:linear-gradient(135deg,#2c5e96,#3d7fc4)}
+    .btn-del{background:linear-gradient(135deg,#7a2435,#a53348)}
+    .country-group{border:1px solid rgba(97,176,255,0.16);border-radius:16px;background:rgba(10,28,58,0.92);overflow:hidden;box-shadow:0 4px 18px rgba(0,6,24,0.28);transition:border-color .2s,box-shadow .2s}
+    .country-group.open{border-color:rgba(97,176,255,0.38);box-shadow:0 6px 28px rgba(6,30,90,0.32)}
+    .country-toggle{width:100%;border:none;background:transparent;color:#eef7ff;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;cursor:pointer;transition:background .15s}
+    .country-toggle:hover{background:rgba(97,176,255,0.06)}
+    .country-hd-left{display:flex;align-items:center;gap:10px}
+    .ctry-flag{width:26px;height:17px;object-fit:cover;border-radius:3px;border:1px solid rgba(255,255,255,0.22);box-shadow:0 2px 6px rgba(0,0,0,0.3);flex-shrink:0}
+    .country-name{font-size:14px;font-weight:800;color:#eef7ff}
+    .country-count{font-size:10px;font-weight:700;border-radius:999px;padding:2px 9px;background:rgba(97,176,255,0.14);color:#9ecbff;border:1px solid rgba(97,176,255,0.22)}
+    .country-caret{font-size:12px;transition:transform .22s ease;color:#7aaddf;flex-shrink:0;opacity:.8}
     .country-group.open .country-caret{transform:rotate(180deg)}
-    .country-rows{display:grid;gap:8px;padding:0 8px 8px}
+    .country-rows{display:grid;gap:8px;padding:0 10px 10px}
     .country-rows[hidden]{display:none !important}
     .empty{border:none;border-radius:16px;text-align:center;color:var(--muted);padding:24px 16px;font-size:13px;background:var(--glass-bg);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;gap:10px}
     .empty-svg{width:72px;height:72px;opacity:.75}
@@ -646,7 +662,7 @@
     let recentItems = [];
     let recentIndex = 0;
     let recentGesture = null;
-    let collapsedRecordCountries = new Set();
+    let expandedRecordCountries = new Set();
     let selectedCitySuggestion = null;
     let citySearchTimer = null;
     let workingPhotos = [];
@@ -1875,8 +1891,8 @@
         const openNow = !groupEl.classList.contains("open");
         groupEl.classList.toggle("open", openNow);
         rowsEl.hidden = !openNow;
-        if (openNow) collapsedRecordCountries.delete(key);
-        else collapsedRecordCountries.add(key);
+        if (openNow) expandedRecordCountries.add(key);
+        else expandedRecordCountries.delete(key);
         return;
       }
       const id = button.dataset.id;
@@ -2296,14 +2312,45 @@
       const groupList = [...groups.values()].sort((a, b) => a.country.localeCompare(b.country, "tr"));
 
       els.recordsList.innerHTML = groupList.map(group => {
-        const isOpen = !collapsedRecordCountries.has(group.key);
-        const rows = group.items.map(item =>
-          "<article class='item'><div class='item-head'><h3>" + esc(item.city || "Şehir bilinmiyor") + ", " + esc(item.country || "Ülke bilinmiyor") + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status] || "Durum yok") + "</span></div>" + vtypeBadge(item.visitType) + "<p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Düzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
-        ).join("");
+        const isOpen = expandedRecordCountries.has(group.key);
+        const flagCode = group.key && group.key.length === 2 ? group.key : "";
+        const flagHtml = flagCode ? "<img class='ctry-flag' src='https://flagcdn.com/w20/" + esc(flagCode) + ".webp' loading='lazy' alt='' onerror='this.style.display=\"none\"'>" : "";
+        const rows = group.items.map(item => {
+          const hasDate = item.date;
+          const hasDays = item.tripDays && Number(item.tripDays) > 0;
+          const hasRating = item.ratingOverall != null;
+          const hasBudget = item.budget != null;
+          const infoChips = [
+            hasDate ? "<span class='iinfo'>📅 " + esc(formatDate(item.date)) + "</span>" : "",
+            hasDays ? "<span class='iinfo'>⏱ " + item.tripDays + " gün</span>" : "",
+            hasRating ? "<span class='iinfo'>⭐ " + item.ratingOverall + "/10</span>" : "",
+            hasBudget ? "<span class='iinfo'>💰 " + esc(formatMoney(item.budget, item.currency || "TRY")) + "</span>" : ""
+          ].filter(Boolean).join("");
+          return (
+            "<article class='item'>" +
+              "<div class='item-top-row'>" +
+                "<span class='item-cityname'>" + esc(item.city || "Şehir bilinmiyor") + "</span>" +
+                "<span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status] || "-") + "</span>" +
+              "</div>" +
+              vtypeBadge(item.visitType) +
+              (infoChips ? "<div class='item-info-row'>" + infoChips + "</div>" : "") +
+              renderGalleryRow(item.photos) +
+              (item.note ? "<p class='item-note'>" + esc(item.note) + "</p>" : "") +
+              "<div class='records-actions'>" +
+                "<button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>✏️ Düzenle</button>" +
+                "<button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>🗑 Sil</button>" +
+              "</div>" +
+            "</article>"
+          );
+        }).join("");
         return (
           "<section class='country-group " + (isOpen ? "open" : "") + "'>" +
             "<button type='button' class='country-toggle' data-action='toggle-country' data-country-key='" + esc(group.key) + "'>" +
-              "<span class='country-title'>" + esc(group.country) + " <span class='country-count'>" + esc(group.items.length) + "</span></span>" +
+              "<div class='country-hd-left'>" +
+                flagHtml +
+                "<span class='country-name'>" + esc(group.country) + "</span>" +
+                "<span class='country-count'>" + group.items.length + " şehir</span>" +
+              "</div>" +
               "<span class='country-caret'>&#9662;</span>" +
             "</button>" +
             "<div class='country-rows'" + (isOpen ? "" : " hidden") + ">" + rows + "</div>" +
