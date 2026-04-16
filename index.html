@@ -220,6 +220,13 @@
     .auth-google{margin-top:8px;border:none;border-radius:999px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;background:#ffffff;color:#1d3b5d}
     .auth-help{font-size:11px;color:#c6dbf3;line-height:1.4;margin-top:8px}
     .auth-close{margin-left:auto;display:block;border:none;background:transparent;color:#dbeafc;font-size:20px;line-height:1;cursor:pointer}
+    .sync-status-row{display:flex;align-items:center;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)}
+    .sync-dot{width:8px;height:8px;border-radius:999px;flex-shrink:0;background:#888}
+    .sync-dot.ok{background:#3fd4a0;box-shadow:0 0 6px rgba(63,212,160,.5)}
+    .sync-dot.err{background:#ff6b6b;box-shadow:0 0 6px rgba(255,107,107,.5)}
+    .sync-dot.busy{background:#ffd88f;animation:syncPulse .8s ease-in-out infinite}
+    @keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .sync-text{font-size:11px;color:#c6dbf3;line-height:1.4}
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-globe{width:min(72vw,420px)}#exploreMapWrap{height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
   </style>
 </head>
@@ -401,6 +408,10 @@
           <div class="auth-actions">
             <button id="openAuthBtn" class="auth-btn primary" type="button">Giris / Kayit</button>
             <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Çıkış</button>
+          </div>
+          <div id="syncStatusRow" class="sync-status-row" hidden>
+            <span id="syncDot" class="sync-dot"></span>
+            <span id="syncText" class="sync-text">Kontrol ediliyor...</span>
           </div>
         </div>
       </article>
@@ -939,9 +950,21 @@
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
         const uidShort = String(currentUser.uid || "").slice(0, 8);
-        els.authHelpText.textContent = firebaseDb
-          ? ("Bulut esitleme acik. " + (cloudSyncStatus || "Senkron bekleniyor...") + " [uid:" + uidShort + " / kayit:" + records.length + "]")
-          : "Firestore baglanirsa mobil ve web kayitlari ortak gorunur.";
+        const statusMsg = firebaseDb
+          ? (cloudSyncStatus || "Senkron bekleniyor...")
+          : "Firestore bağlantısı yok.";
+        els.authHelpText.textContent = "Bulut: " + statusMsg + " [" + uidShort + " / " + records.length + " kayıt]";
+        // Görünür sync satırı
+        const row = document.getElementById("syncStatusRow");
+        const dot = document.getElementById("syncDot");
+        const txt = document.getElementById("syncText");
+        if (row && dot && txt) {
+          row.hidden = false;
+          const isErr = statusMsg.toLowerCase().includes("hata") || statusMsg.toLowerCase().includes("okunamadi");
+          const isBusy = statusMsg.toLowerCase().includes("bekleniyor") || statusMsg.toLowerCase().includes("baglaniyor");
+          dot.className = "sync-dot" + (isErr ? " err" : isBusy ? " busy" : " ok");
+          txt.textContent = statusMsg + " · " + records.length + " kayıt · uid:" + uidShort;
+        }
       } else {
         els.authStateText.textContent = "Hesap: Misafir modunda.";
         els.openAuthBtn.hidden = false;
