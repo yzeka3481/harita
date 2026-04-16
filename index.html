@@ -646,7 +646,7 @@
     let recentItems = [];
     let recentIndex = 0;
     let recentGesture = null;
-    let expandedRecordCountries = new Set();
+    let collapsedRecordCountries = new Set();
     let selectedCitySuggestion = null;
     let citySearchTimer = null;
     let workingPhotos = [];
@@ -918,8 +918,16 @@
                 }
               }
               records = mergeCloudWithLocalPhotos(finalRecords, records);
-              localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
               renderAll();
+              try {
+                localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+              } catch (lsErr) {
+                console.warn("LocalStorage quota hatasi (fotolar cikartiliyor):", lsErr);
+                try {
+                  const compact = records.map(r => ({ ...r, photos: [] }));
+                  localStorage.setItem(getRecordsStorageKey(), JSON.stringify(compact));
+                } catch (e2) { console.warn("LocalStorage minimal write de basarisiz:", e2); }
+              }
               subscribeCloudRecordsRealtime();
             })
             .catch(error => {
@@ -1867,8 +1875,8 @@
         const openNow = !groupEl.classList.contains("open");
         groupEl.classList.toggle("open", openNow);
         rowsEl.hidden = !openNow;
-        if (openNow) expandedRecordCountries.add(key);
-        else expandedRecordCountries.delete(key);
+        if (openNow) collapsedRecordCountries.delete(key);
+        else collapsedRecordCountries.add(key);
         return;
       }
       const id = button.dataset.id;
@@ -2288,7 +2296,7 @@
       const groupList = [...groups.values()].sort((a, b) => a.country.localeCompare(b.country, "tr"));
 
       els.recordsList.innerHTML = groupList.map(group => {
-        const isOpen = expandedRecordCountries.has(group.key);
+        const isOpen = !collapsedRecordCountries.has(group.key);
         const rows = group.items.map(item =>
           "<article class='item'><div class='item-head'><h3>" + esc(item.city || "Şehir bilinmiyor") + ", " + esc(item.country || "Ülke bilinmiyor") + "</h3><span class='chip " + esc(item.status) + "'>" + esc(STATUS_TEXT[item.status] || "Durum yok") + "</span></div>" + vtypeBadge(item.visitType) + "<p>" + esc(item.date ? formatDate(item.date) : "Tarih yok") + "</p>" + renderRecordMeta(item) + renderGalleryRow(item.photos) + (item.note ? "<p>" + esc(item.note) + "</p>" : "") + "<div class='records-actions'><button class='btn-edit' data-action='edit' data-id='" + esc(item.id) + "'>Düzenle</button><button class='btn-del' data-action='delete' data-id='" + esc(item.id) + "'>Sil</button></div></article>"
         ).join("");
