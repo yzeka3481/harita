@@ -141,8 +141,8 @@
     .field-label{display:block;font-size:11px;color:var(--muted);margin:0 0 4px 2px}
     .field{position:relative}
     input,select,textarea{width:100%;min-width:0;border-radius:10px;border:1px solid #44698f;background:#16365b;color:var(--text);padding:11px 12px;font:inherit;outline:none}
-    .row2 > *,.row3 > *{min-width:0;overflow:hidden}
-    input[type="date"]{min-width:0;width:100%}
+    .row2 > *,.row3 > *{min-width:0}
+    input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;width:100%;box-sizing:border-box}
     input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(78,161,255,.2)}
     #countryInput[readonly]{opacity:.85}
     .suggestions{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#16365b;border:1px solid #44698f;border-radius:10px;max-height:180px;overflow:auto;z-index:40;display:none}
@@ -327,7 +327,7 @@
           </div>
           <div class="row2">
             <div>
-              <label class="field-label">Gezildi bilgisi</label>
+              <label class="field-label">Durum</label>
               <select id="statusInput">
                 <option value="visited">Gezildi</option>
                 <option value="planned">Planlanıyor</option>
