@@ -209,6 +209,13 @@
     .country-fact::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#4da4ff,#7ec1ff)}
     .country-fact small{display:block;color:#8ab4f8;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
     .country-fact strong{font-size:16px;color:#e8f0fe}
+    .tags-container{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding:2px 0}
+    .tag-chip{padding:9px 15px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .25s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;gap:8px;user-select:none;backdrop-filter:blur(4px)}
+    .tag-chip span{font-size:15px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2))}
+    .tag-chip:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.18);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+    .tag-chip:active{transform:scale(0.96)}
+    .tag-chip.active{background:rgba(97,176,255,0.15);color:#fff;border-color:rgba(97,176,255,0.5);box-shadow:0 0 15px rgba(97,176,255,0.25);animation:chipSelect .3s ease-out}
+    @keyframes chipSelect{0%{transform:scale(0.9)}100%{transform:scale(1)}}
     #countryMap{height:260px;border:1px solid rgba(97,176,255,0.25);border-radius:18px;overflow:hidden;background:#0d1624;box-shadow:0 6px 24px rgba(0,0,0,0.4)}
     .summary-hero{background:linear-gradient(135deg,#1f4f7e,#2f6fa6 55%,#46a5c9);border:1px solid rgba(255,255,255,.22)}
     .summary-title{margin:0 0 10px;font-size:18px}
@@ -266,29 +273,40 @@
     .country-album-item:hover{transform:scale(1.05);box-shadow:0 6px 18px rgba(0,0,0,0.35);z-index:2;border-color:rgba(255,255,255,0.24)}
     .country-album-empty{background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.12);border-radius:14px;padding:24px;text-align:center;color:var(--muted);font-size:13px}
 
-    /* Achievements */
-    .achievements-section{margin-bottom:24px}
-    .achievements-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:4px 0}
-    .badge-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;transition:transform .2s;cursor:pointer}
-    .badge-item:hover{transform:translateY(-4px)}
-    .badge-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(18,40,70,0.6);border:1px solid rgba(255,255,255,0.08);filter:grayscale(1);opacity:0.35;position:relative;transition:all .4s ease}
-    .badge-item.unlocked .badge-icon{filter:none;opacity:1;background:linear-gradient(135deg,rgba(97,176,255,0.2),rgba(97,176,255,0.05));border-color:rgba(97,176,255,0.4);box-shadow:0 8px 16px rgba(0,0,0,0.2)}
-    .badge-label{font-size:10px;font-weight:700;color:var(--muted);transition:color .3s;line-height:1.2}
+    /* Achievements - Compact */
+    .achievements-section{margin-bottom:18px}
+    .achievements-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:2px 0}
+    .badge-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;transition:transform .2s;cursor:pointer}
+    .badge-item:hover{transform:translateY(-3px)}
+    .badge-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(18,40,70,0.6);border:1px solid rgba(255,255,255,0.08);filter:grayscale(1);opacity:0.35;position:relative;transition:all .4s ease}
+    .badge-item.unlocked .badge-icon{filter:none;opacity:1;background:linear-gradient(135deg,rgba(97,176,255,0.2),rgba(97,176,255,0.05));border-color:rgba(97,176,255,0.4);box-shadow:0 6px 12px rgba(0,0,0,0.2)}
+    .badge-label{font-size:9px;font-weight:700;color:var(--muted);transition:color .3s;line-height:1.1}
     .badge-item.unlocked .badge-label{color:#fff}
 
-    /* Timeline Horizontal (Roll-up) */
+    /* Timeline Horizontal Cleanup */
     .timeline-section{margin-top:24px;position:relative}
-    .timeline-container{position:relative;display:flex;overflow-x:auto;padding:32px 14px 14px;gap:18px;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none}
+    .timeline-container{position:relative;display:flex;overflow-x:auto;padding:20px 14px 14px;gap:14px;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent);-webkit-mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent)}
     .timeline-container::-webkit-scrollbar{display:none}
-    .timeline-container::before{content:"";position:absolute;left:0;right:0;top:40px;height:2px;background:linear-gradient(90deg,rgba(97,176,255,0) 0%,var(--primary) 20%,var(--primary) 80%,rgba(97,176,255,0) 100%);z-index:0}
-    .timeline-item{position:relative;flex-shrink:0;width:160px;scroll-snap-align:start;z-index:1}
-    .timeline-dot{position:absolute;left:50%;top:-16px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--primary);border:3px solid var(--bg);box-shadow:0 0 10px rgba(97,176,255,0.3);z-index:2}
+    .timeline-item{position:relative;flex-shrink:0;width:150px;scroll-snap-align:start;z-index:1}
     .timeline-content{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);backdrop-filter:blur(10px)}
     .timeline-info{text-align:center}
     .timeline-city{font-weight:800;font-size:14px;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .timeline-date{font-size:10px;color:var(--muted);justify-content:center}
     .timeline-thumb{width:100%;height:100px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,0.08);background:#000}
 
+    /* Scroll Indicator */
+    .timeline-wrapper{position:relative}
+    .timeline-scroll-hint{position:absolute;right:16px;top:0;background:rgba(97,176,255,0.15);color:var(--primary);padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800;backdrop-filter:blur(8px);border:1px solid rgba(97,176,255,0.3);display:flex;align-items:center;gap:6px;z-index:10;pointer-events:none;animation:swipeHint 2s infinite}
+    @keyframes swipeHint{0%,100%{transform:translateX(0);opacity:0.8}50%{transform:translateX(-8px);opacity:1}}
+    .timeline-container::-webkit-scrollbar{display:none}
+
+
+
+    .timeline-nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);background:rgba(20,40,70,0.65);backdrop-filter:blur(8px);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:25;transition:all .2s;opacity:0.8;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+    .timeline-nav:hover{background:var(--primary);color:#fff;opacity:1;transform:translateY(-50%) scale(1.1)}
+    .timeline-nav.prev{left:-10px}
+    .timeline-nav.next{right:-10px}
+    .timeline-nav svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
     /* Badge Detail Modal */
     .badge-modal{position:fixed;inset:0;z-index:9500;background:rgba(0,4,12,0.72);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .25s;pointer-events:none}
     .badge-modal.open{display:flex;opacity:1;pointer-events:auto}
@@ -321,34 +339,31 @@
     .progress-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
     .progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#00d4ff);width:0%;transition:width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)}
 
-    .passport-link-btn{width:100%;margin-top:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);padding:12px;border-radius:14px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
-    .passport-link-btn:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
+    /* Airport Arrival Board (Retro Mechanical) */
+    .airport-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,10,0.98);backdrop-filter:blur(30px);z-index:4000;display:none;flex-direction:column;font-family:'Courier New', Courier, monospace}
+    .airport-modal.open{display:flex}
+    .airport-head{padding:30px 24px;background:#000;border-bottom:3px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center}
+    .airport-title-wrap{display:flex;flex-direction:column;gap:4px}
+    .airport-title{color:#ff9f00;font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:4px;margin:0;text-shadow:0 0 10px rgba(255,159,0,0.4)}
+    .airport-subtitle{color:#555;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+    
+    .board-container{flex:1;overflow-y:auto;padding:20px;background:#050505}
+    .board-table{width:100%;border-collapse:separate;border-spacing:0 4px}
+    .board-table th{text-align:left;color:#444;font-size:12px;font-weight:800;padding:10px 8px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #111}
+    .board-row{background:#111;transition:background 0.2s}
+    .board-row:hover{background:#181818}
+    .board-cell{padding:14px 8px;color:#ff9f00;font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;position:relative}
+    .board-cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,0.5);z-index:1}
+    .board-cell.time{color:#aa7a00;font-size:14px;width:80px}
+    .board-cell.status{width:120px;font-weight:900}
+    .board-cell.status.landed{color:#3fd4a0;text-shadow:0 0 8px rgba(63,212,160,0.3)}
+    .board-cell.status.scheduled{color:#ff9f00;animation:blinkBoard 1.5s infinite}
+    
+    @keyframes blinkBoard{0%,100%{opacity:1}50%{opacity:0.6}}
+    .close-airport{background:none;border:none;color:#555;font-size:32px;cursor:pointer;transition:color 0.2s}
+    .close-airport:hover{color:#ff9f00}
 
-    .passport-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(9,20,48,0.96);backdrop-filter:blur(20px);z-index:3000;display:none;flex-direction:column}
-    .passport-modal.open{display:flex}
-    .passport-head{padding:24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.05)}
-    .stamps-container{flex:1;overflow-y:auto;padding:24px}
-    .stamps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:20px}
-    .stamp{aspect-ratio:1;border-radius:50%;border:2px dashed rgba(255,255,255,0.1);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:rgba(255,255,255,0.02);padding:10px;transition:all .3s ease;overflow:hidden}
-    .stamp.active{border-style:solid;border-color:rgba(97,176,255,0.3);background:rgba(97,176,255,0.05);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
-    .stamp-flag{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.04;z-index:0;transition:opacity .3s}
-    .stamp.active .stamp-flag{opacity:0.12}
-    .stamp-code{font-size:18px;font-weight:900;color:var(--muted);z-index:1;letter-spacing:1px}
-    .stamp.active .stamp-code{color:#fff;text-shadow:0 0 10px rgba(255,255,255,0.2)}
-    .stamp-date{font-size:8px;color:rgba(255,255,255,0.4);z-index:1;margin-top:4px;font-family:monospace}
 
-    /* Packing Lists */
-    .packing-section{margin-bottom:24px}
-    .packing-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:18px;border-radius:20px}
-    .packing-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
-    .packing-tab{padding:8px 14px;border-radius:10px;font-size:11px;font-weight:700;color:var(--muted);background:rgba(255,255,255,0.04);cursor:pointer;white-space:nowrap;transition:all .2s;border:1px solid transparent}
-    .packing-tab.active{background:rgba(97,176,255,0.15);color:var(--primary);border-color:rgba(97,176,255,0.3)}
-    .packing-items{display:grid;gap:10px}
-    .pack-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:14px;cursor:pointer;transition:all .2s}
-    .pack-item:hover{background:rgba(255,255,255,0.05)}
-    .pack-item input{width:16px;height:16px;accent-color:var(--primary)}
-    .pack-item span{font-size:13px;color:rgba(255,255,255,0.8)}
-    .pack-item.checked span{text-decoration:line-through;opacity:0.4}
   </style>
 
 
@@ -406,9 +421,10 @@
         <div id="homeInsightFoot" class="insight-foot">Yeni kayıtlarla bu kart otomatik güncellenir.</div>
       </article>
 
-      <article class="achievements-section">
-        <h2 style="font-size:16px; margin-bottom:12px;">Gelişimim ve Başarımlar</h2>
-        <div id="achievementsGrid" class="achievements-grid"></div>
+
+      <article class="card recent-block">
+        <h2>Son Eklenen 3 Şehir</h2>
+        <div id="recentList" class="list"></div>
       </article>
 
       <article class="bucket-section">
@@ -419,11 +435,6 @@
           </div>
           <div id="homeBucketList" class="bucket-list"></div>
         </div>
-      </article>
-
-      <article class="card recent-block">
-        <h2>Son Eklenen 3 Şehir</h2>
-        <div id="recentList" class="list"></div>
       </article>
 
       <article class="card">
@@ -505,6 +516,7 @@
               <div class="tag-chip" data-tag="food"><span>🍴</span> Gastronomi</div>
               <div class="tag-chip" data-tag="art"><span>🎭</span> Sanat</div>
               <div class="tag-chip" data-tag="sightseeing"><span>🏙️</span> Şehir Gezisi</div>
+              <div class="tag-chip" data-tag="shopping"><span>🛍️</span> Alışveriş</div>
             </div>
           </div>
           <div class="row2">
@@ -621,26 +633,28 @@
           <div id="worldProgressFill" class="progress-fill"></div>
         </div>
         <div id="explorerInsightsGrid" class="insights-grid"></div>
-        <button id="openPassportBtn" class="passport-link-btn" type="button">
-          <span>🛂 Dijital Pasaportu Aç</span>
+        <button id="openArrivalsBtn" class="passport-link-btn" type="button" style="background:rgba(255,159,0,0.1); border-color:rgba(255,159,0,0.3); color:#ff9f00;">
+          <span>✈️ Varış Tablosunu Görüntüle</span>
         </button>
       </article>
 
-      <article class="timeline-section">
-        <h2 style="font-size:16px; margin-bottom:4px;">Seyahat Zaman Çizelgesi</h2>
-        <p class="hint">Gezdiğin tüm şehirlerin kronolojik listesi.</p>
-        <div id="timelineContainer" class="timeline-container"></div>
+      <article class="achievements-section">
+        <h2 style="font-size:16px; margin-bottom:12px;">Gelişimim ve Başarımlar</h2>
+        <div id="achievementsGrid" class="achievements-grid"></div>
       </article>
 
-      <article class="packing-section">
-        <div class="packing-card">
-          <h2 style="font-size:16px;margin:0 0 12px 0;">Pro Hazırlık Rehberi</h2>
-          <div id="packingTabs" class="packing-tabs">
-            <div class="packing-tab active" data-pack="city">🏙️ Şehir Gezisi</div>
-            <div class="packing-tab" data-pack="nature">⛺ Doğa & Kamp</div>
-            <div class="packing-tab" data-pack="business">💼 İş Gezisi</div>
+      <article class="timeline-section">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px;">
+          <div>
+            <h2 style="font-size:16px; margin:0;">Seyahat Zaman Çizelgesi</h2>
+            <p class="hint" style="margin:2px 0 0;">Gezdiğin tüm şehirlerin kronolojik listesi.</p>
           </div>
-          <div id="packingItems" class="packing-items"></div>
+        </div>
+        <div class="timeline-wrapper">
+          <button id="timelinePrevBtn" class="timeline-nav prev" type="button"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+          <button id="timelineNextBtn" class="timeline-nav next" type="button"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+          <div class="timeline-scroll-hint">Kaydır ➔</div>
+          <div id="timelineContainer" class="timeline-container"></div>
         </div>
       </article>
 
@@ -727,13 +741,28 @@
     </div>
   </div>
 
-  <div id="passportModal" class="passport-modal">
-    <div class="passport-head">
-      <h2 style="font-size:18px;margin:0;">Dijital Pasaport</h2>
-      <button id="closePassportBtn" class="badge-close" style="position:static;">&times;</button>
+  <div id="arrivalsModal" class="airport-modal">
+    <div class="airport-head">
+      <div class="airport-title-wrap">
+        <h2 class="airport-title">Arrivals / Varislar</h2>
+        <div class="airport-subtitle">World Traveler Information System</div>
+      </div>
+      <button id="closeArrivalsBtn" class="close-airport">&times;</button>
     </div>
-    <div class="stamps-container">
-      <div id="stampsGrid" class="stamps-grid"></div>
+    <div class="board-container">
+      <table class="board-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Destination</th>
+            <th>Flight</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="arrivalsBody">
+          <!-- Rows dynamic -->
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -851,18 +880,18 @@
       authHelpText: document.getElementById("authHelpText"),
       achievementsGrid: document.getElementById("achievementsGrid"),
       timelineContainer: document.getElementById("timelineContainer"),
+      timelinePrevBtn: document.getElementById("timelinePrevBtn"),
+      timelineNextBtn: document.getElementById("timelineNextBtn"),
       tagsContainer: document.getElementById("tagsContainer"),
       homeBucketList: document.getElementById("homeBucketList"),
       openAddBtn: document.getElementById("openAddBtn"),
       worldProgressText: document.getElementById("worldProgressText"),
       worldProgressFill: document.getElementById("worldProgressFill"),
       explorerInsightsGrid: document.getElementById("explorerInsightsGrid"),
-      openPassportBtn: document.getElementById("openPassportBtn"),
-      closePassportBtn: document.getElementById("closePassportBtn"),
-      passportModal: document.getElementById("passportModal"),
-      stampsGrid: document.getElementById("stampsGrid"),
-      packingTabs: document.getElementById("packingTabs"),
-      packingItems: document.getElementById("packingItems"),
+      openArrivalsBtn: document.getElementById("openArrivalsBtn"),
+      closeArrivalsBtn: document.getElementById("closeArrivalsBtn"),
+      arrivalsModal: document.getElementById("arrivalsModal"),
+      arrivalsBody: document.getElementById("arrivalsBody"),
       addScreenTitle: document.getElementById("addScreenTitle"),
       cancelAddBtn: document.getElementById("cancelAddBtn"),
       cityForm: document.getElementById("cityForm"),
@@ -1148,6 +1177,25 @@
             selectedTags.push(tag);
             chip.classList.add("active");
           }
+        });
+      }
+      if (els.timelineContainer) {
+        els.timelineContainer.addEventListener('scroll', () => {
+          const hint = document.querySelector('.timeline-scroll-hint');
+          if (hint) {
+            hint.style.opacity = '0';
+            setTimeout(() => { if(hint) hint.style.display = 'none'; }, 500);
+          }
+        });
+      }
+      if (els.timelinePrevBtn) {
+        els.timelinePrevBtn.addEventListener('click', () => {
+          els.timelineContainer.scrollBy({ left: -164, behavior: 'smooth' });
+        });
+      }
+      if (els.timelineNextBtn) {
+        els.timelineNextBtn.addEventListener('click', () => {
+          els.timelineContainer.scrollBy({ left: 164, behavior: 'smooth' });
         });
       }
     }
@@ -2342,7 +2390,6 @@
       renderExplorePins();
       renderWorldLayers();
       renderExplorerInsights();
-      renderPackingLists();
       renderSummaryDashboard();
       renderTimeline();
     }
@@ -3623,7 +3670,6 @@
         ` : '';
         return `
           <div class="timeline-item">
-            <div class="timeline-dot"></div>
             <div class="timeline-content">
               ${thumb ? `<img class="timeline-thumb" src="${thumb}" loading="lazy" alt="">` : `<div class="timeline-thumb" style="display:grid;place-items:center;background:rgba(255,255,255,0.05);font-size:32px;">📍</div>`}
               <div class="timeline-info">
@@ -3655,21 +3701,6 @@
       `).join('');
     }
 
-    const PACKING_DEFS = {
-      city: [
-        "Rahat yürüyüş ayakkabısı", "Taşınabilir şarj cihazı (Powerbank)", "Şehir haritası / Çevrimdışı harita",
-        "Yerel para birimi / Nakit", "Güneş gözlüğü & Krem", "Müze kartı / Rezervasyonlar"
-      ],
-      nature: [
-        "Su geçirmez bot / ayakkabı", "Yağmurluk / Rüzgarlık", "İlk yardım kiti",
-        "Fener / Kafa lambası", "Termos / Su matarası", "Atıştırmalık enerji barları"
-      ],
-      business: [
-        "Gömlek / Takım elbise", "Laptop & Şarj aleti", "Kartvizitler",
-        "Evrak dosyası", "Ütü spreyleri (kırışıklık için)", "Şık ayakkabı"
-      ]
-    };
-    let activePackingTab = 'city';
 
     function renderExplorerInsights() {
       if (!els.explorerInsightsGrid) return;
@@ -3703,58 +3734,41 @@
       `).join('');
     }
 
-    function renderDigitalPassport() {
-      if (!els.stampsGrid) return;
-      const firstVisits = new Map();
-      records.filter(r => isTravelled(r.status)).forEach(r => {
-        const code = (r.countryCode || "").toLowerCase();
-        if (!code) return;
-        if (!firstVisits.has(code)) firstVisits.set(code, r);
-      });
+    function renderArrivalsBoard() {
+      if (!els.arrivalsBody) return;
+      const sorted = [...records].sort((a,b) => getRecordTime(b) - getRecordTime(a));
+      
+      els.arrivalsBody.innerHTML = sorted.map(item => {
+        const dateObj = item.date ? new Date(item.date) : null;
+        const timeStr = dateObj ? `${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}` : '--:--';
+        const dateStr = item.date ? formatDate(item.date) : 'UNKNOWN';
+        const city = (item.city || "UNKNOWN").toUpperCase();
+        const country = (item.countryCode || item.country || "??").toUpperCase();
+        const status = isTravelled(item.status) ? 'LANDED' : 'SCHEDULED';
+        const statusClass = status.toLowerCase();
+        const flightNum = (country.substring(0,2) + (Math.floor(Math.random() * 900) + 100)).toUpperCase();
 
-      els.stampsGrid.innerHTML = WORLD_CODES.map(code => {
-        const visit = firstVisits.get(code);
-        const active = !!visit;
         return `
-          <div class="stamp ${active ? 'active' : ''}">
-            <img class="stamp-flag" src="https://flagcdn.com/w160/${code}.png" alt="">
-            <span class="stamp-code">${code.toUpperCase()}</span>
-            ${active ? `<span class="stamp-date">${formatDate(visit.date)}</span>` : ''}
-          </div>
+          <tr class="board-row">
+            <td class="board-cell time">${dateStr}</td>
+            <td class="board-cell">${city} / ${country}</td>
+            <td class="board-cell" style="color:#222;">${flightNum}</td>
+            <td class="board-cell status ${statusClass}">${status}</td>
+          </tr>
         `;
       }).join('');
     }
 
-    function renderPackingLists() {
-      if (!els.packingItems) return;
-      const items = PACKING_DEFS[activePackingTab] || [];
-      els.packingItems.innerHTML = items.map((item, i) => `
-        <div class="pack-item" onclick="this.classList.toggle('checked');">
-          <input type="checkbox">
-          <span>${esc(item)}</span>
-        </div>
-      `).join('');
-    }
-
     function bindProEvents() {
-      if (els.openPassportBtn) els.openPassportBtn.addEventListener('click', () => {
-        renderDigitalPassport();
-        els.passportModal.classList.add('open');
+      if (els.openArrivalsBtn) els.openArrivalsBtn.addEventListener('click', () => {
+        renderArrivalsBoard();
+        els.arrivalsModal.classList.add('open');
         document.body.classList.add('modal-open');
       });
-      if (els.closePassportBtn) els.closePassportBtn.addEventListener('click', () => {
-        els.passportModal.classList.remove('open');
+      if (els.closeArrivalsBtn) els.closeArrivalsBtn.addEventListener('click', () => {
+        els.arrivalsModal.classList.remove('open');
         document.body.classList.remove('modal-open');
       });
-      if (els.packingTabs) {
-        els.packingTabs.addEventListener('click', e => {
-          const tab = e.target.closest('.packing-tab');
-          if (!tab) return;
-          activePackingTab = tab.dataset.pack;
-          els.packingTabs.querySelectorAll('.packing-tab').forEach(t => t.classList.toggle('active', t === tab));
-          renderPackingLists();
-        });
-      }
     }
 
     function openBadgeDetail(id, unlocked) {
