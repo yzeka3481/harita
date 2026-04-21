@@ -25,8 +25,8 @@
     .tool-btn.export{background:#2f7cde;color:#fff}
     .tool-btn.import{background:#2c8b6b;color:#fff}
     .tool-btn.stats{background:#394f6c;color:#e6f1ff}
-    .hero{border:none;border-radius:0;overflow:visible;height:290px;margin:-14px -14px -120px;position:relative;background:transparent;z-index:1}
-    .hero img{position:absolute;left:0;right:0;top:-20px;bottom:0;width:100%;height:calc(100% + 120px);object-fit:cover;transform:none}
+    .hero{border:none;border-radius:36px 36px 0 0;overflow:hidden;height:290px;margin:-14px -14px -120px;position:relative;background:#060c18;z-index:1}
+    .hero img{position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:calc(100% + 120px);object-fit:cover;transition:opacity 0.6s ease;background:#060c18}
     .hero:after{
       content:"";
       position:absolute;
@@ -35,10 +35,10 @@
         linear-gradient(180deg,
           rgba(20,38,64,0) 0%,
           rgba(20,38,64,0) 28%,
-          rgba(20,38,64,.35) 50%,
-          rgba(20,38,64,.72) 68%,
-          rgba(20,38,64,.92) 82%,
-          rgba(20,38,64,1) 100%);
+          rgba(20,38,64,.3) 50%,
+          rgba(20,38,64,.6) 68%,
+          rgba(20,38,64,.85) 82%,
+          var(--bg) 100%);
     }
     .hero-content{position:relative;z-index:1;height:100%;padding:24px 20px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
     .hero-head{display:flex;justify-content:flex-end;align-items:center;gap:8px}.hero h1{margin:0;font-size:22px}.badge{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 10px;font-size:12px;background:rgba(16,25,37,.7)}
@@ -2831,7 +2831,9 @@
     }
 
     function renderRecent() {
-      recentItems = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
+      recentItems = records.filter(item => item.status !== 'planned')
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 3);
       if (!recentItems.length) {
         recentIndex = 0;
         els.recentList.innerHTML = "<div class='empty'>Henuz kayit yok.</div>";
