@@ -1066,6 +1066,10 @@
     };
 
     let records = loadRecords();
+    let userOwnRecords = [...records];
+    let originalRecords = [];
+    let currentFriendData = null;
+    let isFriendView = false;
     let currentUser = null;
     let firebaseReady = false;
     let authMode = "login";
@@ -1419,12 +1423,29 @@
         }
         firebaseAuth.onAuthStateChanged(user => {
           detachCloudListeners();
+          
+          // CRITICAL: Clear all state on account change
+          if (isFriendView) {
+             isFriendView = false;
+             els.friendViewBadge.classList.remove("active");
+          }
+          currentFriendData = null;
+          records = [];
+          userOwnRecords = [];
+          originalRecords = [];
+          renderAll(); // Immediate clear UI
+          
           shownCloudPermissionAlert = false;
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
+          
+          if (!currentUser) return;
+          
+          // Initial load from local cache for this user
           records = loadRecords();
-          cloudSyncStatus = currentUser ? "Bulut baglaniyor (server)..." : "";
+          userOwnRecords = [...records];
+          cloudSyncStatus = "Bulut baglaniyor (server)...";
           renderAll();
-          if (!currentUser || !currentUser.uid) return;
+          
           forceReloadCloudRecords()
             .then(cloudRecords => {
               let finalRecords = Array.isArray(cloudRecords) ? cloudRecords : [];
@@ -1454,6 +1475,7 @@
                 }
               }
               records = mergeCloudWithLocalPhotos(finalRecords, records);
+              userOwnRecords = [...records]; // Update the isolated master list
               renderAll();
               try {
                 localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
@@ -1858,9 +1880,6 @@
       }, 90);
     }
 
-    let isFriendView = false;
-    let originalRecords = null;
-
     async function syncUserProfile() {
       if (!currentUser || !firebaseDb) return;
       try {
@@ -2018,13 +2037,11 @@
         const fRecordsRaw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         const fRecords = normalizeRecordsArray(fRecordsRaw);
         
-        if (!isFriendView) originalRecords = [...records];
-        
         // Hold the records but don't set isFriendView=true yet for the global state
         currentFriendData = { uid: friendUid, name: friendName, records: fRecords };
         
-        // Populate Friend Profile Screen
-        renderFriendProfile(friendName, records, fRecords);
+        // Populate Friend Profile Screen using ALWAYS the master userOwnRecords for comparison
+        renderFriendProfile(friendName, userOwnRecords, fRecords);
         
         switchScreen("friendProfile");
       } catch (err) { 
@@ -2035,6 +2052,9 @@
 
     function startFriendMapMode() {
       if (!currentFriendData) return;
+      // Backup current state if not already in friend mode
+      if (!isFriendView) originalRecords = [...records];
+      
       records = currentFriendData.records;
       isFriendView = true;
       els.friendViewName.textContent = currentFriendData.name + " Haritası";
@@ -2170,9 +2190,14 @@
     }
 
     function exitFriendView() {
-      if (!isFriendView) return;
-      records = [...originalRecords];
+      if (!isFriendView) {
+         // Even if not in map mode, ensure we clear the profile data when closing
+         switchScreen("social");
+         return;
+      }
+      records = [...userOwnRecords]; 
       isFriendView = false;
+      currentFriendData = null;
       els.friendViewBadge.classList.remove("active");
       renderAll();
       switchScreen("social");
@@ -2416,97 +2441,24 @@
       }
     }
 
-    async function persistCloudRecords(forceRecords = null) {
-      if (isFriendView) return;
-      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
-      if (cloudSyncBusy) {
-        if (Array.isArray(forceRecords)) setTimeout(() => persistCloudRecords(forceRecords), 600);
-        else queueCloudSync();
-        return;
-      }
-      cloudSyncBusy = true;
+    async function persistCloudRecords() {
+      if (!firebaseDb || !currentUser || isFriendView) return;
       try {
-        const payload = normalizeRecordsArray(Array.isArray(forceRecords) ? forceRecords : records);
-        const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
-        
-        // Use parallel writes for performance
-        const writePromises = payload.map(async item => {
-          const docRef = colRef.doc(item.id);
-          try {
-            await docRef.set({
-              ...toCloudRecord(item),
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-              deviceUpdatedAt: new Date().toISOString()
-            }, { merge: true });
-            return true;
-          } catch (writeError) {
-            if (isCloudPayloadTooLargeError(writeError)) {
-              try {
-                await docRef.set({
-                  ...toCloudRecordLite(item),
-                  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                  deviceUpdatedAt: new Date().toISOString(),
-                  cloudPhotoStripped: true
-                }, { merge: true });
-                return true;
-              } catch (liteError) { console.warn("Lite sync fail:", item.id, liteError); }
-            }
-            console.warn("Doc sync fail:", item.id, writeError);
-            return false;
-          }
+        const batch = firebaseDb.batch();
+        userOwnRecords.forEach(r => {
+          const ref = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(r.id);
+          batch.set(ref, toCloudRecord(r));
         });
-
-        const results = await Promise.all(writePromises);
-        const okWrites = results.filter(Boolean).length;
-
-        // Legacy compatibility doc set in parallel
-        firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records").set({
-          records: payload.map(toCloudRecordLite),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          deviceUpdatedAt: new Date().toISOString(),
-          compatVersion: APP_VERSION
-        }, { merge: true }).catch(err => console.warn("Legacy sync skip:", err));
-
-        cloudSyncPending = false;
-        cloudSyncStatus = `Bulut esitlendi (${okWrites}/${payload.length}).`;
-        renderAuthPanel();
-      } catch (error) {
-        console.warn("Cloud sync fail:", error);
-        handleCloudPermissionError(error);
-        cloudSyncPending = false;
-        cloudSyncStatus = "Buluta yazma hatasi.";
-        renderAuthPanel();
-      } finally {
-        cloudSyncBusy = false;
-      }
+        await batch.commit();
+      } catch (err) { console.warn("Cloud save error:", err); }
     }
 
     async function saveRecords(options = {}) {
-      const syncNow = !!(options && options.syncNow);
-      let wrote = tryWriteLocalRecordsSnapshot(records);
-      if (!wrote) {
-        const step1 = compactRecordsForLocalStorage(records, "keep-latest-one-photo");
-        wrote = tryWriteLocalRecordsSnapshot(step1);
+      if (currentUser && currentUser.uid) {
+         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
       }
-      if (!wrote) {
-        const step2 = compactRecordsForLocalStorage(records, "no-photos");
-        wrote = tryWriteLocalRecordsSnapshot(step2);
-      }
-      if (!wrote) {
-        const step3 = compactRecordsForLocalStorage(records, "limit-record-count");
-        wrote = tryWriteLocalRecordsSnapshot(step3);
-      }
-      if (!wrote && !shownQuotaAlert) {
-        shownQuotaAlert = true;
-        alert("Tarayici depolama kotasi doldu. Sehirler kaydedildi ancak bazi fotograflar yerel onbellekten cikarildi. Tam fotograf senkronu icin Firebase Storage onerebilirim.");
-      }
-      cloudSyncPending = true;
-      lastLocalMutationAt = Date.now();
-      if (syncNow && currentUser && currentUser.uid && firebaseReady && firebaseDb) {
-        await persistCloudRecords(records);
-      } else {
-        queueCloudSync();
-      }
+      if (options.syncNow) await persistCloudRecords();
+      renderAll();
     }
 
     function getRecordsStorageKey() {
@@ -2581,6 +2533,7 @@
     async function onDeleteAllData() {
       if (!confirm("Tum kayitlari silmek istediginize emin misiniz? Bu islem geri alinamaz!")) return;
       records = [];
+      userOwnRecords = [];
       localStorage.removeItem(getRecordsStorageKey());
       
       if (currentUser && currentUser.uid && firebaseReady && firebaseDb) {
@@ -2654,6 +2607,7 @@
 
         if (!normalized.length) throw new Error("Gecerli kayit yok.");
         records = normalized.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        userOwnRecords = [...records];
         await saveRecords({ syncNow: true });
         renderAll();
         alert("JSON ice aktarma tamamlandi: " + records.length + " kayit.");
@@ -2665,11 +2619,6 @@
     }
 
     async function onSave(event) {
-      if (isFriendView) {
-        event.preventDefault();
-        alert("Arkadasinizin verilerini degistiremezsiniz.");
-        return;
-      }
       event.preventDefault();
       const city = els.cityInput.value.trim();
       const country = els.countryInput.value.trim();
@@ -2747,11 +2696,21 @@
           note,
           isPublic
         };
-        if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
-        else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
+
+        if (editId) {
+           // We ONLY update userOwnRecords because friend data is read-only
+           userOwnRecords = userOwnRecords.map(item => item.id === editId ? { ...item, ...payload } : item);
+           // If we are NOT in friend view, update active records too
+           if (!isFriendView) records = [...userOwnRecords];
+        } else {
+           const newId = crypto.randomUUID();
+           const now = new Date().toISOString();
+           const newRecord = { id: newId, createdAt: now, ...payload };
+           userOwnRecords.unshift(newRecord);
+           if (!isFriendView) records = [...userOwnRecords];
+        }
         
-        // Non-blocking background sync
-        saveRecords({ syncNow: true });
+        await saveRecords({ syncNow: true });
         
         resetAddForm();
         renderAll();
@@ -2808,9 +2767,6 @@
       if (button.dataset.action === "edit") openAddScreen(id);
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
-        records = records.filter(item => item.id !== id);
-        await saveRecords({ syncNow: true });
-        renderAll();
         await deleteCloudRecordImmediately(id);
       }
     }
