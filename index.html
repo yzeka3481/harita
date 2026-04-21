@@ -734,6 +734,12 @@
       </div>
     </section>
 
+    <section id="friendProfileScreen" class="screen">
+      <div style="padding: 0 8px;">
+        <div id="friendProfileContent"></div>
+      </div>
+    </section>
+
     <section id="countryScreen" class="screen">
       <div style="padding: 0 8px;">
         <div class="screen-head" style="background:linear-gradient(135deg,rgba(18,50,95,0.9),rgba(11,32,68,0.95)); border:1px solid rgba(97,176,255,0.2); padding:16px 20px; border-radius:20px; backdrop-filter:blur(10px); box-shadow:0 6px 24px rgba(0,0,0,0.3); margin-bottom:16px;">
@@ -760,7 +766,7 @@
   <button id="openAddBtn" class="add-btn" type="button" aria-label="Sehir ekle"></button>
 
   <nav class="tabs" aria-label="Menu">
-    <div class="tabs-inner">
+    <div id="tabsInner" class="tabs-inner">
       <div id="tabIndicator" class="tab-indicator"></div>
       <button class="tab-btn active" data-screen="home" type="button" aria-label="Ana">
         <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
@@ -983,7 +989,10 @@
       cityDetailModal: document.getElementById("cityDetailModal"),
       cityDetailCloseBtn: document.getElementById("cityDetailCloseBtn"),
       cityDetailTitle: document.getElementById("cityDetailTitle"),
-      cityDetailChart: document.getElementById("cityDetailChart")
+      cityDetailChart: document.getElementById("cityDetailChart"),
+      tabsInner: document.getElementById("tabsInner"),
+      friendProfileScreen: document.getElementById("friendProfileScreen"),
+      friendProfileContent: document.getElementById("friendProfileContent")
     };
 
     let records = loadRecords();
@@ -1720,6 +1729,11 @@
 
     function switchScreen(name) {
       closePhotoLightbox();
+      if (isFriendView && (name === "add" || name === "records")) {
+        switchScreen(lastNonCountryScreen || "map");
+        return;
+      }
+
       if (name !== "country") lastNonCountryScreen = name;
       els.homeScreen.classList.toggle("active", name === "home");
       els.mapScreen.classList.toggle("active", name === "map");
@@ -1728,14 +1742,28 @@
       els.summaryScreen.classList.toggle("active", name === "summary");
       els.socialScreen.classList.toggle("active", name === "social");
       els.countryScreen.classList.toggle("active", name === "country");
+      els.friendProfileScreen.classList.toggle("active", name === "friendProfile");
       
       // Update Tab State and Move Indicator
-      els.tabs.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === name));
-      const activeBtn = Array.from(els.tabs).find(b => b.dataset.screen === name);
-      if (activeBtn && els.tabIndicator) {
-        const idx = Array.from(els.tabs).indexOf(activeBtn);
-        // Each tab is 25% of the bar. We shift the indicator by idx * 100%
-        els.tabIndicator.style.transform = `translateX(${idx * 100}%)`;
+      const visibleTabs = Array.from(els.tabs).filter(btn => {
+        const s = btn.dataset.screen;
+        const isRestricted = isFriendView && (s === "add" || s === "records");
+        btn.style.display = isRestricted ? "none" : "flex";
+        return !isRestricted;
+      });
+      
+      if (els.tabsInner) {
+         els.tabsInner.style.gridTemplateColumns = `repeat(${visibleTabs.length}, 1fr)`;
+      }
+      if (els.tabIndicator) {
+         els.tabIndicator.style.width = `calc((100% - 12px) / ${visibleTabs.length})`;
+      }
+
+      visibleTabs.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === name));
+      
+      const vIdx = visibleTabs.findIndex(b => b.dataset.screen === name);
+      if (vIdx !== -1 && els.tabIndicator) {
+        els.tabIndicator.style.transform = `translateX(${vIdx * 100}%)`;
       }
 
       els.homeScreen.scrollTop = 0;
@@ -1909,21 +1937,109 @@
       if (!firebaseDb) return;
       try {
         const snap = await firebaseDb.collection("users").doc(friendUid).collection("records").get();
-        const friendRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const fRecordsRaw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const fRecords = normalizeRecordsArray(fRecordsRaw);
         
         if (!isFriendView) originalRecords = [...records];
         
-        records = normalizeRecordsArray(friendRecords);
-        isFriendView = true;
-        els.friendViewName.textContent = friendName + " Haritası";
-        els.friendViewBadge.classList.add("active");
+        // Populate Friend Profile Screen
+        renderFriendProfile(friendName, records, fRecords);
         
-        renderAll();
-        switchScreen("map");
+        // Hold the records but don't set isFriendView=true yet for the global state
+        // until they click "Haritayı Gör" from the profile
+        currentFriendData = { uid: friendUid, name: friendName, records: fRecords };
+        
+        switchScreen("friendProfile");
       } catch (err) { 
         alert("Arkadas verisi alinamadi. (Güvenlik kurallarini kontrol etmeyi unutma!)"); 
         console.warn(err);
       }
+    }
+
+    function startFriendMapMode() {
+      if (!currentFriendData) return;
+      records = currentFriendData.records;
+      isFriendView = true;
+      els.friendViewName.textContent = currentFriendData.name + " Haritası";
+      els.friendViewBadge.classList.add("active");
+      renderAll();
+      switchScreen("map");
+    }
+
+    function renderFriendProfile(name, myRecords, friendRecords) {
+      const myCountries = new Set(myRecords.map(r => r.country.toLowerCase()).filter(Boolean));
+      const myCities = new Set(myRecords.map(r => r.city.toLowerCase()).filter(Boolean));
+      
+      const fCountries = [...new Set(friendRecords.map(r => r.country).filter(Boolean))];
+      const fCities = friendRecords.map(r => r.city).filter(Boolean);
+      
+      const mutualCities = friendRecords.filter(r => myCities.has(r.city.toLowerCase()));
+      const uniqueToFriend = fCountries.filter(c => !myCountries.has(c.toLowerCase()));
+
+      const fVisitTypes = { holiday: 0, business: 0, daytrip: 0, transit: 0 };
+      friendRecords.forEach(r => { if (fVisitTypes[r.visitType] !== undefined) fVisitTypes[r.visitType]++; });
+
+      els.friendProfileContent.innerHTML = `
+        <div class="screen-head" style="background:linear-gradient(135deg,rgba(25,60,110,0.92),rgba(15,35,70,0.96)); border:1px solid rgba(255,255,255,0.15); padding:18px 20px; border-radius:24px; backdrop-filter:blur(12px); box-shadow:0 8px 32px rgba(0,0,0,0.4); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;">${esc(name)}</h2>
+          <button onclick="switchScreen('social')" class="ghost-btn" style="background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); color:#fff; border-radius:12px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer;">Geri</button>
+        </div>
+
+        <div class="stats" style="grid-template-columns: 1fr 1fr; margin-bottom:16px;">
+          <div class="stat" style="background:rgba(97,176,255,0.12); border-color:rgba(97,176,255,0.3);">
+            <small style="color:#9ecbff">ÜLKE</small>
+            <strong>${fCountries.length}</strong>
+          </div>
+          <div class="stat" style="background:rgba(97,176,255,0.12); border-color:rgba(97,176,255,0.3);">
+            <small style="color:#9ecbff">ŞEHİR</small>
+            <strong>${fCities.length}</strong>
+          </div>
+        </div>
+
+        <article class="card" style="background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:20px; margin-bottom:16px;">
+          <h3 style="margin:0 0 16px; font-size:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">⚔️ Karşılaştırma</h3>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+             <div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:var(--muted)"><span>Sen (${myRecords.length})</span> <span>O (${friendRecords.length})</span></div>
+                <div style="height:10px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; display:flex;">
+                   <div style="width:${(myRecords.length / (myRecords.length + friendRecords.length || 1)) * 100}%; background:var(--primary); box-shadow:0 0 10px var(--primary);"></div>
+                   <div style="flex:1; background:var(--social); opacity:0.8;"></div>
+                </div>
+             </div>
+             
+             <div style="background:rgba(255,255,255,0.04); padding:14px; border-radius:18px; border:1px dashed rgba(255,255,255,0.1);">
+                <div style="font-size:13px; font-weight:700; color:#fff; margin-bottom:8px;">Ortak Gezilen Şehirler</div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                   ${mutualCities.length ? mutualCities.slice(0, 8).map(c => `<span class="iinfo" style="background:rgba(63,212,160,0.15); border-color:rgba(63,212,160,0.3); color:#3fd4a0;">${esc(c.city)}</span>`).join('') : '<span style="font-size:11px; color:var(--muted)">Henüz ortak şehir yok.</span>'}
+                   ${mutualCities.length > 8 ? `<span style="font-size:11px; color:var(--muted); align-self:center;">+${mutualCities.length - 8} daha</span>` : ''}
+                </div>
+             </div>
+
+             ${uniqueToFriend.length ? `
+             <div style="font-size:12px; color:var(--muted); line-height:1.4;">
+                💡 <strong>${esc(name)}</strong>, senin henüz gitmediğin <strong>${uniqueToFriend.length}</strong> farklı ülkeyi keşfetmiş!
+             </div>` : ''}
+          </div>
+        </article>
+
+        <article class="card" style="background:rgba(255,255,255,0.03); border-radius:24px; padding:20px; margin-bottom:20px;">
+           <h3 style="margin:0 0 12px; font-size:15px;">Seyahat Karakteri</h3>
+           <div style="display:grid; grid-template-columns: repeat(2,1fr); gap:10px;">
+              <div style="padding:10px; background:rgba(255,165,30,0.08); border-radius:14px; border:1px solid rgba(255,165,30,0.15); text-align:center;">
+                 <div style="font-size:18px; font-weight:800; color:#ffc46a;">%${Math.round((fVisitTypes.holiday / (friendRecords.length || 1)) * 100)}</div>
+                 <div style="font-size:10px; text-transform:uppercase; color:rgba(255,165,30,0.7); letter-spacing:0.5px">Tatilci</div>
+              </div>
+              <div style="padding:10px; background:rgba(140,100,255,0.08); border-radius:14px; border:1px solid rgba(140,100,255,0.15); text-align:center;">
+                 <div style="font-size:18px; font-weight:800; color:#c9b4ff;">%${Math.round((fVisitTypes.business / (friendRecords.length || 1)) * 100)}</div>
+                 <div style="font-size:10px; text-transform:uppercase; color:rgba(140,100,255,0.7); letter-spacing:0.5px">İş Gezgini</div>
+              </div>
+           </div>
+        </article>
+
+        <button onclick="startFriendMapMode()" style="width:100%; background:linear-gradient(135deg, var(--primary), #3d8fe8); color:#0a1e36; border:none; border-radius:20px; padding:18px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 10px 25px rgba(97,176,255,0.35); margin-bottom:40px;">
+           HARİTASINI İNCELE 🌍
+        </button>
+      `;
     }
 
     function exitFriendView() {
@@ -2158,6 +2274,7 @@
     }
 
     async function deleteCloudRecordImmediately(recordId) {
+      if (isFriendView) return;
       if (!recordId || !currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       try {
         const docRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(recordId);
@@ -2171,6 +2288,7 @@
     }
 
     async function persistCloudRecords(forceRecords = null) {
+      if (isFriendView) return;
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       if (cloudSyncBusy) {
         if (Array.isArray(forceRecords)) setTimeout(() => persistCloudRecords(forceRecords), 600);
@@ -2418,6 +2536,11 @@
     }
 
     async function onSave(event) {
+      if (isFriendView) {
+        event.preventDefault();
+        alert("Arkadasinizin verilerini degistiremezsiniz.");
+        return;
+      }
       event.preventDefault();
       const city = els.cityInput.value.trim();
       const country = els.countryInput.value.trim();
@@ -2527,6 +2650,13 @@
     }
 
     async function onRecordAction(event) {
+      if (isFriendView) {
+        const btn = event.target.closest("button[data-action]");
+        if (btn && btn.dataset.action !== "detail") {
+           alert("Okuma modunda sadece detaylari gorebilirsiniz.");
+           return;
+        }
+      }
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       if (button.dataset.action === "toggle-country") {
@@ -2609,6 +2739,9 @@
     }
 
     function renderAll() {
+      if (els.openAddBtn) {
+        els.openAddBtn.style.display = isFriendView ? "none" : "flex";
+      }
       renderAuthPanel();
       renderHero();
       renderHomeGlobe();
