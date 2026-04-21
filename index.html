@@ -294,6 +294,61 @@
     .friend-view-badge.active{display:flex}
     .friend-view-close{background:rgba(0,0,0,0.2); border:none; width:20px; height:20px; border-radius:50%; color:#0a1e36; font-size:14px; font-weight:800; cursor:pointer}
 
+    /* Privacy Toggle Styling */
+    .privacy-toggle {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    .privacy-toggle label {
+      flex: 1;
+      cursor: pointer;
+    }
+    .privacy-toggle input {
+      display: none;
+    }
+    .privacy-toggle span {
+      display: block;
+      padding: 10px;
+      text-align: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .privacy-toggle input:checked + span {
+      background: rgba(97,176,255,0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 15px rgba(97,176,255,0.2);
+    }
+
+    /* Friend Map Back Button */
+    .friend-back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 2000;
+      background: rgba(18,50,95,0.85);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 15px;
+      font-weight: 700;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      transition: all 0.2s;
+    }
+    .friend-back-btn:active { transform: scale(0.95); }
+
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-globe{width:min(72vw,420px)}#exploreMapWrap{height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
     .country-album-section{margin-top:20px;padding:0 4px}
     .country-album-section h2{margin:0 0 12px;font-size:16px;color:#fff;display:flex;align-items:center;gap:8px}
@@ -610,6 +665,14 @@
               </select>
             </div>
           </div>
+          <div style="margin-bottom:16px;">
+            <label class="field-label">Paylaşım Ayarı</label>
+            <div class="privacy-toggle">
+               <label><input type="radio" name="privacy" value="public" checked> <span>🌐 Herkese Açık</span></label>
+               <label><input type="radio" name="privacy" value="private"> <span>🔒 Özel</span></label>
+            </div>
+            <div class="hint">"Özel" seçilirse fotoğrafların arkadaşlarına gösterilmez.</div>
+          </div>
           <div>
             <label class="field-label" for="photoInput">Ani galerisi (foto)</label>
             <input id="photoInput" class="file-input" type="file" accept="image/*" multiple>
@@ -762,6 +825,10 @@
 
     </section>
   </main>
+
+  <button id="friendMapBackBtn" class="friend-back-btn" type="button" onclick="switchScreen('friendProfile')">
+     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Profil
+  </button>
 
   <button id="openAddBtn" class="add-btn" type="button" aria-label="Sehir ekle"></button>
 
@@ -992,7 +1059,10 @@
       cityDetailChart: document.getElementById("cityDetailChart"),
       tabsInner: document.getElementById("tabsInner"),
       friendProfileScreen: document.getElementById("friendProfileScreen"),
-      friendProfileContent: document.getElementById("friendProfileContent")
+      friendProfileContent: document.getElementById("friendProfileContent"),
+      friendPrivacyInputs: document.getElementsByName("privacy"),
+      friendMapBackBtn: document.getElementById("friendMapBackBtn"),
+      mainNav: document.querySelector(".tabs")
     };
 
     let records = loadRecords();
@@ -1743,6 +1813,14 @@
       els.socialScreen.classList.toggle("active", name === "social");
       els.countryScreen.classList.toggle("active", name === "country");
       els.friendProfileScreen.classList.toggle("active", name === "friendProfile");
+
+      // Friends Navigation Control
+      if (els.mainNav) {
+         els.mainNav.style.display = (isFriendView && name === "map") ? "none" : "flex";
+      }
+      if (els.friendMapBackBtn) {
+         els.friendMapBackBtn.style.display = (isFriendView && name === "map") ? "flex" : "none";
+      }
       
       // Update Tab State and Move Indicator
       const visibleTabs = Array.from(els.tabs).filter(btn => {
@@ -1942,12 +2020,11 @@
         
         if (!isFriendView) originalRecords = [...records];
         
+        // Hold the records but don't set isFriendView=true yet for the global state
+        currentFriendData = { uid: friendUid, name: friendName, records: fRecords };
+        
         // Populate Friend Profile Screen
         renderFriendProfile(friendName, records, fRecords);
-        
-        // Hold the records but don't set isFriendView=true yet for the global state
-        // until they click "Haritayı Gör" from the profile
-        currentFriendData = { uid: friendUid, name: friendName, records: fRecords };
         
         switchScreen("friendProfile");
       } catch (err) { 
@@ -1967,79 +2044,129 @@
     }
 
     function renderFriendProfile(name, myRecords, friendRecords) {
-      const myCountries = new Set(myRecords.map(r => r.country.toLowerCase()).filter(Boolean));
-      const myCities = new Set(myRecords.map(r => r.city.toLowerCase()).filter(Boolean));
+      // Filter for Visited only for stats
+      const myVisited = myRecords.filter(item => isTravelled(item.status));
+      const fVisited = friendRecords.filter(item => isTravelled(item.status));
+
+      const myUniqueCountries = new Set(myVisited.map(r => (r.countryCode || r.country || "").toLowerCase()).filter(Boolean));
+      const myUniqueCities = new Set(myVisited.map(r => (r.city || "").toLowerCase()).filter(Boolean));
       
-      const fCountries = [...new Set(friendRecords.map(r => r.country).filter(Boolean))];
-      const fCities = friendRecords.map(r => r.city).filter(Boolean);
+      const fUniqueCountries = [...new Set(fVisited.map(r => (r.countryCode || r.country || "").toLowerCase()).filter(Boolean))];
+      const fUniqueCities = [...new Set(fVisited.map(r => (r.city || "").toLowerCase()).filter(Boolean))];
       
-      const mutualCities = friendRecords.filter(r => myCities.has(r.city.toLowerCase()));
-      const uniqueToFriend = fCountries.filter(c => !myCountries.has(c.toLowerCase()));
+      // Mutual calculation based on unique city names
+      const mutualCityNames = fUniqueCities.filter(cityName => myUniqueCities.has(cityName));
+      // Map back to original casing for display (use friend's casing)
+      const mutualForDisplay = mutualCityNames.map(nameKey => {
+         const found = fVisited.find(r => (r.city || "").toLowerCase() === nameKey);
+         return found ? found.city : nameKey;
+      });
 
       const fVisitTypes = { holiday: 0, business: 0, daytrip: 0, transit: 0 };
-      friendRecords.forEach(r => { if (fVisitTypes[r.visitType] !== undefined) fVisitTypes[r.visitType]++; });
+      fVisited.forEach(r => { if (fVisitTypes[r.visitType] !== undefined) fVisitTypes[r.visitType]++; });
+
+      // Build Timeline Data (Chronological)
+      const countryGroups = {};
+      fVisited.forEach(item => {
+        const code = (item.countryCode || 'xx').toLowerCase();
+        if (!countryGroups[code]) {
+          countryGroups[code] = { code, name: item.country || 'Bilinmeyen Ülke', cities: new Set(), latestDate: 0, photo: null };
+        }
+        countryGroups[code].cities.add(item.city);
+        const time = getRecordTime(item);
+        if (time > countryGroups[code].latestDate) {
+          countryGroups[code].latestDate = time;
+          if (item.isPublic && Array.isArray(item.photos) && item.photos.length > 0) {
+            countryGroups[code].photo = item.photos[0];
+          }
+        }
+      });
+      const timelineData = Object.values(countryGroups).sort((a, b) => b.latestDate - a.latestDate);
+
+      // Versus Calculation (Countries)
+      const myCountC = myUniqueCountries.size;
+      const fCountC = fUniqueCountries.length;
+      const totalC = myCountC + fCountC;
+      const myPercentC = totalC === 0 ? 50 : (myCountC / totalC) * 100;
 
       els.friendProfileContent.innerHTML = `
         <div class="screen-head" style="background:linear-gradient(135deg,rgba(25,60,110,0.92),rgba(15,35,70,0.96)); border:1px solid rgba(255,255,255,0.15); padding:18px 20px; border-radius:24px; backdrop-filter:blur(12px); box-shadow:0 8px 32px rgba(0,0,0,0.4); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-          <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;">${esc(name)}</h2>
-          <button onclick="switchScreen('social')" class="ghost-btn" style="background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); color:#fff; border-radius:12px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer;">Geri</button>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="social-avatar" style="width:36px; height:36px; background:var(--primary); font-size:16px;">${(name || "?")[0].toUpperCase()}</div>
+            <h2 style="font-size:18px; font-weight:800; color:#fff; margin:0;">${esc(name)}</h2>
+          </div>
+          <button onclick="exitFriendView()" class="ghost-btn" style="background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); color:#fff; border-radius:12px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer;">Kapat</button>
         </div>
 
         <div class="stats" style="grid-template-columns: 1fr 1fr; margin-bottom:16px;">
           <div class="stat" style="background:rgba(97,176,255,0.12); border-color:rgba(97,176,255,0.3);">
             <small style="color:#9ecbff">ÜLKE</small>
-            <strong>${fCountries.length}</strong>
+            <strong>${fUniqueCountries.length}</strong>
           </div>
           <div class="stat" style="background:rgba(97,176,255,0.12); border-color:rgba(97,176,255,0.3);">
             <small style="color:#9ecbff">ŞEHİR</small>
-            <strong>${fCities.length}</strong>
+            <strong>${fUniqueCities.length}</strong>
           </div>
         </div>
 
+        <section style="margin-bottom:24px;">
+           <div class="social-section-title" style="margin-top:0;">Zaman Çizelgesi</div>
+           <div class="country-reel-container" style="display:flex; gap:12px; overflow-x:auto; padding-bottom:10px; margin-left:-8px; padding-left:8px;">
+              ${timelineData.length ? timelineData.map(group => {
+                const bg = group.photo || 'https://picsum.photos/seed/' + group.code + '/400/600';
+                return `
+                  <div class="country-reel-card" onclick="openFriendCountryPhotos('${group.code}')" style="min-width:140px; height:200px;">
+                    <div class="reel-bg"><img src="${bg}" loading="lazy" alt=""></div>
+                    <div class="reel-flag"><img src="https://flagcdn.com/w80/${group.code}.png" alt=""></div>
+                    <div class="reel-overlay">
+                      <div class="reel-name">${esc(group.name)}</div>
+                      <div class="reel-stats">${group.cities.size} Şehir</div>
+                    </div>
+                  </div>
+                `;
+              }).join('') : '<div class="hint">Henüz seyahat yok.</div>'}
+           </div>
+        </section>
+
         <article class="card" style="background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:20px; margin-bottom:16px;">
-          <h3 style="margin:0 0 16px; font-size:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">⚔️ Karşılaştırma</h3>
+          <h3 style="margin:0 0 16px; font-size:16px;">⚔️ Ülke Kıyaslaması</h3>
           <div style="display:flex; flex-direction:column; gap:16px;">
              <div>
-                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:var(--muted)"><span>Sen (${myRecords.length})</span> <span>O (${friendRecords.length})</span></div>
-                <div style="height:10px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; display:flex;">
-                   <div style="width:${(myRecords.length / (myRecords.length + friendRecords.length || 1)) * 100}%; background:var(--primary); box-shadow:0 0 10px var(--primary);"></div>
-                   <div style="flex:1; background:var(--social); opacity:0.8;"></div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:var(--muted)"><span>Sen (${myCountC} Ülke)</span> <span>O (${fCountC} Ülke)</span></div>
+                <div style="height:12px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; display:flex;">
+                   <div style="width:${myPercentC}%; background:var(--primary); box-shadow:0 0 12px var(--primary);"></div>
+                   <div style="flex:1; background:var(--social); opacity:1;"></div>
                 </div>
              </div>
              
              <div style="background:rgba(255,255,255,0.04); padding:14px; border-radius:18px; border:1px dashed rgba(255,255,255,0.1);">
                 <div style="font-size:13px; font-weight:700; color:#fff; margin-bottom:8px;">Ortak Gezilen Şehirler</div>
                 <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                   ${mutualCities.length ? mutualCities.slice(0, 8).map(c => `<span class="iinfo" style="background:rgba(63,212,160,0.15); border-color:rgba(63,212,160,0.3); color:#3fd4a0;">${esc(c.city)}</span>`).join('') : '<span style="font-size:11px; color:var(--muted)">Henüz ortak şehir yok.</span>'}
-                   ${mutualCities.length > 8 ? `<span style="font-size:11px; color:var(--muted); align-self:center;">+${mutualCities.length - 8} daha</span>` : ''}
+                   ${mutualForDisplay.length ? mutualForDisplay.slice(0, 8).map(cityName => `<span class="iinfo" style="background:rgba(63,212,160,0.15); border-color:rgba(63,212,160,0.3); color:#3fd4a0; font-size:10px;">${esc(cityName)}</span>`).join('') : '<span style="font-size:11px; color:var(--muted)">Henüz ortak şehir yok.</span>'}
+                   ${mutualForDisplay.length > 8 ? `<span style="font-size:11px; color:var(--muted); align-self:center;">+${mutualForDisplay.length - 8}</span>` : ''}
                 </div>
              </div>
-
-             ${uniqueToFriend.length ? `
-             <div style="font-size:12px; color:var(--muted); line-height:1.4;">
-                💡 <strong>${esc(name)}</strong>, senin henüz gitmediğin <strong>${uniqueToFriend.length}</strong> farklı ülkeyi keşfetmiş!
-             </div>` : ''}
           </div>
-        </article>
-
-        <article class="card" style="background:rgba(255,255,255,0.03); border-radius:24px; padding:20px; margin-bottom:20px;">
-           <h3 style="margin:0 0 12px; font-size:15px;">Seyahat Karakteri</h3>
-           <div style="display:grid; grid-template-columns: repeat(2,1fr); gap:10px;">
-              <div style="padding:10px; background:rgba(255,165,30,0.08); border-radius:14px; border:1px solid rgba(255,165,30,0.15); text-align:center;">
-                 <div style="font-size:18px; font-weight:800; color:#ffc46a;">%${Math.round((fVisitTypes.holiday / (friendRecords.length || 1)) * 100)}</div>
-                 <div style="font-size:10px; text-transform:uppercase; color:rgba(255,165,30,0.7); letter-spacing:0.5px">Tatilci</div>
-              </div>
-              <div style="padding:10px; background:rgba(140,100,255,0.08); border-radius:14px; border:1px solid rgba(140,100,255,0.15); text-align:center;">
-                 <div style="font-size:18px; font-weight:800; color:#c9b4ff;">%${Math.round((fVisitTypes.business / (friendRecords.length || 1)) * 100)}</div>
-                 <div style="font-size:10px; text-transform:uppercase; color:rgba(140,100,255,0.7); letter-spacing:0.5px">İş Gezgini</div>
-              </div>
-           </div>
         </article>
 
         <button onclick="startFriendMapMode()" style="width:100%; background:linear-gradient(135deg, var(--primary), #3d8fe8); color:#0a1e36; border:none; border-radius:20px; padding:18px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 10px 25px rgba(97,176,255,0.35); margin-bottom:40px;">
            HARİTASINI İNCELE 🌍
         </button>
       `;
+    }
+
+    function openFriendCountryPhotos(code) {
+      if (!currentFriendData) return;
+      const fRecs = currentFriendData.records;
+      // Filter only public photos for this country
+      const countryRecs = fRecs.filter(r => (r.countryCode || '').toLowerCase() === code.toLowerCase() && r.isPublic);
+      const allPhotos = countryRecs.flatMap(r => r.photos || []);
+      
+      if (!allPhotos.length) {
+         alert("Bu ülkeye ait herkese açık fotoğraf bulunamadı.");
+         return;
+      }
+      openPhotoLightbox(allPhotos, 0);
     }
 
     function exitFriendView() {
@@ -2068,6 +2195,7 @@
         budget: normalizeMoney(item.budget),
         currency: normalizeCurrency(item.currency),
         tripDays: normalizeDays(item.tripDays),
+        isPublic: item.isPublic !== false, // Default to true
         photos: normalizePhotos(item.photos),
         note: item.note || "",
         createdAt: item.createdAt || new Date().toISOString()
@@ -2104,6 +2232,7 @@
         budget: normalizeMoney(item.budget),
         currency: normalizeCurrency(item.currency),
         tripDays: normalizeDays(item.tripDays),
+        isPublic: item.isPublic !== false,
         photos: safePhotos,
         note: String(item.note || ""),
         createdAt: item.createdAt || new Date().toISOString(),
@@ -2557,6 +2686,7 @@
       const currency = normalizeCurrency(els.currencyInput.value);
       const tripDays = normalizeDays(els.tripDaysInput.value);
       const note = els.noteInput.value.trim();
+      const isPublic = Array.from(els.friendPrivacyInputs).find(i => i.checked)?.value === "public";
       if (!city) return;
 
       els.saveBtn.disabled = true;
@@ -2614,7 +2744,8 @@
           tripDays,
           photos: workingPhotos.slice(0, 8),
           tags: selectedTags,
-          note
+          note,
+          isPublic
         };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
         else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
@@ -2734,6 +2865,10 @@
       if (els.visitTypeInput) els.visitTypeInput.value = "holiday";
       els.currencyInput.value = "TRY";
       els.photoInput.value = "";
+      
+      // Default privacy to public
+      Array.from(els.friendPrivacyInputs).forEach(i => i.checked = (i.value === "public"));
+
       els.addScreenTitle.textContent = "Sehir Ekle";
       renderPhotoPreview();
     }
@@ -3486,13 +3621,18 @@
         const popupMeta = [];
         if (item.ratingOverall != null) popupMeta.push("Puan: " + item.ratingOverall + "/10");
         if (item.budget != null) popupMeta.push("Butce: " + formatMoney(item.budget, item.currency || "TRY"));
-        if (Array.isArray(item.photos) && item.photos.length) popupMeta.push("Ani: " + item.photos.length + " foto");
+        
+        // Filter photos based on privacy if in friend view
+        const displayPhotos = isFriendView ? (item.isPublic ? (item.photos || []) : []) : (item.photos || []);
+        if (displayPhotos.length) popupMeta.push("Ani: " + displayPhotos.length + " foto");
+        
         marker.bindPopup(
           "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
           "Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" +
           (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") +
           (popupMeta.length ? esc(popupMeta.join(" | ")) + "<br>" : "") +
-          (item.note ? "Not: " + esc(item.note) : "")
+          (item.note ? "Not: " + esc(item.note) : "") +
+          (displayPhotos.length ? `<div style='margin-top:8px;'><button class='ghost-btn' onclick='openPhotoLightbox(${JSON.stringify(displayPhotos)}, 0)' style='font-size:11px; padding:4px 8px;'>Fotoğraflara Bak</button></div>` : "")
         );
         marker.addTo(exploreMarkerLayer);
         points.push([item.lat, item.lng]);
