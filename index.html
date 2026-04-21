@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{color-scheme:dark;--bg:#142640;--panel:#213a5b;--panel2:#2a4a70;--line:#4f7398;--text:#f0f7ff;--muted:#c6d9ef;--primary:#61b0ff;--primary2:#3d8fe8;--tabh:68px;--glass-bg:rgba(15,35,64,0.62);--glass-border:rgba(255,255,255,0.12);--glass-blur:14px;}
+    :root{color-scheme:dark;--bg:#142640;--panel:#213a5b;--panel2:#2a4a70;--line:#4f7398;--text:#f0f7ff;--muted:#c6d9ef;--primary:#61b0ff;--primary2:#3d8fe8;--social:#a0c4ff;--tabh:68px;--glass-bg:rgba(15,35,64,0.62);--glass-border:rgba(255,255,255,0.12);--glass-blur:14px;}
     html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
     *{box-sizing:border-box}
     body{margin:0;position:fixed;inset:0;background:radial-gradient(circle at 10% -10%,#6faee8,transparent 42%),radial-gradient(circle at 90% -20%,#67c8bb,transparent 38%),linear-gradient(180deg,#153154,#112743 50%,#10223b);color:var(--text);font-family:'Plus Jakarta Sans',Segoe UI,Tahoma,sans-serif;overflow:hidden}
@@ -158,8 +158,8 @@
     .splash-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#ecf5ff;letter-spacing:-.3px}
     .splash-sub{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:#88aad0;margin-top:-8px}
     .tabs{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:2200;width:calc(100% - 40px);max-width:440px;padding:0;background:none}
-    .tabs-inner{border:1px solid rgba(255,255,255,0.18);border-radius:24px;background:rgba(6,12,24,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);height:var(--tabh);display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:6px;position:relative;box-shadow:0 18px 48px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1)}
-    .tab-indicator{position:absolute;top:6px;left:6px;width:calc((100% - 12px) / 4);height:calc(100% - 12px);background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.12);border-radius:18px;z-index:0;transition:transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+    .tabs-inner{border:1px solid rgba(255,255,255,0.18);border-radius:24px;background:rgba(6,12,24,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);height:var(--tabh);display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px;position:relative;box-shadow:0 18px 48px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1)}
+    .tab-indicator{position:absolute;top:6px;left:6px;width:calc((100% - 12px) / 5);height:calc(100% - 12px);background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.12);border-radius:18px;z-index:0;transition:transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
     .tab-btn{border:none;border-radius:18px;background:none;color:#8fabca;font-size:12px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1;position:relative;z-index:1;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);overflow:hidden}
     .tab-btn.active{color:#fff;transform:translateY(-1px)}
     .tab-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;transition:transform 0.3s ease}
@@ -268,6 +268,32 @@
     .sync-dot.busy{background:#ffd88f;animation:syncPulse .8s ease-in-out infinite}
     @keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.3}}
     .sync-text{font-size:11px;color:#c6dbf3;line-height:1.4}
+    /* Social / Friends UI */
+    .social-screen{padding:20px 16px 80px}
+    .social-head{margin-bottom:20px}
+    .social-search-box{display:flex;gap:8px;background:rgba(255,255,255,0.05);padding:6px;border-radius:14px;border:1px solid rgba(255,255,255,0.08)}
+    .social-search-box input{flex:1;background:transparent;border:none;padding:10px;color:#fff;font-size:13px;outline:none}
+    .social-search-btn{background:var(--primary);color:#0a1e36;border:none;border-radius:10px;padding:0 16px;font-size:12px;font-weight:800;cursor:pointer}
+    .social-section-title{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px;padding-left:4px}
+    .social-list{display:flex;flex-direction:column;gap:10px}
+    
+    .social-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:all 0.2s}
+    .social-avatar{width:44px;height:44px;background:linear-gradient(135deg,var(--primary),var(--social));border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px;color:#0a1e36}
+    .social-info{flex:1}
+    .social-name{font-size:14px;font-weight:700;color:#fff}
+    .social-mail{font-size:11px;color:var(--muted)}
+    
+    .social-actions{display:flex;gap:6px}
+    .social-btn{border:none;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s}
+    .social-btn.add{background:var(--primary);color:#0a1e36}
+    .social-btn.view{background:rgba(255,255,255,0.1);color:#fff}
+    .social-btn.accept{background:#3fd4a0;color:#0a1e36}
+    .social-btn.reject{background:rgba(255,107,107,0.1);color:#ff6b6b}
+    
+    .friend-view-badge{position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--primary); color:#0a1e36; padding:8px 16px; border-radius:99px; font-weight:800; font-size:12px; z-index:9000; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none; align-items:center; gap:10px;}
+    .friend-view-badge.active{display:flex}
+    .friend-view-close{background:rgba(0,0,0,0.2); border:none; width:20px; height:20px; border-radius:50%; color:#0a1e36; font-size:14px; font-weight:800; cursor:pointer}
+
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-globe{width:min(72vw,420px)}#exploreMapWrap{height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
     .country-album-section{margin-top:20px;padding:0 4px}
     .country-album-section h2{margin:0 0 12px;font-size:16px;color:#fff;display:flex;align-items:center;gap:8px}
@@ -684,6 +710,30 @@
       </article>
     </section>
 
+    <section id="socialScreen" class="screen">
+      <div style="padding: 0 8px;">
+        <div class="screen-head" style="background:linear-gradient(135deg,rgba(18,50,95,0.9),rgba(11,32,68,0.95)); border:1px solid rgba(255,255,255,0.2); padding:16px 20px; border-radius:20px; backdrop-filter:blur(10px); box-shadow:0 6px 24px rgba(0,0,0,0.3); margin-bottom:16px;">
+          <h2 style="font-size:22px; font-weight:800; color:#fff; letter-spacing:-0.5px; margin:0; line-height:1.2;">Sosyal</h2>
+        </div>
+        
+        <article class="card" style="margin-bottom:20px;">
+          <h3 style="margin-top:0;">Gezgin Ara</h3>
+          <p class="hint">E-posta adresi ile arkadaşlarını bul.</p>
+          <div class="search-row" style="display:flex;gap:10px;">
+            <input id="socialSearchInput" type="email" placeholder="arkadas@email.com" autocapitalize="none" style="flex:1;">
+            <button id="socialSearchBtn" class="save-btn" style="width: auto; padding: 0 20px;">Ara</button>
+          </div>
+          <div id="socialSearchResults" style="margin-top:12px;"></div>
+        </article>
+
+        <div class="social-section-title">Arkadaşlık İstekleri</div>
+        <div id="socialRequestsList" class="social-list" style="display:grid;gap:10px;margin-bottom:24px;"></div>
+
+        <div class="social-section-title">Arkadaşlarım</div>
+        <div id="socialFriendsList" class="social-list" style="display:grid;gap:10px;margin-bottom:80px;"></div>
+      </div>
+    </section>
+
     <section id="countryScreen" class="screen">
       <div style="padding: 0 8px;">
         <div class="screen-head" style="background:linear-gradient(135deg,rgba(18,50,95,0.9),rgba(11,32,68,0.95)); border:1px solid rgba(97,176,255,0.2); padding:16px 20px; border-radius:20px; backdrop-filter:blur(10px); box-shadow:0 6px 24px rgba(0,0,0,0.3); margin-bottom:16px;">
@@ -724,6 +774,10 @@
         <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
         <span class="tab-label">Kayıtlar</span>
       </button>
+      <button class="tab-btn" data-screen="social" type="button" aria-label="Sosyal">
+        <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="tab-label">Sosyal</span>
+      </button>
       <button class="tab-btn" data-screen="summary" type="button" aria-label="Genel">
         <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
         <span class="tab-label">Özet</span>
@@ -749,6 +803,11 @@
     <div class="journey-map-body">
       <div id="journeyMapContainer"></div>
     </div>
+  </div>
+
+  <div id="friendViewBadge" class="friend-view-badge">
+    <span id="friendViewName">Arkadas Modu</span>
+    <button class="friend-view-close" onclick="exitFriendView()" aria-label="Kapat">×</button>
   </div>
 
   <div id="photoLightbox" class="lightbox" aria-hidden="true">
@@ -819,6 +878,14 @@
       recordsScreen: document.getElementById("recordsScreen"),
       addScreen: document.getElementById("addScreen"),
       summaryScreen: document.getElementById("summaryScreen"),
+      socialScreen: document.getElementById("socialScreen"),
+      socialSearchInput: document.getElementById("socialSearchInput"),
+      socialSearchBtn: document.getElementById("socialSearchBtn"),
+      socialSearchResults: document.getElementById("socialSearchResults"),
+      socialRequestsList: document.getElementById("socialRequestsList"),
+      socialFriendsList: document.getElementById("socialFriendsList"),
+      friendViewBadge: document.getElementById("friendViewBadge"),
+      friendViewName: document.getElementById("friendViewName"),
       countryScreen: document.getElementById("countryScreen"),
       heroImage: document.getElementById("heroImage"),
       heroBadge: document.getElementById("heroBadge"),
@@ -1151,6 +1218,7 @@
         });
       });
       window.addEventListener("resize", () => setTimeout(() => { resizeHomeGlobe(); exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
+      els.socialSearchBtn.addEventListener("click", onSocialSearch);
       bindProEvents();
       if (els.tagsContainer) {
         els.tagsContainer.addEventListener("click", e => {
@@ -1318,6 +1386,8 @@
                 } catch (e2) { console.warn("LocalStorage minimal write de basarisiz:", e2); }
               }
               subscribeCloudRecordsRealtime();
+              syncUserProfile();
+              subscribeSocialData();
             })
             .catch(error => {
               console.warn("Bulut ilk yukleme hatasi:", error);
@@ -1656,6 +1726,7 @@
       els.recordsScreen.classList.toggle("active", name === "records");
       els.addScreen.classList.toggle("active", name === "add");
       els.summaryScreen.classList.toggle("active", name === "summary");
+      els.socialScreen.classList.toggle("active", name === "social");
       els.countryScreen.classList.toggle("active", name === "country");
       
       // Update Tab State and Move Indicator
@@ -1681,6 +1752,188 @@
       }, 90);
     }
 
+    let isFriendView = false;
+    let originalRecords = null;
+
+    async function syncUserProfile() {
+      if (!currentUser || !firebaseDb) return;
+      try {
+        await firebaseDb.collection("profiles").doc(currentUser.uid).set({
+          uid: currentUser.uid,
+          email: (currentUser.email || "").toLowerCase(),
+          name: currentUser.name || (currentUser.email ? currentUser.email.split('@')[0] : "Gezgin"),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (err) { console.warn("Profile sync fail:", err); }
+    }
+
+    let socialListeners = [];
+    function subscribeSocialData() {
+      if (!currentUser || !firebaseDb) return;
+      socialListeners.forEach(unsub => unsub());
+      socialListeners = [];
+
+      // Requests Listener
+      const unsubReq = firebaseDb.collection("profiles").doc(currentUser.uid).collection("friendRequests")
+        .onSnapshot(snap => {
+          renderSocialRequests(snap.docs.map(d => ({ requestId: d.id, ...d.data() })));
+        });
+      socialListeners.push(unsubReq);
+
+      // Friends Listener
+      const unsubFriends = firebaseDb.collection("profiles").doc(currentUser.uid).collection("friends")
+        .onSnapshot(snap => {
+          renderSocialFriends(snap.docs.map(d => ({ friendId: d.id, ...d.data() })));
+        });
+      socialListeners.push(unsubFriends);
+    }
+
+    async function onSocialSearch() {
+      const email = String(els.socialSearchInput.value || "").trim().toLowerCase();
+      if (!email) return;
+      if (email === (currentUser?.email || "").toLowerCase()) {
+        alert("Kendini ekleyemezsin :)");
+        return;
+      }
+      els.socialSearchBtn.disabled = true;
+      els.socialSearchBtn.textContent = "...";
+      try {
+        const snap = await firebaseDb.collection("profiles").where("email", "==", email).limit(1).get();
+        if (snap.empty) {
+          els.socialSearchResults.innerHTML = '<div class="hint">Kullanici bulunamadi.</div>';
+        } else {
+          const user = snap.docs[0].data();
+          renderSearchResult(user);
+        }
+      } catch (err) { alert("Arama hatasi: " + err.message); }
+      finally {
+        els.socialSearchBtn.disabled = false;
+        els.socialSearchBtn.textContent = "Bul";
+      }
+    }
+
+    function renderSearchResult(user) {
+      els.socialSearchResults.innerHTML = `
+        <div class="social-card" style="border-color: var(--primary2)">
+          <div class="social-avatar">${(user.name || "?")[0].toUpperCase()}</div>
+          <div class="social-info">
+            <div class="social-name">${esc(user.name)}</div>
+            <div class="social-mail">${esc(user.email)}</div>
+          </div>
+          <div class="social-actions">
+            <button class="social-btn add" onclick="sendFriendRequest('${user.uid}', '${esc(user.name)}', '${esc(user.email)}')">Ekle</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function sendFriendRequest(targetUid, targetName, targetEmail) {
+      if (!currentUser || !firebaseDb) return;
+      try {
+        // Send request TO target
+        await firebaseDb.collection("profiles").doc(targetUid).collection("friendRequests").doc(currentUser.uid).set({
+          fromUid: currentUser.uid,
+          fromName: currentUser.name || currentUser.email,
+          fromEmail: currentUser.email,
+          status: 'pending',
+          at: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("İstek gönderildi!");
+        els.socialSearchResults.innerHTML = "";
+        els.socialSearchInput.value = "";
+      } catch (err) { alert("İstek hatasi: " + err.message); }
+    }
+
+    function renderSocialRequests(reqs) {
+      if (!reqs.length) {
+        els.socialRequestsList.innerHTML = '<div class="hint" style="text-align:center; padding:10px;">Gelen istek yok.</div>';
+        return;
+      }
+      els.socialRequestsList.innerHTML = reqs.map(r => `
+        <div class="social-card">
+          <div class="social-avatar">${(r.fromName || "?")[0].toUpperCase()}</div>
+          <div class="social-info">
+            <div class="social-name">${esc(r.fromName)}</div>
+            <div class="social-mail">${esc(r.fromEmail)}</div>
+          </div>
+          <div class="social-actions">
+            <button class="social-btn accept" onclick="handleFriendRequest('${r.requestId}', true)">Kabul</button>
+            <button class="social-btn reject" onclick="handleFriendRequest('${r.requestId}', false)">Red</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function handleFriendRequest(requestId, accept) {
+      if (!currentUser || !firebaseDb) return;
+      try {
+        const reqDoc = await firebaseDb.collection("profiles").doc(currentUser.uid).collection("friendRequests").doc(requestId).get();
+        if (!reqDoc.exists) return;
+        const reqData = reqDoc.data();
+
+        if (accept) {
+          // Add to MY friends
+          await firebaseDb.collection("profiles").doc(currentUser.uid).collection("friends").doc(requestId).set({
+            uid: requestId, name: reqData.fromName, email: reqData.fromEmail, at: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          // Add ME to THEIR friends
+          await firebaseDb.collection("profiles").doc(requestId).collection("friends").doc(currentUser.uid).set({
+            uid: currentUser.uid, name: currentUser.name || currentUser.email, email: currentUser.email, at: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        // Always delete the request
+        await firebaseDb.collection("profiles").doc(currentUser.uid).collection("friendRequests").doc(requestId).delete();
+      } catch (err) { alert("İşlem hatasi: " + err.message); }
+    }
+
+    function renderSocialFriends(friends) {
+      if (!friends.length) {
+        els.socialFriendsList.innerHTML = '<div class="hint" style="text-align:center; padding:10px;">Henüz kimseyle arkadas degilsin.</div>';
+        return;
+      }
+      els.socialFriendsList.innerHTML = friends.map(f => `
+        <div class="social-card">
+          <div class="social-avatar">${(f.name || "?")[0].toUpperCase()}</div>
+          <div class="social-info">
+            <div class="social-name">${esc(f.name)}</div>
+            <div class="social-mail">${esc(f.email)}</div>
+          </div>
+          <div class="social-actions">
+            <button class="social-btn view" onclick="enterFriendView('${f.uid}', '${esc(f.name)}')">Haritaya Bak</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function enterFriendView(friendUid, friendName) {
+      if (!firebaseDb) return;
+      try {
+        const snap = await firebaseDb.collection("users").doc(friendUid).collection("records").get();
+        const friendRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        if (!isFriendView) originalRecords = [...records];
+        
+        records = normalizeRecordsArray(friendRecords);
+        isFriendView = true;
+        els.friendViewName.textContent = friendName + " Haritası";
+        els.friendViewBadge.classList.add("active");
+        
+        renderAll();
+        switchScreen("map");
+      } catch (err) { 
+        alert("Arkadas verisi alinamadi. (Güvenlik kurallarini kontrol etmeyi unutma!)"); 
+        console.warn(err);
+      }
+    }
+
+    function exitFriendView() {
+      if (!isFriendView) return;
+      records = [...originalRecords];
+      isFriendView = false;
+      els.friendViewBadge.classList.remove("active");
+      renderAll();
+      switchScreen("social");
+    }
     function normalizeRecordsArray(list) {
       const input = Array.isArray(list) ? list : [];
       return input.map(item => ({
@@ -1872,6 +2125,7 @@
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
       cloudSyncTimer = setTimeout(() => { persistCloudRecords(records); }, 350);
     }
+
 
     function handleCloudPermissionError(error) {
       const code = error && error.code ? String(error.code) : "";
