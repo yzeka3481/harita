@@ -299,26 +299,58 @@
     .badge-status-box{display:inline-block;padding:8px 18px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
     .badge-status-box.unlocked{background:rgba(63,212,160,0.15);color:#3fd4a0;border:1px solid rgba(63,212,160,0.3)}
     .badge-status-box.locked{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid rgba(255,255,255,0.1)}
-    .badge-close{position:absolute;top:18px;right:18px;background:transparent;border:none;color:#fff;font-size:26px;cursor:pointer;opacity:0.5;transition:opacity .2s}
-    .badge-close:hover{opacity:1}
-
-    /* Selectable Activity Tags */
-    .tags-container{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
-    .tag-chip{border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:999px;font-size:12px;color:var(--muted);cursor:pointer;background:rgba(255,255,255,0.03);transition:all .2s;display:flex;align-items:center;gap:6px;user-select:none}
-    .tag-chip:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
-    .tag-chip.active{background:rgba(97,176,255,0.12);border-color:rgba(97,176,255,0.4);color:#fff;box-shadow:0 0 12px rgba(97,176,255,0.15)}
-
     /* Bucket List (Home) */
     .bucket-section{margin-bottom:24px}
     .bucket-card{background:linear-gradient(135deg,rgba(30,58,95,0.5),rgba(15,35,64,0.6));backdrop-filter:blur(10px);border:1px solid rgba(97,176,255,0.15);padding:18px;border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
-    .bucket-list{display:grid;gap:8px;margin-top:14px}
-    .bucket-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:14px;transition:all .2s}
-    .bucket-item:hover{background:rgba(255,255,255,0.06);transform:translateX(4px)}
+    .bucket-list{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+    .bucket-item{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,0.05);transition:all .2s}
+    .bucket-item:hover{background:rgba(255,255,255,0.08);transform:translateX(4px)}
     .bucket-city{font-weight:700;font-size:14px;color:#fff}
-    .bucket-country{font-size:11px;color:var(--muted);margin-left:6px;font-weight:400}
-    .bucket-go{background:rgba(97,176,255,0.15);color:var(--primary);border:1px solid rgba(97,176,255,0.3);border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+    .bucket-country{font-size:11px;color:var(--muted);margin-top:2px}
+    .bucket-go{background:rgba(97,176,255,0.1);color:var(--primary);border:1px solid rgba(97,176,255,0.2);padding:8px 12px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
     .bucket-go:hover{background:var(--primary);color:#fff}
+
+    /* Pro Insights & Passport */
+    .insights-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+    .insight-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:14px;border-radius:16px;display:flex;flex-direction:column;gap:4px}
+    .insight-box small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;font-weight:600}
+    .insight-box strong{font-size:15px;color:#fff;font-weight:700}
+    
+    .progress-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:18px;border-radius:22px;margin-bottom:14px}
+    .progress-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .progress-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#00d4ff);width:0%;transition:width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)}
+
+    .passport-link-btn{width:100%;margin-top:16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);padding:12px;border-radius:14px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+    .passport-link-btn:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
+
+    .passport-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(9,20,48,0.96);backdrop-filter:blur(20px);z-index:3000;display:none;flex-direction:column}
+    .passport-modal.open{display:flex}
+    .passport-head{padding:24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .stamps-container{flex:1;overflow-y:auto;padding:24px}
+    .stamps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:20px}
+    .stamp{aspect-ratio:1;border-radius:50%;border:2px dashed rgba(255,255,255,0.1);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:rgba(255,255,255,0.02);padding:10px;transition:all .3s ease;overflow:hidden}
+    .stamp.active{border-style:solid;border-color:rgba(97,176,255,0.3);background:rgba(97,176,255,0.05);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+    .stamp-flag{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.04;z-index:0;transition:opacity .3s}
+    .stamp.active .stamp-flag{opacity:0.12}
+    .stamp-code{font-size:18px;font-weight:900;color:var(--muted);z-index:1;letter-spacing:1px}
+    .stamp.active .stamp-code{color:#fff;text-shadow:0 0 10px rgba(255,255,255,0.2)}
+    .stamp-date{font-size:8px;color:rgba(255,255,255,0.4);z-index:1;margin-top:4px;font-family:monospace}
+
+    /* Packing Lists */
+    .packing-section{margin-bottom:24px}
+    .packing-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:18px;border-radius:20px}
+    .packing-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .packing-tab{padding:8px 14px;border-radius:10px;font-size:11px;font-weight:700;color:var(--muted);background:rgba(255,255,255,0.04);cursor:pointer;white-space:nowrap;transition:all .2s;border:1px solid transparent}
+    .packing-tab.active{background:rgba(97,176,255,0.15);color:var(--primary);border-color:rgba(97,176,255,0.3)}
+    .packing-items{display:grid;gap:10px}
+    .pack-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:14px;cursor:pointer;transition:all .2s}
+    .pack-item:hover{background:rgba(255,255,255,0.05)}
+    .pack-item input{width:16px;height:16px;accent-color:var(--primary)}
+    .pack-item span{font-size:13px;color:rgba(255,255,255,0.8)}
+    .pack-item.checked span{text-decoration:line-through;opacity:0.4}
   </style>
+
 
 
 
@@ -472,7 +504,7 @@
               <div class="tag-chip" data-tag="nature"><span>🌳</span> Doğa</div>
               <div class="tag-chip" data-tag="food"><span>🍴</span> Gastronomi</div>
               <div class="tag-chip" data-tag="art"><span>🎭</span> Sanat</div>
-              <div class="tag-chip" data-tag="night"><span>🌙</span> Gece Hayatı</div>
+              <div class="tag-chip" data-tag="sightseeing"><span>🏙️</span> Şehir Gezisi</div>
             </div>
           </div>
           <div class="row2">
@@ -580,10 +612,36 @@
         <p id="summaryNote" class="summary-note">Henuz veri yok.</p>
       </article>
 
+      <article class="progress-card">
+        <div class="progress-head">
+          <h3 style="font-size:14px;margin:0;">Dünya Keşif Oranı</h3>
+          <span id="worldProgressText" style="font-size:12px;font-weight:700;color:var(--primary);">%0</span>
+        </div>
+        <div class="progress-bar">
+          <div id="worldProgressFill" class="progress-fill"></div>
+        </div>
+        <div id="explorerInsightsGrid" class="insights-grid"></div>
+        <button id="openPassportBtn" class="passport-link-btn" type="button">
+          <span>🛂 Dijital Pasaportu Aç</span>
+        </button>
+      </article>
+
       <article class="timeline-section">
         <h2 style="font-size:16px; margin-bottom:4px;">Seyahat Zaman Çizelgesi</h2>
         <p class="hint">Gezdiğin tüm şehirlerin kronolojik listesi.</p>
         <div id="timelineContainer" class="timeline-container"></div>
+      </article>
+
+      <article class="packing-section">
+        <div class="packing-card">
+          <h2 style="font-size:16px;margin:0 0 12px 0;">Pro Hazırlık Rehberi</h2>
+          <div id="packingTabs" class="packing-tabs">
+            <div class="packing-tab active" data-pack="city">🏙️ Şehir Gezisi</div>
+            <div class="packing-tab" data-pack="nature">⛺ Doğa & Kamp</div>
+            <div class="packing-tab" data-pack="business">💼 İş Gezisi</div>
+          </div>
+          <div id="packingItems" class="packing-items"></div>
+        </div>
       </article>
 
       <article class="card">
@@ -666,6 +724,16 @@
       <h3 id="badgeTitle">Başarım</h3>
       <p id="badgeDesc"></p>
       <div id="badgeStatusBox" class="badge-status-box">Kilitli</div>
+    </div>
+  </div>
+
+  <div id="passportModal" class="passport-modal">
+    <div class="passport-head">
+      <h2 style="font-size:18px;margin:0;">Dijital Pasaport</h2>
+      <button id="closePassportBtn" class="badge-close" style="position:static;">&times;</button>
+    </div>
+    <div class="stamps-container">
+      <div id="stampsGrid" class="stamps-grid"></div>
     </div>
   </div>
 
@@ -786,6 +854,15 @@
       tagsContainer: document.getElementById("tagsContainer"),
       homeBucketList: document.getElementById("homeBucketList"),
       openAddBtn: document.getElementById("openAddBtn"),
+      worldProgressText: document.getElementById("worldProgressText"),
+      worldProgressFill: document.getElementById("worldProgressFill"),
+      explorerInsightsGrid: document.getElementById("explorerInsightsGrid"),
+      openPassportBtn: document.getElementById("openPassportBtn"),
+      closePassportBtn: document.getElementById("closePassportBtn"),
+      passportModal: document.getElementById("passportModal"),
+      stampsGrid: document.getElementById("stampsGrid"),
+      packingTabs: document.getElementById("packingTabs"),
+      packingItems: document.getElementById("packingItems"),
       addScreenTitle: document.getElementById("addScreenTitle"),
       cancelAddBtn: document.getElementById("cancelAddBtn"),
       cityForm: document.getElementById("cityForm"),
@@ -1058,6 +1135,7 @@
         });
       });
       window.addEventListener("resize", () => setTimeout(() => { resizeHomeGlobe(); exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
+      bindProEvents();
       if (els.tagsContainer) {
         els.tagsContainer.addEventListener("click", e => {
           const chip = e.target.closest(".tag-chip");
@@ -2263,6 +2341,8 @@
       renderFlags();
       renderExplorePins();
       renderWorldLayers();
+      renderExplorerInsights();
+      renderPackingLists();
       renderSummaryDashboard();
       renderTimeline();
     }
@@ -2863,7 +2943,7 @@
 
     async function openCountryScreen(countryCode, countryName) {
       const code = countryCode.toLowerCase();
-      const countryRecords = records.filter(item => (item.countryCode || "").toLowerCase() === code);
+      const countryRecords = records.filter(item => (item.countryCode || "").toLowerCase() === code && isTravelled(item.status));
       const prettyName = countryName || (countryRecords[0] && countryRecords[0].country) || code.toUpperCase();
       els.countryTitle.textContent = prettyName + " Detayi";
       els.countryCapital.textContent = "-";
@@ -2986,6 +3066,7 @@
       exploreMarkerLayer.clearLayers();
       const points = [];
       records.forEach(item => {
+        if (item.status === 'planned') return;
         const code = item.countryCode && item.countryCode.length === 2 ? item.countryCode : "xx";
         const icon = L.divIcon({ className: "", html: "<div class='flag-pin'><img src='https://flagcdn.com/w40/" + code + ".png' alt='flag'></div>", iconSize: [24, 29], iconAnchor: [12, 26], popupAnchor: [0, -22] });
         const marker = L.marker([item.lat, item.lng], { icon, pane: "explorePinPane" });
@@ -3480,6 +3561,14 @@
       explorer: { title: 'Kaptan', icon: '👨‍✈️', desc: 'Gerçek bir kaptan gibi! Toplam 15 seyahat kaydına ulaş.' }
     };
 
+    const TAG_DEFS = {
+      museum: { icon: '🏛️', title: 'Müze' },
+      nature: { icon: '🌳', title: 'Doğa' },
+      food: { icon: '🍴', title: 'Gastronomi' },
+      art: { icon: '🎭', title: 'Sanat' },
+      sightseeing: { icon: '🏙️', title: 'Şehir Gezisi' }
+    };
+
     function renderAchievements() {
       if (!els.achievementsGrid) return;
       const travelled = records.filter(item => isTravelled(item.status));
@@ -3527,7 +3616,7 @@
         const tagsHtml = item.tags && item.tags.length ? `
           <div class="item-info-row" style="margin-top:8px; justify-content:center;">
             ${item.tags.map(t => {
-              const def = BADGE_DEFS[t] || { icon: '🏷️' };
+              const def = TAG_DEFS[t] || { icon: '🏷️' };
               return `<span class="iinfo" style="font-size:9px; padding:2px 6px;">${def.icon}</span>`;
             }).join('')}
           </div>
@@ -3564,6 +3653,108 @@
           <button class="bucket-go" onclick="openAddScreen('${item.id}');window.scrollTo(0,0);els.addScreenTitle.textContent='Planı Geziye Dönüştür';">Geziye Dönüştür</button>
         </div>
       `).join('');
+    }
+
+    const PACKING_DEFS = {
+      city: [
+        "Rahat yürüyüş ayakkabısı", "Taşınabilir şarj cihazı (Powerbank)", "Şehir haritası / Çevrimdışı harita",
+        "Yerel para birimi / Nakit", "Güneş gözlüğü & Krem", "Müze kartı / Rezervasyonlar"
+      ],
+      nature: [
+        "Su geçirmez bot / ayakkabı", "Yağmurluk / Rüzgarlık", "İlk yardım kiti",
+        "Fener / Kafa lambası", "Termos / Su matarası", "Atıştırmalık enerji barları"
+      ],
+      business: [
+        "Gömlek / Takım elbise", "Laptop & Şarj aleti", "Kartvizitler",
+        "Evrak dosyası", "Ütü spreyleri (kırışıklık için)", "Şık ayakkabı"
+      ]
+    };
+    let activePackingTab = 'city';
+
+    function renderExplorerInsights() {
+      if (!els.explorerInsightsGrid) return;
+      const travelled = records.filter(item => isTravelled(item.status));
+      const countries = new Set(travelled.map(r => r.countryCode || r.country).filter(Boolean));
+      const percentage = Math.min(100, Math.round((countries.size / 195) * 100));
+      
+      els.worldProgressText.textContent = `%${percentage}`;
+      els.worldProgressFill.style.width = `${percentage}%`;
+
+      let north = null, south = null, east = null, west = null;
+      travelled.forEach(r => {
+        if (north === null || r.lat > north.lat) north = r;
+        if (south === null || r.lat < south.lat) south = r;
+        if (east === null || r.lng > east.lng) east = r;
+        if (west === null || r.lng < west.lng) west = r;
+      });
+
+      const stats = [
+        { label: 'En Kuzey', val: north ? north.city : '-' },
+        { label: 'En Güney', val: south ? south.city : '-' },
+        { label: 'Uzaklık', val: calculateRouteKm(travelled).toLocaleString() + ' km' },
+        { label: 'Ülke Skoru', val: countries.size + '/195' }
+      ];
+
+      els.explorerInsightsGrid.innerHTML = stats.map(s => `
+        <div class="insight-box">
+          <small>${s.label}</small>
+          <strong>${esc(s.val)}</strong>
+        </div>
+      `).join('');
+    }
+
+    function renderDigitalPassport() {
+      if (!els.stampsGrid) return;
+      const firstVisits = new Map();
+      records.filter(r => isTravelled(r.status)).forEach(r => {
+        const code = (r.countryCode || "").toLowerCase();
+        if (!code) return;
+        if (!firstVisits.has(code)) firstVisits.set(code, r);
+      });
+
+      els.stampsGrid.innerHTML = WORLD_CODES.map(code => {
+        const visit = firstVisits.get(code);
+        const active = !!visit;
+        return `
+          <div class="stamp ${active ? 'active' : ''}">
+            <img class="stamp-flag" src="https://flagcdn.com/w160/${code}.png" alt="">
+            <span class="stamp-code">${code.toUpperCase()}</span>
+            ${active ? `<span class="stamp-date">${formatDate(visit.date)}</span>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPackingLists() {
+      if (!els.packingItems) return;
+      const items = PACKING_DEFS[activePackingTab] || [];
+      els.packingItems.innerHTML = items.map((item, i) => `
+        <div class="pack-item" onclick="this.classList.toggle('checked');">
+          <input type="checkbox">
+          <span>${esc(item)}</span>
+        </div>
+      `).join('');
+    }
+
+    function bindProEvents() {
+      if (els.openPassportBtn) els.openPassportBtn.addEventListener('click', () => {
+        renderDigitalPassport();
+        els.passportModal.classList.add('open');
+        document.body.classList.add('modal-open');
+      });
+      if (els.closePassportBtn) els.closePassportBtn.addEventListener('click', () => {
+        els.passportModal.classList.remove('open');
+        document.body.classList.remove('modal-open');
+      });
+      if (els.packingTabs) {
+        els.packingTabs.addEventListener('click', e => {
+          const tab = e.target.closest('.packing-tab');
+          if (!tab) return;
+          activePackingTab = tab.dataset.pack;
+          els.packingTabs.querySelectorAll('.packing-tab').forEach(t => t.classList.toggle('active', t === tab));
+          renderPackingLists();
+        });
+      }
     }
 
     function openBadgeDetail(id, unlocked) {
