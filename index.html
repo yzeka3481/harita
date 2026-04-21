@@ -339,29 +339,20 @@
     .progress-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
     .progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#00d4ff);width:0%;transition:width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)}
 
-    /* Airport Arrival Board (Retro Mechanical) */
-    .airport-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,10,0.98);backdrop-filter:blur(30px);z-index:4000;display:none;flex-direction:column;font-family:'Courier New', Courier, monospace}
-    .airport-modal.open{display:flex}
-    .airport-head{padding:30px 24px;background:#000;border-bottom:3px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center}
-    .airport-title-wrap{display:flex;flex-direction:column;gap:4px}
-    .airport-title{color:#ff9f00;font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:4px;margin:0;text-shadow:0 0 10px rgba(255,159,0,0.4)}
-    .airport-subtitle{color:#555;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+    /* Journey Map (Flight Paths) */
+    .journey-map-modal{position:fixed;inset:0;background:rgba(5,7,12,0.98);backdrop-filter:blur(30px);z-index:4000;display:none;flex-direction:column}
+    .journey-map-modal.open{display:flex}
+    .journey-map-head{padding:18px 24px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center}
+    .journey-map-title{color:#fff;font-size:18px;font-weight:800;margin:0;letter-spacing:-0.5px}
+    .journey-map-body{flex:1;position:relative}
+    #journeyMapContainer{width:100%;height:100%;background:#0a0c10}
+    .close-journey{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:10px;cursor:pointer;display:grid;place-items:center;transition:all .2s}
+    .close-journey:hover{background:rgba(255,50,50,0.2);border-color:rgba(255,50,50,0.4)}
     
-    .board-container{flex:1;overflow-y:auto;padding:20px;background:#050505}
-    .board-table{width:100%;border-collapse:separate;border-spacing:0 4px}
-    .board-table th{text-align:left;color:#444;font-size:12px;font-weight:800;padding:10px 8px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #111}
-    .board-row{background:#111;transition:background 0.2s}
-    .board-row:hover{background:#181818}
-    .board-cell{padding:14px 8px;color:#ff9f00;font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;position:relative}
-    .board-cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,0.5);z-index:1}
-    .board-cell.time{color:#aa7a00;font-size:14px;width:80px}
-    .board-cell.status{width:120px;font-weight:900}
-    .board-cell.status.landed{color:#3fd4a0;text-shadow:0 0 8px rgba(63,212,160,0.3)}
-    .board-cell.status.scheduled{color:#ff9f00;animation:blinkBoard 1.5s infinite}
-    
-    @keyframes blinkBoard{0%,100%{opacity:1}50%{opacity:0.6}}
-    .close-airport{background:none;border:none;color:#555;font-size:32px;cursor:pointer;transition:color 0.2s}
-    .close-airport:hover{color:#ff9f00}
+    .glowing-path{stroke:#00e5ff; stroke-width:2; stroke-opacity:0.6; filter: drop-shadow(0 0 4px #00e5ff); opacity:0.8; fill:none}
+    .glowing-path.animated{stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawPath 3s forwards ease-out}
+    @keyframes drawPath{ to { stroke-dashoffset: 0; } }
+    .dot-marker{width:8px;height:8px;background:#00e5ff;border-radius:50%;box-shadow:0 0 12px #00e5ff;border:2px solid #fff}
 
 
   </style>
@@ -369,6 +360,8 @@
 
 
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@elfalem/leaflet-curve/dist/leaflet.curve.js"></script>
 </head>
 <body>
   <div id="splashScreen">
@@ -633,8 +626,8 @@
           <div id="worldProgressFill" class="progress-fill"></div>
         </div>
         <div id="explorerInsightsGrid" class="insights-grid"></div>
-        <button id="openArrivalsBtn" class="passport-link-btn" type="button" style="background:rgba(255,159,0,0.1); border-color:rgba(255,159,0,0.3); color:#ff9f00;">
-          <span>✈️ Varış Tablosunu Görüntüle</span>
+        <button id="openJourneyMapBtn" class="passport-link-btn" type="button" style="background:rgba(0,229,255,0.1); border-color:rgba(0,229,255,0.3); color:#00e5ff;">
+          <span>🌐 Seyahat Ağını Keşfet</span>
         </button>
       </article>
 
@@ -741,28 +734,13 @@
     </div>
   </div>
 
-  <div id="arrivalsModal" class="airport-modal">
-    <div class="airport-head">
-      <div class="airport-title-wrap">
-        <h2 class="airport-title">Arrivals / Varislar</h2>
-        <div class="airport-subtitle">World Traveler Information System</div>
-      </div>
-      <button id="closeArrivalsBtn" class="close-airport">&times;</button>
+  <div id="journeyMapModal" class="journey-map-modal">
+    <div class="journey-map-head">
+      <h2 class="journey-map-title">Uçuş Ağı ve Rotalar</h2>
+      <button id="closeJourneyMapBtn" class="close-journey"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
-    <div class="board-container">
-      <table class="board-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Destination</th>
-            <th>Flight</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="arrivalsBody">
-          <!-- Rows dynamic -->
-        </tbody>
-      </table>
+    <div class="journey-map-body">
+      <div id="journeyMapContainer"></div>
     </div>
   </div>
 
@@ -888,10 +866,10 @@
       worldProgressText: document.getElementById("worldProgressText"),
       worldProgressFill: document.getElementById("worldProgressFill"),
       explorerInsightsGrid: document.getElementById("explorerInsightsGrid"),
-      openArrivalsBtn: document.getElementById("openArrivalsBtn"),
-      closeArrivalsBtn: document.getElementById("closeArrivalsBtn"),
-      arrivalsModal: document.getElementById("arrivalsModal"),
-      arrivalsBody: document.getElementById("arrivalsBody"),
+      openJourneyMapBtn: document.getElementById("openJourneyMapBtn"),
+      closeJourneyMapBtn: document.getElementById("closeJourneyMapBtn"),
+      journeyMapModal: document.getElementById("journeyMapModal"),
+      journeyMapContainer: document.getElementById("journeyMapContainer"),
       addScreenTitle: document.getElementById("addScreenTitle"),
       cancelAddBtn: document.getElementById("cancelAddBtn"),
       cityForm: document.getElementById("cityForm"),
@@ -3734,39 +3712,113 @@
       `).join('');
     }
 
-    function renderArrivalsBoard() {
-      if (!els.arrivalsBody) return;
-      const sorted = [...records].sort((a,b) => getRecordTime(b) - getRecordTime(a));
+    let journeyMap = null;
+    function renderJourneyMap() {
+      if (!els.journeyMapContainer) return;
+      if (journeyMap) {
+        journeyMap.remove();
+        journeyMap = null;
+      }
       
-      els.arrivalsBody.innerHTML = sorted.map(item => {
-        const dateObj = item.date ? new Date(item.date) : null;
-        const timeStr = dateObj ? `${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}` : '--:--';
-        const dateStr = item.date ? formatDate(item.date) : 'UNKNOWN';
-        const city = (item.city || "UNKNOWN").toUpperCase();
-        const country = (item.countryCode || item.country || "??").toUpperCase();
-        const status = isTravelled(item.status) ? 'LANDED' : 'SCHEDULED';
-        const statusClass = status.toLowerCase();
-        const flightNum = (country.substring(0,2) + (Math.floor(Math.random() * 900) + 100)).toUpperCase();
+      const visited = records.filter(item => isTravelled(item.status));
+      const istanbulPos = [41.0082, 28.9784]; 
+      
+      if (!visited.length) {
+        els.journeyMapContainer.innerHTML = '<div style="display:grid;place-items:center;height:100%;color:#444;">Henüz seyahat rotası yok.</div>';
+        return;
+      }
 
-        return `
-          <tr class="board-row">
-            <td class="board-cell time">${dateStr}</td>
-            <td class="board-cell">${city} / ${country}</td>
-            <td class="board-cell" style="color:#222;">${flightNum}</td>
-            <td class="board-cell status ${statusClass}">${status}</td>
-          </tr>
-        `;
-      }).join('');
+      journeyMap = L.map('journeyMapContainer', {
+        zoomControl: false,
+        attributionControl: false,
+        backgroundColor: '#0a0c10'
+      }).setView(istanbulPos, 3);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+      }).addTo(journeyMap);
+
+      const pathGroup = L.featureGroup().addTo(journeyMap);
+
+      // Hub Marker (Istanbul)
+      L.marker(istanbulPos, {
+        icon: L.divIcon({
+          className: 'dot-marker-wrap hub',
+          html: '<div class="dot-marker" style="background:#fff; width:12px; height:12px; box-shadow:0 0 20px #fff; border:2px solid #00e5ff;"></div>',
+          iconSize: [12, 12]
+        })
+      }).bindPopup('<b>MERKEZ: İSTANBUL</b>').addTo(pathGroup);
+
+      visited.forEach((item) => {
+        if (!item.lat || !item.lng) return;
+        const pos = [item.lat, item.lng];
+        
+        // Skip if the city is Istanbul itself (to avoid 0-length curves)
+        const isIstanbul = Math.abs(item.lat - 41.0) < 0.5 && Math.abs(item.lng - 28.9) < 0.5;
+        if (isIstanbul) return;
+
+        // Marker for destination
+        L.marker(pos, {
+          icon: L.divIcon({
+            className: 'dot-marker-wrap',
+            html: '<div class="dot-marker"></div>',
+            iconSize: [8, 8]
+          })
+        }).bindPopup(`<b>${item.city}</b>`).addTo(pathGroup);
+
+        // Draw curved path from Istanbul to City
+        // Control point calculation for a "hub and spoke" curve
+        const midLat = (istanbulPos[0] + pos[0]) / 2;
+        const midLng = (istanbulPos[1] + pos[1]) / 2;
+        
+        // Offset for curvature
+        const latDiff = pos[0] - istanbulPos[0];
+        const lngDiff = pos[1] - istanbulPos[1];
+        const ctrl = [
+          midLat + (Math.abs(lngDiff) * 0.15) + 5,
+          midLng - (Math.abs(latDiff) * 0.15)
+        ];
+
+        // Draw curved path or simple line if library fails
+        if (typeof L.curve === 'function') {
+          L.curve([
+            'M', istanbulPos,
+            'Q', ctrl, pos
+          ], {
+            className: 'glowing-path animated',
+            color: '#00e5ff',
+            weight: 2,
+            opacity: 0.6,
+            fill: false
+          }).addTo(pathGroup);
+        } else {
+          // Fallback to simple straight line if plugin is missing locally
+          L.polyline([istanbulPos, pos], {
+            className: 'glowing-path',
+            color: '#00e5ff',
+            weight: 2,
+            opacity: 0.4
+          }).addTo(pathGroup);
+        }
+      });
+
+      if (visited.length > 0) {
+        journeyMap.fitBounds(pathGroup.getBounds(), { padding: [60, 60], maxZoom: 5 });
+      }
     }
 
+
+
     function bindProEvents() {
-      if (els.openArrivalsBtn) els.openArrivalsBtn.addEventListener('click', () => {
-        renderArrivalsBoard();
-        els.arrivalsModal.classList.add('open');
+      if (els.openJourneyMapBtn) els.openJourneyMapBtn.addEventListener('click', () => {
+        els.journeyMapModal.classList.add('open');
         document.body.classList.add('modal-open');
+        setTimeout(() => {
+          renderJourneyMap();
+        }, 300);
       });
-      if (els.closeArrivalsBtn) els.closeArrivalsBtn.addEventListener('click', () => {
-        els.arrivalsModal.classList.remove('open');
+      if (els.closeJourneyMapBtn) els.closeJourneyMapBtn.addEventListener('click', () => {
+        els.journeyMapModal.classList.remove('open');
         document.body.classList.remove('modal-open');
       });
     }
