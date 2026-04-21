@@ -265,7 +265,62 @@
     .country-album-item{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 4px 12px rgba(0,0,0,0.22);cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;background:#0f1a2a}
     .country-album-item:hover{transform:scale(1.05);box-shadow:0 6px 18px rgba(0,0,0,0.35);z-index:2;border-color:rgba(255,255,255,0.24)}
     .country-album-empty{background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.12);border-radius:14px;padding:24px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* Achievements */
+    .achievements-section{margin-bottom:24px}
+    .achievements-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:4px 0}
+    .badge-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;transition:transform .2s;cursor:pointer}
+    .badge-item:hover{transform:translateY(-4px)}
+    .badge-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:rgba(18,40,70,0.6);border:1px solid rgba(255,255,255,0.08);filter:grayscale(1);opacity:0.35;position:relative;transition:all .4s ease}
+    .badge-item.unlocked .badge-icon{filter:none;opacity:1;background:linear-gradient(135deg,rgba(97,176,255,0.2),rgba(97,176,255,0.05));border-color:rgba(97,176,255,0.4);box-shadow:0 8px 16px rgba(0,0,0,0.2)}
+    .badge-label{font-size:10px;font-weight:700;color:var(--muted);transition:color .3s;line-height:1.2}
+    .badge-item.unlocked .badge-label{color:#fff}
+
+    /* Timeline Horizontal (Roll-up) */
+    .timeline-section{margin-top:24px;position:relative}
+    .timeline-container{position:relative;display:flex;overflow-x:auto;padding:32px 14px 14px;gap:18px;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none}
+    .timeline-container::-webkit-scrollbar{display:none}
+    .timeline-container::before{content:"";position:absolute;left:0;right:0;top:40px;height:2px;background:linear-gradient(90deg,rgba(97,176,255,0) 0%,var(--primary) 20%,var(--primary) 80%,rgba(97,176,255,0) 100%);z-index:0}
+    .timeline-item{position:relative;flex-shrink:0;width:160px;scroll-snap-align:start;z-index:1}
+    .timeline-dot{position:absolute;left:50%;top:-16px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--primary);border:3px solid var(--bg);box-shadow:0 0 10px rgba(97,176,255,0.3);z-index:2}
+    .timeline-content{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);backdrop-filter:blur(10px)}
+    .timeline-info{text-align:center}
+    .timeline-city{font-weight:800;font-size:14px;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .timeline-date{font-size:10px;color:var(--muted);justify-content:center}
+    .timeline-thumb{width:100%;height:100px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,0.08);background:#000}
+
+    /* Badge Detail Modal */
+    .badge-modal{position:fixed;inset:0;z-index:9500;background:rgba(0,4,12,0.72);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .25s;pointer-events:none}
+    .badge-modal.open{display:flex;opacity:1;pointer-events:auto}
+    .badge-panel{width:min(100%,320px);background:linear-gradient(180deg,rgba(30,58,95,0.95),rgba(19,42,74,0.98));border:1px solid rgba(255,255,255,0.15);border-radius:28px;padding:36px 24px;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,0.6);position:relative}
+    .badge-panel .b-icon{font-size:64px;margin-bottom:20px;display:block;filter:drop-shadow(0 0 15px rgba(97,176,255,0.4))}
+    .badge-panel h3{margin:0 0 10px;font-size:22px;color:#fff;font-weight:800}
+    .badge-panel p{margin:0 0 24px;font-size:14px;color:#b0c6e0;line-height:1.55}
+    .badge-status-box{display:inline-block;padding:8px 18px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+    .badge-status-box.unlocked{background:rgba(63,212,160,0.15);color:#3fd4a0;border:1px solid rgba(63,212,160,0.3)}
+    .badge-status-box.locked{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid rgba(255,255,255,0.1)}
+    .badge-close{position:absolute;top:18px;right:18px;background:transparent;border:none;color:#fff;font-size:26px;cursor:pointer;opacity:0.5;transition:opacity .2s}
+    .badge-close:hover{opacity:1}
+
+    /* Selectable Activity Tags */
+    .tags-container{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+    .tag-chip{border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:999px;font-size:12px;color:var(--muted);cursor:pointer;background:rgba(255,255,255,0.03);transition:all .2s;display:flex;align-items:center;gap:6px;user-select:none}
+    .tag-chip:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
+    .tag-chip.active{background:rgba(97,176,255,0.12);border-color:rgba(97,176,255,0.4);color:#fff;box-shadow:0 0 12px rgba(97,176,255,0.15)}
+
+    /* Bucket List (Home) */
+    .bucket-section{margin-bottom:24px}
+    .bucket-card{background:linear-gradient(135deg,rgba(30,58,95,0.5),rgba(15,35,64,0.6));backdrop-filter:blur(10px);border:1px solid rgba(97,176,255,0.15);padding:18px;border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
+    .bucket-list{display:grid;gap:8px;margin-top:14px}
+    .bucket-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:14px;transition:all .2s}
+    .bucket-item:hover{background:rgba(255,255,255,0.06);transform:translateX(4px)}
+    .bucket-city{font-weight:700;font-size:14px;color:#fff}
+    .bucket-country{font-size:11px;color:var(--muted);margin-left:6px;font-weight:400}
+    .bucket-go{background:rgba(97,176,255,0.15);color:var(--primary);border:1px solid rgba(97,176,255,0.3);border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+    .bucket-go:hover{background:var(--primary);color:#fff}
   </style>
+
+
 
 </head>
 <body>
@@ -317,6 +372,21 @@
           </div>
         </div>
         <div id="homeInsightFoot" class="insight-foot">Yeni kayıtlarla bu kart otomatik güncellenir.</div>
+      </article>
+
+      <article class="achievements-section">
+        <h2 style="font-size:16px; margin-bottom:12px;">Gelişimim ve Başarımlar</h2>
+        <div id="achievementsGrid" class="achievements-grid"></div>
+      </article>
+
+      <article class="bucket-section">
+        <div class="bucket-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h2 style="font-size:16px;margin:0;color:#fff;">Gelecek Rotalarım (Bucket List)</h2>
+            <button class="bucket-go" style="padding:4px 8px;font-size:10px;" onclick="openAddScreen();els.statusInput.value='planned';els.addScreenTitle.textContent='Plan Yap';">Rota Planla</button>
+          </div>
+          <div id="homeBucketList" class="bucket-list"></div>
+        </div>
       </article>
 
       <article class="card recent-block">
@@ -393,6 +463,16 @@
                 <option value="daytrip">🚶 Günübirlik</option>
                 <option value="transit">✈️ Transit</option>
               </select>
+            </div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label class="field-label">Ziyaret Deneyimleri (Etiketler)</label>
+            <div id="tagsContainer" class="tags-container">
+              <div class="tag-chip" data-tag="museum"><span>🏛️</span> Müze</div>
+              <div class="tag-chip" data-tag="nature"><span>🌳</span> Doğa</div>
+              <div class="tag-chip" data-tag="food"><span>🍴</span> Gastronomi</div>
+              <div class="tag-chip" data-tag="art"><span>🎭</span> Sanat</div>
+              <div class="tag-chip" data-tag="night"><span>🌙</span> Gece Hayatı</div>
             </div>
           </div>
           <div class="row2">
@@ -500,6 +580,12 @@
         <p id="summaryNote" class="summary-note">Henuz veri yok.</p>
       </article>
 
+      <article class="timeline-section">
+        <h2 style="font-size:16px; margin-bottom:4px;">Seyahat Zaman Çizelgesi</h2>
+        <p class="hint">Gezdiğin tüm şehirlerin kronolojik listesi.</p>
+        <div id="timelineContainer" class="timeline-container"></div>
+      </article>
+
       <article class="card">
         <h2>Paylasilabilir Story</h2>
         <p class="hint">Secilen yil icin Instagram Story (1080x1920) olustur.</p>
@@ -572,6 +658,16 @@
       </button>
     </div>
   </nav>
+
+  <div id="badgeModal" class="badge-modal" aria-hidden="true" onclick="if(event.target===this)closeBadgeDetail()">
+    <div class="badge-panel">
+      <button class="badge-close" type="button" onclick="closeBadgeDetail()">×</button>
+      <span id="badgeIcon" class="b-icon"></span>
+      <h3 id="badgeTitle">Başarım</h3>
+      <p id="badgeDesc"></p>
+      <div id="badgeStatusBox" class="badge-status-box">Kilitli</div>
+    </div>
+  </div>
 
   <div id="photoLightbox" class="lightbox" aria-hidden="true">
     <div class="lightbox-inner">
@@ -685,6 +781,10 @@
       authSubmitBtn: document.getElementById("authSubmitBtn"),
       authGoogleBtn: document.getElementById("authGoogleBtn"),
       authHelpText: document.getElementById("authHelpText"),
+      achievementsGrid: document.getElementById("achievementsGrid"),
+      timelineContainer: document.getElementById("timelineContainer"),
+      tagsContainer: document.getElementById("tagsContainer"),
+      homeBucketList: document.getElementById("homeBucketList"),
       openAddBtn: document.getElementById("openAddBtn"),
       addScreenTitle: document.getElementById("addScreenTitle"),
       cancelAddBtn: document.getElementById("cancelAddBtn"),
@@ -741,6 +841,7 @@
     let selectedCitySuggestion = null;
     let citySearchTimer = null;
     let workingPhotos = [];
+    let selectedTags = [];
     let isLockingMap = false;
     let worldGeoJson = null;
     let cloudSyncTimer = null;
@@ -957,6 +1058,20 @@
         });
       });
       window.addEventListener("resize", () => setTimeout(() => { resizeHomeGlobe(); exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
+      if (els.tagsContainer) {
+        els.tagsContainer.addEventListener("click", e => {
+          const chip = e.target.closest(".tag-chip");
+          if (!chip) return;
+          const tag = chip.dataset.tag;
+          if (selectedTags.includes(tag)) {
+            selectedTags = selectedTags.filter(t => t !== tag);
+            chip.classList.remove("active");
+          } else {
+            selectedTags.push(tag);
+            chip.classList.add("active");
+          }
+        });
+      }
     }
 
     function updateStarRatingUI(inputId, val) {
@@ -2021,6 +2136,7 @@
           currency,
           tripDays,
           photos: workingPhotos.slice(0, 8),
+          tags: selectedTags,
           note
         };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
@@ -2102,6 +2218,12 @@
         els.tripDaysInput.value = item.tripDays || "";
         workingPhotos = Array.isArray(item.photos) ? [...item.photos] : [];
         els.noteInput.value = item.note || "";
+        selectedTags = item.tags ? [...item.tags] : [];
+        if (els.tagsContainer) {
+          els.tagsContainer.querySelectorAll(".tag-chip").forEach(chip => {
+            chip.classList.toggle("active", selectedTags.includes(chip.dataset.tag));
+          });
+        }
       } else {
         els.addScreenTitle.textContent = "Sehir Ekle";
       }
@@ -2114,6 +2236,10 @@
       if (!keepEditId) editId = null;
       selectedCitySuggestion = null;
       workingPhotos = [];
+      selectedTags = [];
+      if (els.tagsContainer) {
+        els.tagsContainer.querySelectorAll(".tag-chip").forEach(c => c.classList.remove("active"));
+      }
       closeSuggestions();
       els.cityForm.reset();
       ["ratingFoodInput", "ratingTransportInput", "ratingSafetyInput", "ratingAccommodationInput"].forEach(id => updateStarRatingUI(id, 0));
@@ -2130,12 +2256,15 @@
       renderHero();
       renderHomeGlobe();
       renderHomeInsights();
+      renderAchievements();
+      renderBucketList();
       renderRecent();
       renderRecords();
       renderFlags();
       renderExplorePins();
       renderWorldLayers();
       renderSummaryDashboard();
+      renderTimeline();
     }
 
     function renderHero() {
@@ -2582,6 +2711,7 @@
       els.downloadStoryBtn.setAttribute("download", "seyahat-story.png");
       els.storyPreviewWrap.hidden = true;
       els.storyPreviewImg.removeAttribute("src");
+      renderTimeline();
     }
 
     function ensureSummaryYearOptions() {
@@ -3339,11 +3469,127 @@
       return value.replace(/(^|[\s,./-])(\p{L})/gu, (all, sep, ch) => sep + ch.toLocaleUpperCase("tr-TR"));
     }
 
+    const BADGE_DEFS = {
+      world: { title: 'Dünya Vatandaşı', desc: 'En az 5 farklı ülkede ayak izin olmalı. Keşfetmeye devam et!', icon: '🌏' },
+      city: { title: 'Şehir Koleksiyoneri', desc: '10 farklı şehri ziyaret ederek gerçek bir koleksiyoncu olduğunu kanıtla.', icon: '🏙️' },
+      road: { title: 'Yol Savaşçısı', desc: 'Toplamda 5.000 km yol kat ederek mesafeleri dize getir.', icon: '🏎️' },
+      photo: { title: 'Fotoğrafçı', icon: '📷', desc: 'Anılarını ölümsüzleştir! En az 20 fotoğraf yükle.' },
+      food: { title: 'Gurme Gezgin', icon: '🍔', desc: 'Lezzet duraklarını unutma! 5 şehre yemek için tam puan ver.' },
+      planner: { title: 'Planlama Ustası', icon: '📅', desc: 'Geleceği düşün! En az 5 planlanmış rota oluştur.' },
+      museum: { title: 'Müze Meraklısı', icon: '🏛️', desc: 'Kültür ve tarih dolu bir yolculuk. Notlarında en az 3 müze geçmeli.' },
+      explorer: { title: 'Kaptan', icon: '👨‍✈️', desc: 'Gerçek bir kaptan gibi! Toplam 15 seyahat kaydına ulaş.' }
+    };
+
+    function renderAchievements() {
+      if (!els.achievementsGrid) return;
+      const travelled = records.filter(item => isTravelled(item.status));
+      const countries = new Set(travelled.map(r => r.country).filter(Boolean));
+      const cities = new Set(travelled.map(r => r.city).filter(Boolean));
+      const totalKm = calculateRouteKm(travelled);
+      const totalPhotos = travelled.reduce((acc, r) => acc + (r.photos ? r.photos.length : 0), 0);
+      const highRatedFood = travelled.filter(r => r.ratingFood === 5).length;
+
+      const badges = [
+        { id: 'world', unlocked: countries.size >= 5 },
+        { id: 'city', unlocked: cities.size >= 10 },
+        { id: 'road', unlocked: totalKm >= 5000 },
+        { id: 'photo', unlocked: totalPhotos >= 20 },
+        { id: 'food', unlocked: highRatedFood >= 5 },
+        { id: 'planner', unlocked: records.filter(r => r.status === 'planned').length >= 3 },
+        { id: 'museum', unlocked: travelled.filter(r => r.tags && r.tags.includes('museum')).length >= 3 },
+        { id: 'explorer', unlocked: travelled.length >= 15 }
+      ];
+
+      els.achievementsGrid.innerHTML = badges.map(b => {
+        const def = BADGE_DEFS[b.id];
+        return `
+          <div class="badge-item ${b.unlocked ? 'unlocked' : ''}" onclick="openBadgeDetail('${b.id}', ${b.unlocked})">
+            <div class="badge-icon">${def.icon}</div>
+            <span class="badge-label">${def.title}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTimeline() {
+      if (!els.timelineContainer) return;
+      const travelled = records.filter(item => isTravelled(item.status))
+        .sort((a, b) => getRecordTime(b) - getRecordTime(a));
+
+      if (!travelled.length) {
+        els.timelineContainer.innerHTML = '<div class="country-album-empty">Henüz hiç seyahat kaydı yok.</div>';
+        return;
+      }
+
+      els.timelineContainer.innerHTML = travelled.map(item => {
+        const thumb = item.photos && item.photos.length ? item.photos[0] : '';
+        const dateStr = item.date ? formatDate(item.date) : 'Tarih belirtilmedi';
+        const tagsHtml = item.tags && item.tags.length ? `
+          <div class="item-info-row" style="margin-top:8px; justify-content:center;">
+            ${item.tags.map(t => {
+              const def = BADGE_DEFS[t] || { icon: '🏷️' };
+              return `<span class="iinfo" style="font-size:9px; padding:2px 6px;">${def.icon}</span>`;
+            }).join('')}
+          </div>
+        ` : '';
+        return `
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              ${thumb ? `<img class="timeline-thumb" src="${thumb}" loading="lazy" alt="">` : `<div class="timeline-thumb" style="display:grid;place-items:center;background:rgba(255,255,255,0.05);font-size:32px;">📍</div>`}
+              <div class="timeline-info">
+                <div class="timeline-city">${esc(item.city)}</div>
+                <div class="timeline-date">📅 ${esc(dateStr)}</div>
+                ${tagsHtml}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderBucketList() {
+      if (!els.homeBucketList) return;
+      const planned = records.filter(item => item.status === 'planned');
+      if (!planned.length) {
+        els.homeBucketList.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(255,255,255,0.15);font-size:13px;border:1px dashed rgba(255,255,255,0.08);border-radius:16px;">Henüz planlanmış bir rota yok.</div>';
+        return;
+      }
+      els.homeBucketList.innerHTML = planned.slice(0, 5).map(item => `
+        <div class="bucket-item">
+          <div>
+            <div class="bucket-city">${esc(item.city)}</div>
+            <div class="bucket-country">${esc(item.country)}</div>
+          </div>
+          <button class="bucket-go" onclick="openAddScreen('${item.id}');window.scrollTo(0,0);els.addScreenTitle.textContent='Planı Geziye Dönüştür';">Geziye Dönüştür</button>
+        </div>
+      `).join('');
+    }
+
+    function openBadgeDetail(id, unlocked) {
+      const def = BADGE_DEFS[id];
+      if (!def) return;
+      document.getElementById("badgeIcon").textContent = def.icon;
+      document.getElementById("badgeTitle").textContent = def.title;
+      document.getElementById("badgeDesc").textContent = def.desc;
+      const statusBox = document.getElementById("badgeStatusBox");
+      statusBox.textContent = unlocked ? "Kazanıldı" : "Kilitli";
+      statusBox.className = "badge-status-box " + (unlocked ? "unlocked" : "locked");
+      document.getElementById("badgeModal").classList.add("open");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeBadgeDetail() {
+      document.getElementById("badgeModal").classList.remove("open");
+      document.body.classList.remove("modal-open");
+    }
+
     function esc(value) {
       const d = document.createElement("div");
       d.textContent = value == null ? "" : String(value);
       return d.innerHTML;
     }
   </script>
+
 </body>
 </html>
