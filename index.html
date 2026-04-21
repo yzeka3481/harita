@@ -158,7 +158,7 @@
     .splash-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#ecf5ff;letter-spacing:-.3px}
     .splash-sub{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:#88aad0;margin-top:-8px}
     .tabs{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:2200;width:calc(100% - 40px);max-width:440px;padding:0;background:none}
-    .tabs-inner{border:1px solid rgba(255,255,255,0.1);border-radius:24px;background:rgba(12,24,44,0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);height:var(--tabh);display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:6px;position:relative;box-shadow:0 12px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)}
+    .tabs-inner{border:1px solid rgba(255,255,255,0.18);border-radius:24px;background:rgba(6,12,24,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);height:var(--tabh);display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:6px;position:relative;box-shadow:0 18px 48px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1)}
     .tab-indicator{position:absolute;top:6px;left:6px;width:calc((100% - 12px) / 4);height:calc(100% - 12px);background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.12);border-radius:18px;z-index:0;transition:transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
     .tab-btn{border:none;border-radius:18px;background:none;color:#8fabca;font-size:12px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1;position:relative;z-index:1;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);overflow:hidden}
     .tab-btn.active{color:#fff;transform:translateY(-1px)}
@@ -207,14 +207,14 @@
     .lightbox-inner{max-width:min(96vw,980px);max-height:90vh;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
     .lightbox img{max-width:100%;max-height:calc(90vh - 36px);border-radius:10px;border:1px solid #2e435e;background:#09101a}
     .lightbox-close{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
-    .flag-pin{width:24px;height:24px;border-radius:999px;border:2px solid #fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.35);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
+    .flag-pin{width:18px;height:18px;border-radius:999px;border:1.5px solid #fff;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,0.3);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
     .country-facts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
     .country-fact{border:1px solid rgba(97,176,255,0.18);border-radius:16px;background:linear-gradient(135deg,rgba(22,54,91,0.8),rgba(14,35,62,0.9));backdrop-filter:blur(10px);padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.25);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
     .country-fact::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#4da4ff,#7ec1ff)}
     .country-fact small{display:block;color:#8ab4f8;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
     .country-fact strong{font-size:16px;color:#e8f0fe}
     .tags-container{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding:2px 0}
-    .tag-chip{padding:9px 15px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .25s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;gap:8px;user-select:none;backdrop-filter:blur(4px)}
+    .tag-chip{padding:7px 12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .25s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;gap:6px;user-select:none;backdrop-filter:blur(4px)}
     .tag-chip span{font-size:15px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2))}
     .tag-chip:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.18);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
     .tag-chip:active{transform:scale(0.96)}
@@ -287,16 +287,27 @@
     .badge-label{font-size:9px;font-weight:700;color:var(--muted);transition:color .3s;line-height:1.1}
     .badge-item.unlocked .badge-label{color:#fff}
 
-    /* Timeline Horizontal Cleanup */
-    .timeline-section{margin-top:24px;position:relative}
-    .timeline-container{position:relative;display:flex;overflow-x:auto;padding:20px 14px 14px;gap:14px;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent);-webkit-mask-image:linear-gradient(to right, transparent, black 8%, black 92%, transparent)}
-    .timeline-container::-webkit-scrollbar{display:none}
-    .timeline-item{position:relative;flex-shrink:0;width:150px;scroll-snap-align:start;z-index:1}
-    .timeline-content{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);backdrop-filter:blur(10px)}
-    .timeline-info{text-align:center}
-    .timeline-city{font-weight:800;font-size:14px;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .timeline-date{font-size:10px;color:var(--muted);justify-content:center}
-    .timeline-thumb{width:100%;height:100px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,0.08);background:#000}
+    /* Country Collection Reel CSS */
+    .timeline-section{margin-top:24px; position:relative; padding:0 0 16px;}
+    .timeline-container-root{display:flex; overflow-x:auto; gap:16px; padding:4px 20px 20px; scroll-snap-type:x mandatory; scrollbar-width:none}
+    .timeline-container-root::-webkit-scrollbar{display:none}
+    
+    .country-reel-card{flex-shrink:0; width:180px; aspect-ratio:1/1.3; border-radius:32px; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.12); box-shadow:0 12px 40px rgba(0,0,0,0.5); cursor:pointer; scroll-snap-align:start; transition:transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)}
+    .country-reel-card:hover{transform:scale(1.05) translateY(-5px); border-color:rgba(255,255,255,0.25)}
+    .country-reel-card:active{transform:scale(0.95)}
+    
+    .reel-bg{position:absolute; inset:0; z-index:1}
+    .reel-bg img{width:100%; height:100%; object-fit:cover; filter:brightness(0.65) saturate(1.2)}
+    .reel-overlay{position:absolute; inset:0; z-index:2; background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%); padding:20px; display:flex; flex-direction:column; justify-content:flex-end; gap:6px}
+    
+    .reel-flag{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%; border:2px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.3); overflow:hidden; z-index:3}
+    .reel-flag img{width:100%; height:100%; object-fit:cover}
+    
+    .reel-name{font-size:17px; font-weight:800; color:#fff; letter-spacing:-0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .reel-stats{font-size:11px; font-weight:700; color:var(--primary); background:rgba(0,229,255,0.12); padding:4px 10px; border-radius:99px; align-self:flex-start}
+
+
+
 
     /* Scroll Indicator */
     .timeline-wrapper{position:relative}
@@ -630,29 +641,20 @@
           <div id="worldProgressFill" class="progress-fill"></div>
         </div>
         <div id="explorerInsightsGrid" class="insights-grid"></div>
-        <button id="openJourneyMapBtn" class="passport-link-btn" type="button" style="background:rgba(0,229,255,0.1); border-color:rgba(0,229,255,0.3); color:#00e5ff;">
-          <span>🌐 Seyahat Ağını Keşfet</span>
-        </button>
+        <div style="padding:0 14px 14px;">
+          <button id="openJourneyMapBtn" class="passport-link-btn" type="button" style="width:100%; background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); color:#00e5ff; padding:12px; border-radius:14px; font-weight:700; cursor:pointer;">
+            <span>🌐 Seyahat Ağını Keşfet</span>
+          </button>
+        </div>
       </article>
 
       <article class="achievements-section">
-        <h2 style="font-size:16px; margin-bottom:12px;">Gelişimim ve Başarımlar</h2>
+        <h2 style="font-size:16px; margin-bottom:12px;">Rozetlerim</h2>
         <div id="achievementsGrid" class="achievements-grid"></div>
       </article>
 
       <article class="timeline-section">
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px;">
-          <div>
-            <h2 style="font-size:16px; margin:0;">Seyahat Zaman Çizelgesi</h2>
-            <p class="hint" style="margin:2px 0 0;">Gezdiğin tüm şehirlerin kronolojik listesi.</p>
-          </div>
-        </div>
-        <div class="timeline-wrapper">
-          <button id="timelinePrevBtn" class="timeline-nav prev" type="button"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-          <button id="timelineNextBtn" class="timeline-nav next" type="button"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
-          <div class="timeline-scroll-hint">Kaydır ➔</div>
-          <div id="timelineContainer" class="timeline-container"></div>
-        </div>
+        <div id="timelineContainer" class="timeline-container-root"></div>
       </article>
 
       <article class="card">
@@ -1164,25 +1166,7 @@
           }
         });
       }
-      if (els.timelineContainer) {
-        els.timelineContainer.addEventListener('scroll', () => {
-          const hint = document.querySelector('.timeline-scroll-hint');
-          if (hint) {
-            hint.style.opacity = '0';
-            setTimeout(() => { if(hint) hint.style.display = 'none'; }, 500);
-          }
-        });
-      }
-      if (els.timelinePrevBtn) {
-        els.timelinePrevBtn.addEventListener('click', () => {
-          els.timelineContainer.scrollBy({ left: -164, behavior: 'smooth' });
-        });
-      }
-      if (els.timelineNextBtn) {
-        els.timelineNextBtn.addEventListener('click', () => {
-          els.timelineContainer.scrollBy({ left: 164, behavior: 'smooth' });
-        });
-      }
+      // Timeline listeners removed as the structure is now dynamic (Journey Chapters)
     }
 
     function updateStarRatingUI(inputId, val) {
@@ -1935,19 +1919,17 @@
     async function persistCloudRecords(forceRecords = null) {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       if (cloudSyncBusy) {
-        if (Array.isArray(forceRecords)) {
-          setTimeout(() => persistCloudRecords(forceRecords), 600);
-        } else {
-          queueCloudSync();
-        }
+        if (Array.isArray(forceRecords)) setTimeout(() => persistCloudRecords(forceRecords), 600);
+        else queueCloudSync();
         return;
       }
       cloudSyncBusy = true;
       try {
         const payload = normalizeRecordsArray(Array.isArray(forceRecords) ? forceRecords : records);
         const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
-        let okWrites = 0;
-        for (const item of payload) {
+        
+        // Use parallel writes for performance
+        const writePromises = payload.map(async item => {
           const docRef = colRef.doc(item.id);
           try {
             await docRef.set({
@@ -1955,7 +1937,7 @@
               updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
               deviceUpdatedAt: new Date().toISOString()
             }, { merge: true });
-            okWrites += 1;
+            return true;
           } catch (writeError) {
             if (isCloudPayloadTooLargeError(writeError)) {
               try {
@@ -1965,35 +1947,33 @@
                   deviceUpdatedAt: new Date().toISOString(),
                   cloudPhotoStripped: true
                 }, { merge: true });
-                okWrites += 1;
-                continue;
-              } catch (liteError) {
-                console.warn("Lite kayit da buluta yazilamadi:", item && item.id, liteError);
-              }
+                return true;
+              } catch (liteError) { console.warn("Lite sync fail:", item.id, liteError); }
             }
-            console.warn("Kayit buluta yazilamadi:", item && item.id, writeError);
+            console.warn("Doc sync fail:", item.id, writeError);
+            return false;
           }
-        }
-        // Keep legacy path in sync for backward compatibility on stale mobile/web caches.
-        try {
-          const legacyDocRef = firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records");
-          await legacyDocRef.set({
-            records: payload.map(toCloudRecordLite),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            deviceUpdatedAt: new Date().toISOString(),
-            compatVersion: APP_VERSION
-          }, { merge: true });
-        } catch (legacyError) {
-          console.warn("Legacy senkron yazimi atlandi:", legacyError);
-        }
+        });
+
+        const results = await Promise.all(writePromises);
+        const okWrites = results.filter(Boolean).length;
+
+        // Legacy compatibility doc set in parallel
+        firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records").set({
+          records: payload.map(toCloudRecordLite),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          deviceUpdatedAt: new Date().toISOString(),
+          compatVersion: APP_VERSION
+        }, { merge: true }).catch(err => console.warn("Legacy sync skip:", err));
+
         cloudSyncPending = false;
-        cloudSyncStatus = "Bulut esitlendi (" + okWrites + "/" + payload.length + ").";
+        cloudSyncStatus = `Bulut esitlendi (${okWrites}/${payload.length}).`;
         renderAuthPanel();
       } catch (error) {
-        console.warn("Bulut kayitlari yazilamadi:", error);
+        console.warn("Cloud sync fail:", error);
         handleCloudPermissionError(error);
         cloudSyncPending = false;
-        cloudSyncStatus = "Buluta yazma hatasi: " + (error && error.code ? error.code : "bilinmiyor");
+        cloudSyncStatus = "Buluta yazma hatasi.";
         renderAuthPanel();
       } finally {
         cloudSyncBusy = false;
@@ -2261,7 +2241,10 @@
         };
         if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
         else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
-        await saveRecords({ syncNow: true });
+        
+        // Non-blocking background sync
+        saveRecords({ syncNow: true });
+        
         resetAddForm();
         renderAll();
         switchScreen("records");
@@ -2933,14 +2916,14 @@
       ctx.fillText("Highlight", 136, 1246);
       ctx.font = "500 31px Segoe UI";
       const storyLines = [
-        selectedYear + " icinde yaklasik " + formatInteger(stats.yearKm) + " km yol.",
-        formatInteger(stats.uniqueCities) + " farkli sehir ve " + formatInteger(stats.uniqueCountries) + " ulke.",
-        "Toplam " + formatInteger(stats.totalDays) + " gunluk gezi kaydi.",
-        stats.topCountry ? "En cok: " + stats.topCountry : "Yeni ulkeler seni bekliyor."
+        selectedYear + " yılında yaklaşık " + formatInteger(stats.yearKm) + " km yol katettim.",
+        formatInteger(stats.uniqueCities) + " farklı şehir ve " + formatInteger(stats.uniqueCountries) + " ülke keşfettim.",
+        "Toplam " + formatInteger(stats.totalDays) + " günlük dolu dolu bir serüven.",
+        stats.topCountry ? "Favori rotam: " + stats.topCountry : "Yeni ufuklar beni bekliyor!"
       ];
       let y = 1318;
       storyLines.forEach(line => {
-        y = drawWrappedLine(ctx, line, 136, y, 820, 44) + 16;
+        y = drawWrappedLine(ctx, line, 136, y, 820, 52) + 24;
       });
 
       ctx.font = "500 24px Segoe UI";
@@ -3643,34 +3626,51 @@
 
     function renderTimeline() {
       if (!els.timelineContainer) return;
-      const travelled = records.filter(item => isTravelled(item.status))
-        .sort((a, b) => getRecordTime(b) - getRecordTime(a));
-
+      
+      const travelled = records.filter(item => isTravelled(item.status));
       if (!travelled.length) {
-        els.timelineContainer.innerHTML = '<div class="country-album-empty">Henüz hiç seyahat kaydı yok.</div>';
+        els.timelineContainer.innerHTML = '<div class="country-album-empty" style="margin-left:0; width:100%;">Henüz seyahat koleksiyonun boş.</div>';
         return;
       }
 
-      els.timelineContainer.innerHTML = travelled.map(item => {
-        const thumb = item.photos && item.photos.length ? item.photos[0] : '';
-        const dateStr = item.date ? formatDate(item.date) : 'Tarih belirtilmedi';
-        const tagsHtml = item.tags && item.tags.length ? `
-          <div class="item-info-row" style="margin-top:8px; justify-content:center;">
-            ${item.tags.map(t => {
-              const def = TAG_DEFS[t] || { icon: '🏷️' };
-              return `<span class="iinfo" style="font-size:9px; padding:2px 6px;">${def.icon}</span>`;
-            }).join('')}
-          </div>
-        ` : '';
+      // Group by Country
+      const countryGroups = {};
+      travelled.forEach(item => {
+        const code = (item.countryCode || 'xx').toLowerCase();
+        if (!countryGroups[code]) {
+          countryGroups[code] = {
+            code: code,
+            name: item.country || 'Bilinmeyen Ülke',
+            cities: new Set(),
+            latestDate: 0,
+            photo: null
+          };
+        }
+        countryGroups[code].cities.add(item.city);
+        const time = getRecordTime(item);
+        if (time > countryGroups[code].latestDate) {
+          countryGroups[code].latestDate = time;
+          // Use the latest trip photo as representative photo if available
+          if (Array.isArray(item.photos) && item.photos.length > 0) {
+            countryGroups[code].photo = item.photos[0];
+          }
+        }
+      });
+
+      // Sort by latest visit
+      const sorted = Object.values(countryGroups).sort((a, b) => b.latestDate - a.latestDate);
+
+      els.timelineContainer.innerHTML = sorted.map(group => {
+        const cityCount = group.cities.size;
+        const bgPhoto = group.photo || 'https://picsum.photos/seed/' + group.code + '/400/600';
+        
         return `
-          <div class="timeline-item">
-            <div class="timeline-content">
-              ${thumb ? `<img class="timeline-thumb" src="${thumb}" loading="lazy" alt="">` : `<div class="timeline-thumb" style="display:grid;place-items:center;background:rgba(255,255,255,0.05);font-size:32px;">📍</div>`}
-              <div class="timeline-info">
-                <div class="timeline-city">${esc(item.city)}</div>
-                <div class="timeline-date">📅 ${esc(dateStr)}</div>
-                ${tagsHtml}
-              </div>
+          <div class="country-reel-card" onclick="openCountryScreen('${group.code}','${esc(group.name)}')">
+            <div class="reel-bg"><img src="${bgPhoto}" loading="lazy" alt=""></div>
+            <div class="reel-flag"><img src="https://flagcdn.com/w80/${group.code}.png" alt=""></div>
+            <div class="reel-overlay">
+              <div class="reel-name">${esc(group.name)}</div>
+              <div class="reel-stats">${cityCount} Şehir</div>
             </div>
           </div>
         `;
