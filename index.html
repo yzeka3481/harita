@@ -347,119 +347,9 @@
     .pack-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:14px;cursor:pointer;transition:all .2s}
     .pack-item:hover{background:rgba(255,255,255,0.05)}
     .pack-item input{width:16px;height:16px;accent-color:var(--primary)}
-    /* Experience Tags Grid */
-    .tags-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .tag-chip {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      padding: 10px 4px;
-      font-size: 11px;
-      font-weight: 600;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: var(--muted);
-    }
-    .tag-chip span {
-      font-size: 18px;
-      transition: transform 0.2s;
-    }
-    .tag-chip:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-    .tag-chip.active {
-      background: rgba(97, 176, 255, 0.15);
-      border-color: var(--primary);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(97, 176, 255, 0.2);
-    }
-    .tag-chip.active span {
-      transform: scale(1.1);
-    }
-
-    /* Passport / Identity Styles Refinement */
-    .identity-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 7500;
-      background: rgba(4, 12, 28, 0.9);
-      backdrop-filter: blur(20px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    .identity-modal.open {
-      display: flex;
-      opacity: 1;
-    }
-    .identity-card {
-      width: min(94vw, 380px);
-      background: linear-gradient(160deg, #1a3a5f 0%, #112743 100%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 24px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-      overflow: hidden;
-      position: relative;
-    }
-    .identity-id-line {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      font-family: monospace;
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.3);
-    }
-    .identity-head {
-      padding: 30px 20px 20px;
-      text-align: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.03);
-    }
-    .identity-avatar-wrap {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #61b0ff, #3d8fe8);
-      border-radius: 50%;
-      margin: 0 auto 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      box-shadow: 0 8px 24px rgba(97, 176, 255, 0.4);
-    }
-    .identity-name { margin: 0; font-size: 20px; font-weight: 800; color: #fff; }
-    .identity-rank { font-size: 12px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-    .identity-body { padding: 20px; }
-    .identity-persona-box {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .persona-title { font-weight: 800; font-size: 15px; color: #fff; margin-bottom: 4px; }
-    .persona-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
-    .identity-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .id-stat { text-align: center; background: rgba(255, 255, 255, 0.03); padding: 10px 4px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); }
-    .id-stat small { display: block; font-size: 9px; color: var(--muted); margin-bottom: 4px; }
-    .id-stat strong { display: block; font-size: 16px; color: #fff; }
-    .identity-close { position: absolute; top: 12px; left: 16px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; opacity: 0.6; }
-    .identity-close:hover { opacity: 1; }
-
+    .pack-item span{font-size:13px;color:rgba(255,255,255,0.8)}
+    .pack-item.checked span{text-decoration:line-through;opacity:0.4}
+  </style>
 
 
 
@@ -610,14 +500,11 @@
           <div style="margin-bottom:16px;">
             <label class="field-label">Ziyaret Deneyimleri (Etiketler)</label>
             <div id="tagsContainer" class="tags-container">
-              <div class="tag-chip" data-tag="city"><span>🏙️</span> Şehir</div>
               <div class="tag-chip" data-tag="museum"><span>🏛️</span> Müze</div>
               <div class="tag-chip" data-tag="nature"><span>🌳</span> Doğa</div>
-              <div class="tag-chip" data-tag="food"><span>🍴</span> Yemek</div>
+              <div class="tag-chip" data-tag="food"><span>🍴</span> Gastronomi</div>
               <div class="tag-chip" data-tag="art"><span>🎭</span> Sanat</div>
-              <div class="tag-chip" data-tag="beach"><span>🏖️</span> Plaj</div>
-              <div class="tag-chip" data-tag="history"><span>🏰</span> Tarih</div>
-              <div class="tag-chip" data-tag="shopping"><span>🛍️</span> Alışveriş</div>
+              <div class="tag-chip" data-tag="sightseeing"><span>🏙️</span> Şehir Gezisi</div>
             </div>
           </div>
           <div class="row2">
@@ -745,7 +632,17 @@
         <div id="timelineContainer" class="timeline-container"></div>
       </article>
 
-<!-- Packing section removed -->
+      <article class="packing-section">
+        <div class="packing-card">
+          <h2 style="font-size:16px;margin:0 0 12px 0;">Pro Hazırlık Rehberi</h2>
+          <div id="packingTabs" class="packing-tabs">
+            <div class="packing-tab active" data-pack="city">🏙️ Şehir Gezisi</div>
+            <div class="packing-tab" data-pack="nature">⛺ Doğa & Kamp</div>
+            <div class="packing-tab" data-pack="business">💼 İş Gezisi</div>
+          </div>
+          <div id="packingItems" class="packing-items"></div>
+        </div>
+      </article>
 
       <article class="card">
         <h2>Paylasilabilir Story</h2>
@@ -830,49 +727,13 @@
     </div>
   </div>
 
-  <div id="passportModal" class="identity-modal" aria-hidden="true" onclick="if(event.target===this)els.passportModal.classList.remove('open')">
-    <div class="identity-card">
-      <div class="identity-head">
-        <button id="closePassportBtn" class="identity-close" type="button" aria-label="Kapat">×</button>
-        <div class="identity-avatar-wrap">
-          <div class="identity-avatar">👤</div>
-        </div>
-        <h2 id="idUserName" class="identity-name">-</h2>
-        <div id="idUserRank" class="identity-rank">Acemi Gezgin</div>
-      </div>
-      
-      <div class="identity-body">
-        <div class="identity-persona-box">
-          <div id="idPersonaTitle" class="persona-title">Karakter Yükleniyor...</div>
-          <div id="idPersonaDesc" class="persona-desc">Seyahat verileriniz analiz ediliyor.</div>
-        </div>
-        
-        <div class="identity-stats-grid">
-          <div class="id-stat">
-            <small>TOPLAM GÜN</small>
-            <strong id="idStatDays">0</strong>
-          </div>
-          <div class="id-stat">
-            <small>ÜLKE SKORU</small>
-            <strong id="idStatCountries">0</strong>
-          </div>
-          <div class="id-stat">
-            <small>TOPLAM KM</small>
-            <strong id="idStatKm">0</strong>
-          </div>
-          <div class="id-stat">
-            <small>DENEYİM PUANI</small>
-            <strong id="idStatExp">0</strong>
-          </div>
-        </div>
-        
-        <div class="identity-highlights">
-          <h4>En İyi Deneyimler</h4>
-          <div id="idHighlightsList">
-            <!-- Dinamik dolacak -->
-          </div>
-        </div>
-      </div>
+  <div id="passportModal" class="passport-modal">
+    <div class="passport-head">
+      <h2 style="font-size:18px;margin:0;">Dijital Pasaport</h2>
+      <button id="closePassportBtn" class="badge-close" style="position:static;">&times;</button>
+    </div>
+    <div class="stamps-container">
+      <div id="stampsGrid" class="stamps-grid"></div>
     </div>
   </div>
 
@@ -987,17 +848,6 @@
       authPasswordInput: document.getElementById("authPasswordInput"),
       authSubmitBtn: document.getElementById("authSubmitBtn"),
       authGoogleBtn: document.getElementById("authGoogleBtn"),
-      // Identity Elements
-      passportModal: document.getElementById("passportModal"),
-      idUserName: document.getElementById("idUserName"),
-      idUserRank: document.getElementById("idUserRank"),
-      idPersonaTitle: document.getElementById("idPersonaTitle"),
-      idPersonaDesc: document.getElementById("idPersonaDesc"),
-      idStatDays: document.getElementById("idStatDays"),
-      idStatCountries: document.getElementById("idStatCountries"),
-      idStatKm: document.getElementById("idStatKm"),
-      idStatExp: document.getElementById("idStatExp"),
-      idHighlightsList: document.getElementById("idHighlightsList"),
       authHelpText: document.getElementById("authHelpText"),
       achievementsGrid: document.getElementById("achievementsGrid"),
       timelineContainer: document.getElementById("timelineContainer"),
@@ -2492,6 +2342,7 @@
       renderExplorePins();
       renderWorldLayers();
       renderExplorerInsights();
+      renderPackingLists();
       renderSummaryDashboard();
       renderTimeline();
     }
@@ -3711,14 +3562,11 @@
     };
 
     const TAG_DEFS = {
-      city: { icon: '🏙️', title: 'Şehir' },
       museum: { icon: '🏛️', title: 'Müze' },
       nature: { icon: '🌳', title: 'Doğa' },
-      food: { icon: '🍴', title: 'Yemek' },
+      food: { icon: '🍴', title: 'Gastronomi' },
       art: { icon: '🎭', title: 'Sanat' },
-      beach: { icon: '🏖️', title: 'Plaj' },
-      history: { icon: '🏰', title: 'Tarih' },
-      shopping: { icon: '🛍️', title: 'Alışveriş' }
+      sightseeing: { icon: '🏙️', title: 'Şehir Gezisi' }
     };
 
     function renderAchievements() {
@@ -3793,104 +3641,35 @@
       if (!els.homeBucketList) return;
       const planned = records.filter(item => item.status === 'planned');
       if (!planned.length) {
-        els.homeBucketList.innerHTML = `<div style="text-align:center;padding:24px;color:rgba(255,255,255,0.15);font-size:13px;border:1px dashed rgba(255,255,255,0.08);border-radius:16px;">Henüz planlanmış bir rota yok.</div>`;
+        els.homeBucketList.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(255,255,255,0.15);font-size:13px;border:1px dashed rgba(255,255,255,0.08);border-radius:16px;">Henüz planlanmış bir rota yok.</div>';
         return;
       }
-      els.homeBucketList.innerHTML = planned.map(item => `
+      els.homeBucketList.innerHTML = planned.slice(0, 5).map(item => `
         <div class="bucket-item">
           <div>
             <div class="bucket-city">${esc(item.city)}</div>
             <div class="bucket-country">${esc(item.country)}</div>
           </div>
-          <button class="bucket-go" onclick="convertPlanToTrip('${item.id}')">Geziye Dönüştür</button>
+          <button class="bucket-go" onclick="openAddScreen('${item.id}');window.scrollTo(0,0);els.addScreenTitle.textContent='Planı Geziye Dönüştür';">Geziye Dönüştür</button>
         </div>
       `).join('');
     }
 
-    function convertPlanToTrip(id) {
-      const record = records.find(r => r.id === id);
-      if (!record) return;
-      openAddScreen(id);
-      els.statusInput.value = 'visited';
-      // Tarih yoksa bugunu ekle
-      if (!els.dateInput.value) {
-        const today = new Date().toISOString().split('T')[0];
-        els.dateInput.value = today;
-      }
-      els.addScreenTitle.textContent = 'Planı Geziye Dönüştür';
-      window.scrollTo(0, 0);
-    }
-
-    const PERSONAS = [
-      { id: 'city', title: 'Şehir Kaşifi', desc: 'Metropollerin enerjisini ve şehir hayatını seviyorsunuz.', icon: '🏢' },
-      { id: 'nature', title: 'Doğa Tutkunu', desc: 'Huzuru doğada, dağlarda ve açık havada buluyorsunuz.', icon: '🌲' },
-      { id: 'history', title: 'Tarih Avcısı', desc: 'Antik kentler ve eski yapılar sizin vazgeçilmeziniz.', icon: '🏰' },
-      { id: 'gourmet', title: 'Gurme Gezgin', desc: 'Yeni tatlar keşfetmek sizin için bir tutku.', icon: '🍽️' },
-      { id: 'culture', title: 'Kültür Elçisi', desc: 'Müzeler, tarih ve sanat seyahatlerinizin kalbi.', icon: '🏛️' },
-      { id: 'sea', title: 'Deniz Tutkunu', desc: 'Mavi sular ve güneşli plajlar sizin enerjiniz.', icon: '🏖️' },
-      { id: 'default', title: 'Çok Yönlü Gezgin', desc: 'Her türlü seyahat deneyimine hazırsınız.', icon: '🗺️' }
-    ];
-
-    function calculateTravelerPersona() {
-      const visited = records.filter(r => isTravelled(r.status));
-      if (!visited.length) return PERSONAS.find(p => p.id === 'default');
-
-      // Tag analizi
-      const allTags = visited.flatMap(r => r.tags || []);
-      const tagCounts = {};
-      allTags.forEach(t => tagCounts[t] = (tagCounts[t] || 0) + 1);
-      
-      let topTag = null, tagMax = 0;
-      for(const t in tagCounts) { if(tagCounts[t] > tagMax) { tagMax = tagCounts[t]; topTag = t; } }
-
-      if (topTag === 'beach') return PERSONAS.find(p => p.id === 'sea');
-      if (topTag === 'history') return PERSONAS.find(p => p.id === 'history');
-      if (topTag === 'museum' || topTag === 'art') return PERSONAS.find(p => p.id === 'culture');
-      if (topTag === 'nature') return PERSONAS.find(p => p.id === 'nature');
-      if (topTag === 'food') return PERSONAS.find(p => p.id === 'gourmet');
-
-      return PERSONAS.find(p => p.id === 'city');
-    }
-
-    function renderTravelerIdentity() {
-      const visited = records.filter(r => isTravelled(r.status));
-      const countries = new Set(visited.map(r => r.country).filter(Boolean));
-      const user = currentUser || { displayName: 'Misafir Gezgin' };
-      
-      els.idUserName.textContent = user.displayName || user.email?.split('@')[0] || 'Gezgin';
-      
-      const rank = visited.length > 20 ? 'Efsanevi Kaşif' : (visited.length > 10 ? 'Usta Gezgin' : 'Yolun Başında');
-      els.idUserRank.textContent = rank;
-
-      const persona = calculateTravelerPersona();
-      els.idPersonaTitle.textContent = persona.title;
-      els.idPersonaDesc.textContent = persona.desc;
-      document.querySelector('.identity-avatar').textContent = persona.icon;
-
-      // Stats
-      els.idStatCountries.textContent = countries.size;
-      const totalKm = calculateRouteKm(visited);
-      els.idStatKm.textContent = totalKm > 1000 ? (totalKm/1000).toFixed(1) + 'k' : totalKm;
-      
-      // Tahmini seyahat gunleri (her kayit en az 1 gun sayilsa)
-      els.idStatDays.textContent = visited.length * 2; // Basit bir carpan
-      els.idStatExp.textContent = visited.length * 150 + totalKm;
-
-      // Highlights (En yuksek puanli 3 sehir)
-      const sorted = [...visited].sort((a, b) => (b.ratingOverall || 0) - (a.ratingOverall || 0)).slice(0, 3);
-      els.idHighlightsList.innerHTML = sorted.map(s => `
-        <div class="highlight-item">
-          <div class="highlight-icon">${s.visitType === 'trekking' ? '🌲' : '📍'}</div>
-          <div class="highlight-info">
-            <strong>${esc(s.city)}</strong>
-            <span>${esc(s.country)} • ⭐ ${s.ratingOverall || '-'}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-
-
+    const PACKING_DEFS = {
+      city: [
+        "Rahat yürüyüş ayakkabısı", "Taşınabilir şarj cihazı (Powerbank)", "Şehir haritası / Çevrimdışı harita",
+        "Yerel para birimi / Nakit", "Güneş gözlüğü & Krem", "Müze kartı / Rezervasyonlar"
+      ],
+      nature: [
+        "Su geçirmez bot / ayakkabı", "Yağmurluk / Rüzgarlık", "İlk yardım kiti",
+        "Fener / Kafa lambası", "Termos / Su matarası", "Atıştırmalık enerji barları"
+      ],
+      business: [
+        "Gömlek / Takım elbise", "Laptop & Şarj aleti", "Kartvizitler",
+        "Evrak dosyası", "Ütü spreyleri (kırışıklık için)", "Şık ayakkabı"
+      ]
+    };
+    let activePackingTab = 'city';
 
     function renderExplorerInsights() {
       if (!els.explorerInsightsGrid) return;
@@ -3925,15 +3704,41 @@
     }
 
     function renderDigitalPassport() {
-      // Legacy passport is replaced by Traveler Identity logic above.
-      // Keeping original name for hook compatibility but redirection logic will be in bindProEvents.
+      if (!els.stampsGrid) return;
+      const firstVisits = new Map();
+      records.filter(r => isTravelled(r.status)).forEach(r => {
+        const code = (r.countryCode || "").toLowerCase();
+        if (!code) return;
+        if (!firstVisits.has(code)) firstVisits.set(code, r);
+      });
+
+      els.stampsGrid.innerHTML = WORLD_CODES.map(code => {
+        const visit = firstVisits.get(code);
+        const active = !!visit;
+        return `
+          <div class="stamp ${active ? 'active' : ''}">
+            <img class="stamp-flag" src="https://flagcdn.com/w160/${code}.png" alt="">
+            <span class="stamp-code">${code.toUpperCase()}</span>
+            ${active ? `<span class="stamp-date">${formatDate(visit.date)}</span>` : ''}
+          </div>
+        `;
+      }).join('');
     }
 
-
+    function renderPackingLists() {
+      if (!els.packingItems) return;
+      const items = PACKING_DEFS[activePackingTab] || [];
+      els.packingItems.innerHTML = items.map((item, i) => `
+        <div class="pack-item" onclick="this.classList.toggle('checked');">
+          <input type="checkbox">
+          <span>${esc(item)}</span>
+        </div>
+      `).join('');
+    }
 
     function bindProEvents() {
       if (els.openPassportBtn) els.openPassportBtn.addEventListener('click', () => {
-        renderTravelerIdentity();
+        renderDigitalPassport();
         els.passportModal.classList.add('open');
         document.body.classList.add('modal-open');
       });
@@ -3941,7 +3746,15 @@
         els.passportModal.classList.remove('open');
         document.body.classList.remove('modal-open');
       });
-
+      if (els.packingTabs) {
+        els.packingTabs.addEventListener('click', e => {
+          const tab = e.target.closest('.packing-tab');
+          if (!tab) return;
+          activePackingTab = tab.dataset.pack;
+          els.packingTabs.querySelectorAll('.packing-tab').forEach(t => t.classList.toggle('active', t === tab));
+          renderPackingLists();
+        });
+      }
     }
 
     function openBadgeDetail(id, unlocked) {
