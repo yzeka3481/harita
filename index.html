@@ -258,7 +258,15 @@
     @keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.3}}
     .sync-text{font-size:11px;color:#c6dbf3;line-height:1.4}
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-globe{width:min(72vw,420px)}#exploreMapWrap{height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
+    .country-album-section{margin-top:20px;padding:0 4px}
+    .country-album-section h2{margin:0 0 12px;font-size:16px;color:#fff;display:flex;align-items:center;gap:8px}
+    .country-album-section h2::before{content:"🖼️";font-size:18px}
+    .country-album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .country-album-item{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 4px 12px rgba(0,0,0,0.22);cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;background:#0f1a2a}
+    .country-album-item:hover{transform:scale(1.05);box-shadow:0 6px 18px rgba(0,0,0,0.35);z-index:2;border-color:rgba(255,255,255,0.24)}
+    .country-album-empty{background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.12);border-radius:14px;padding:24px;text-align:center;color:var(--muted);font-size:13px}
   </style>
+
 </head>
 <body>
   <div id="splashScreen">
@@ -532,7 +540,13 @@
           <div class="country-fact"><small>Dil</small><strong id="countryLanguage">-</strong></div>
           <div class="country-fact"><small>Başkent</small><strong id="countryCapital">-</strong></div>
         </div>
+        <article class="country-album-section">
+          <h2>Ülke Albümü</h2>
+          <div id="countryAlbum" class="country-album-grid"></div>
+        </article>
       </div>
+    </section>
+
     </section>
   </main>
 
@@ -701,6 +715,7 @@
       countryPopulation: document.getElementById("countryPopulation"),
       countryLanguage: document.getElementById("countryLanguage"),
       countryCapital: document.getElementById("countryCapital"),
+      countryAlbum: document.getElementById("countryAlbum"),
       photoLightbox: document.getElementById("photoLightbox"),
       photoLightboxImg: document.getElementById("photoLightboxImg"),
       photoLightboxClose: document.getElementById("photoLightboxClose"),
@@ -2726,6 +2741,7 @@
 
       await loadCountryFacts(code, prettyName);
       renderCountryMap(code, countryRecords);
+      renderCountryAlbum(countryRecords);
     }
 
     async function loadCountryFacts(countryCode, countryName) {
@@ -2817,6 +2833,23 @@
       } else {
         countryMap.setView([20, 10], 2.4);
       }
+    }
+
+    function renderCountryAlbum(countryRecords) {
+      if (!els.countryAlbum) return;
+      const allPhotos = [];
+      countryRecords.forEach(item => {
+        if (Array.isArray(item.photos)) {
+          item.photos.forEach(p => allPhotos.push(p));
+        }
+      });
+      if (!allPhotos.length) {
+        els.countryAlbum.innerHTML = '<div class="country-album-empty">Bu ülke için henüz fotoğraf eklenmemiş.</div>';
+        return;
+      }
+      els.countryAlbum.innerHTML = allPhotos.map(src => 
+        `<img src="${esc(src)}" class="country-album-item" alt="Anı fotoğrafı" data-gallery-photo="1">`
+      ).join("");
     }
 
     function renderExplorePins() {
