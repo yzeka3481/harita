@@ -1065,12 +1065,13 @@
       mainNav: document.querySelector(".tabs")
     };
 
-    let records = loadRecords();
-    let userOwnRecords = [...records];
+    let records = [];
+    let userOwnRecords = [];
     let originalRecords = [];
     let currentFriendData = null;
     let isFriendView = false;
     let currentUser = null;
+    let STORAGE_KEY = "yoldas_records";
     let firebaseReady = false;
     let authMode = "login";
     let firebaseAuth = null;
@@ -1418,74 +1419,37 @@
         firebaseAuth = firebase.auth();
         firebaseDb = (firebase.firestore && typeof firebase.firestore === "function") ? firebase.firestore() : null;
         firebaseReady = true;
-        if (firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence) {
-          firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
-        }
         firebaseAuth.onAuthStateChanged(user => {
           detachCloudListeners();
           
-          // CRITICAL: Clear all state on account change
-          if (isFriendView) {
-             isFriendView = false;
-             els.friendViewBadge.classList.remove("active");
-          }
+          // CRITICAL: Instant Purge on account change
+          isFriendView = false;
           currentFriendData = null;
           records = [];
           userOwnRecords = [];
           originalRecords = [];
-          renderAll(); // Immediate clear UI
+          renderAll(); // Blank screen immediately
           
           shownCloudPermissionAlert = false;
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
           
-          if (!currentUser) return;
+          if (!currentUser) {
+             cloudSyncStatus = "";
+             renderAuthPanel();
+             return;
+          }
           
-          // Initial load from local cache for this user
-          records = loadRecords();
-          userOwnRecords = [...records];
-          cloudSyncStatus = "Bulut baglaniyor (server)...";
-          renderAll();
-          
+          cloudSyncStatus = "Veriler yukleniyor...";
+          renderAuthPanel();
+
+          // ONLY load from user-specific key
+          const uid = currentUser.uid;
           forceReloadCloudRecords()
             .then(cloudRecords => {
-              let finalRecords = Array.isArray(cloudRecords) ? cloudRecords : [];
-              const guestKeys = [STORAGE_KEY + ":guest", STORAGE_KEY];
-              for (const guestKey of guestKeys) {
-                const rawGuest = localStorage.getItem(guestKey);
-                if (rawGuest && rawGuest !== "[]") {
-                  try {
-                    const guestRecords = normalizeRecordsArray(JSON.parse(rawGuest));
-                    if (guestRecords.length > 0) {
-                      let merged = false;
-                      const cloudIds = new Set(finalRecords.map(r => r.id));
-                      for (const g of guestRecords) {
-                        if (!cloudIds.has(g.id)) {
-                          finalRecords.push(g);
-                          cloudIds.add(g.id);
-                          merged = true;
-                        }
-                      }
-                      if (merged) {
-                        finalRecords.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-                        setTimeout(() => persistCloudRecords(finalRecords), 500);
-                      }
-                    }
-                    localStorage.removeItem(guestKey);
-                  } catch (e) { console.warn("Guest migration error:", e); }
-                }
-              }
-              records = mergeCloudWithLocalPhotos(finalRecords, records);
-              userOwnRecords = [...records]; // Update the isolated master list
+              records = Array.isArray(cloudRecords) ? cloudRecords : [];
+              userOwnRecords = [...records];
+              localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
               renderAll();
-              try {
-                localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-              } catch (lsErr) {
-                console.warn("LocalStorage quota hatasi (fotolar cikartiliyor):", lsErr);
-                try {
-                  const compact = records.map(r => ({ ...r, photos: [] }));
-                  localStorage.setItem(getRecordsStorageKey(), JSON.stringify(compact));
-                } catch (e2) { console.warn("LocalStorage minimal write de basarisiz:", e2); }
-              }
               subscribeCloudRecordsRealtime();
               syncUserProfile();
               subscribeSocialData();
@@ -2299,7 +2263,8 @@
     function loadRecords() {
       try {
         const key = getRecordsStorageKey();
-        const raw = localStorage.getItem(key) || (!currentUser ? localStorage.getItem(STORAGE_KEY) : "[]") || "[]";
+        const raw = localStorage.getItem(key);
+        if (!raw) return []; // No fallback for logged in users
         const parsed = JSON.parse(raw);
         return normalizeRecordsArray(parsed);
       } catch { return []; }
@@ -2454,7 +2419,8 @@
     }
 
     async function saveRecords(options = {}) {
-      if (currentUser && currentUser.uid) {
+      if (!currentUser) return; // Never save if not logged in (Guest mode disabled for safety)
+      if (currentUser.uid) {
          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
       }
       if (options.syncNow) await persistCloudRecords();
