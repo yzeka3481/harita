@@ -890,8 +890,6 @@
         </article>
       </div>
     </section>
-
-    </section>
   </main>
 
   <button id="friendMapBackBtn" class="friend-back-btn" type="button" onclick="switchScreen('friendProfile')">
@@ -2491,29 +2489,33 @@
     }
     function normalizeRecordsArray(list) {
       const input = Array.isArray(list) ? list : [];
-      return input.map(item => ({
-        id: item.id || crypto.randomUUID(),
-        city: String(item.city || "").trim(),
-        country: String(item.country || "").trim(),
-        countryCode: String(item.countryCode || "").toLowerCase(),
-        lat: Number(item.lat), lng: Number(item.lng),
-        status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
-        visitType: ["holiday", "business", "daytrip", "transit"].includes(item.visitType) ? item.visitType : "holiday",
-        date: item.date || "",
-        ratingOverall: normalizeScore(item.ratingOverall),
-        ratingFood: normalizeScore(item.ratingFood),
-        ratingTransport: normalizeScore(item.ratingTransport),
-        ratingSafety: normalizeScore(item.ratingSafety),
-        budget: normalizeMoney(item.budget),
-        currency: normalizeCurrency(item.currency),
-        tripDays: normalizeDays(item.tripDays),
-        arrivalFrom: item.arrivalFrom || "",
-        transportMode: item.transportMode || "flight",
-        isPublic: item.isPublic !== false, // Default to true
-        photos: normalizePhotos(item.photos),
-        note: item.note || "",
-        createdAt: item.createdAt || new Date().toISOString()
-      }));
+      return input.map(item => {
+        // Legacy Support: Check both countryCode and code fields
+        const cCode = String(item.countryCode || item.code || "").toLowerCase().trim();
+        return {
+          id: item.id || crypto.randomUUID(),
+          city: String(item.city || "").trim(),
+          country: String(item.country || "").trim(),
+          countryCode: cCode,
+          lat: Number(item.lat), lng: Number(item.lng),
+          status: ["visited", "planned", "again"].includes(item.status) ? item.status : "visited",
+          visitType: ["holiday", "business", "daytrip", "transit"].includes(item.visitType) ? item.visitType : "holiday",
+          date: item.date || "",
+          ratingOverall: normalizeScore(item.ratingOverall),
+          ratingFood: normalizeScore(item.ratingFood),
+          ratingTransport: normalizeScore(item.ratingTransport),
+          ratingSafety: normalizeScore(item.ratingSafety),
+          budget: normalizeMoney(item.budget),
+          currency: normalizeCurrency(item.currency),
+          tripDays: normalizeDays(item.tripDays),
+          arrivalFrom: item.arrivalFrom || "",
+          transportMode: item.transportMode || "flight",
+          isPublic: item.isPublic !== false,
+          photos: normalizePhotos(item.photos),
+          note: item.note || "",
+          createdAt: item.createdAt || new Date().toISOString()
+        };
+      });
     }
 
     function toCloudRecord(item) {
@@ -3847,23 +3849,39 @@
 
     async function loadCountryFacts(countryCode, countryName) {
       let facts = null;
-      try {
-        const alphaUrl = "https://restcountries.com/v3.1/alpha/" + encodeURIComponent(countryCode) + "?fields=name,currencies,languages,population,capital";
-        const r = await fetch(alphaUrl);
-        if (r.ok) {
-          const j = await r.json();
-          facts = Array.isArray(j) ? j[0] : j;
-        }
-      } catch {}
-      if (!facts) {
+      const cleanCode = String(countryCode || "").trim().toLowerCase();
+      const cleanName = String(countryName || "").trim();
+
+      // 1. Search by Code (if valid)
+      if (cleanCode && cleanCode !== 'xx') {
         try {
-          const byNameUrl = "https://restcountries.com/v3.1/name/" + encodeURIComponent(countryName) + "?fields=name,currencies,languages,population,capital";
+          const alphaUrl = "https://restcountries.com/v3.1/alpha/" + encodeURIComponent(cleanCode) + "?fields=name,currencies,languages,population,capital";
+          const r = await fetch(alphaUrl);
+          if (r.ok) {
+            const j = await r.json();
+            facts = Array.isArray(j) ? j[0] : j;
+          }
+        } catch (e) { console.warn("Alpha fetch error:", e); }
+      }
+
+      // 2. Search by Name (if code failed or missing)
+      if (!facts && cleanName && cleanName !== 'Bilinmeyen Ülke') {
+        try {
+          // Try fullText search first for precision
+          const byNameUrl = "https://restcountries.com/v3.1/name/" + encodeURIComponent(cleanName) + "?fullText=true&fields=name,currencies,languages,population,capital";
           const r2 = await fetch(byNameUrl);
           if (r2.ok) {
             const j2 = await r2.json();
             facts = Array.isArray(j2) ? j2[0] : j2;
+          } else {
+            // Fallback to fuzzy search
+            const r3 = await fetch("https://restcountries.com/v3.1/name/" + encodeURIComponent(cleanName) + "?fields=name,currencies,languages,population,capital");
+            if (r3.ok) {
+               const j3 = await r3.json();
+               facts = j3[0];
+            }
           }
-        } catch {}
+        } catch (e) { console.warn("Name fetch error:", e); }
       }
 
       if (!facts) {
@@ -3876,7 +3894,8 @@
 
       const currencies = facts.currencies ? Object.values(facts.currencies).map(c => c.name || "").filter(Boolean) : [];
       const languages = facts.languages ? Object.values(facts.languages).filter(Boolean) : [];
-      const capitals = Array.isArray(facts.capital) ? facts.capital : [];
+      const capitals = Array.isArray(facts.capital) ? facts.capital : (facts.capital ? [facts.capital] : []);
+      
       els.countryCurrency.textContent = currencies.length ? toTitleCase(currencies.join(", ")) : "-";
       els.countryPopulation.textContent = Number.isFinite(Number(facts.population))
         ? new Intl.NumberFormat("tr-TR").format(Number(facts.population))
