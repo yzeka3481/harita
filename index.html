@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#142640">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Şehir Haritam</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,8 +17,8 @@
     *{box-sizing:border-box}
     body{margin:0;position:fixed;inset:0;background:radial-gradient(circle at 10% -10%,#6faee8,transparent 42%),radial-gradient(circle at 90% -20%,#67c8bb,transparent 38%),linear-gradient(180deg,#153154,#112743 50%,#10223b);color:var(--text);font-family:'Plus Jakarta Sans',Segoe UI,Tahoma,sans-serif;overflow:hidden}
     body.modal-open{overflow:hidden;height:100vh}
-    .app{max-width:500px;margin:0 auto;height:100dvh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow:hidden;border-radius:36px 36px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.05);background:var(--bg)}
-    .screen{display:none;padding:14px;height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom) - 12px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y;-webkit-overflow-scrolling:touch}.screen.active{display:block}
+    .app{max-width:500px;margin:0 auto;height:100dvh;position:relative;padding-top:env(safe-area-inset-top);padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow:hidden;border-radius:0;box-shadow:none;border:none;background:var(--bg)}
+    .screen{display:none;padding:14px;height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom) - env(safe-area-inset-top));overflow-y:auto;overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y;-webkit-overflow-scrolling:touch}.screen.active{display:block}
     .card{border:1px solid var(--glass-border);border-radius:16px;background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));padding:14px;margin-bottom:12px;box-shadow:0 8px 32px rgba(4,12,28,.32)}
     .card h2{margin:0 0 10px;font-size:16px;font-weight:600}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
     .control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
@@ -25,7 +28,7 @@
     .tool-btn.export{background:#2f7cde;color:#fff}
     .tool-btn.import{background:#2c8b6b;color:#fff}
     .tool-btn.stats{background:#394f6c;color:#e6f1ff}
-    .hero{border:none;border-radius:36px 36px 0 0;overflow:hidden;height:400px;margin:-14px -14px -180px;position:relative;background:#060c18;z-index:1;animation: heroEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
+    .hero{border:none;border-radius:0;overflow:hidden;height:400px;margin:-14px -14px -180px;position:relative;background:#060c18;z-index:1;animation: heroEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
     @keyframes heroEnter {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -1018,6 +1021,26 @@
     const GEOJSON_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
     const COUNTRY_PALETTE = ["#8ecae6","#219ebc","#ffb703","#fb8500","#bdb2ff","#a0c4ff","#90be6d","#43aa8b","#f9c74f","#f9844a","#e76f51","#4d908e","#577590","#f94144","#277da1","#3a86ff","#06d6a0","#ff99c8"];
     const WORLD_CODES = ["af","al","dz","ad","ao","ag","ar","am","au","at","az","bs","bh","bd","bb","by","be","bz","bj","bt","bo","ba","bw","br","bn","bg","bf","bi","cv","kh","cm","ca","cf","td","cl","cn","co","km","cg","cd","cr","ci","hr","cu","cy","cz","dk","dj","dm","do","ec","eg","sv","gq","er","ee","sz","et","fj","fi","fr","ga","gm","ge","de","gh","gr","gd","gt","gn","gw","gy","ht","hn","hu","is","in","id","ir","iq","ie","il","it","jm","jp","jo","kz","ke","ki","kp","kr","kw","kg","la","lv","lb","ls","lr","ly","li","lt","lu","mg","mw","my","mv","ml","mt","mh","mr","mu","mx","fm","md","mc","mn","me","ma","mz","mm","na","nr","np","nl","nz","ni","ne","ng","mk","no","om","pk","pw","pa","pg","py","pe","ph","pl","pt","qa","ro","ru","rw","kn","lc","vc","ws","sm","st","sa","sn","rs","sc","sl","sg","sk","si","sb","so","za","ss","es","lk","sd","sr","se","ch","sy","tj","tz","th","tl","tg","to","tt","tn","tr","tm","tv","ug","ua","ae","gb","us","uy","uz","vu","va","ve","vn","ye","zm","zw","tw","xk","ps","hk","mo"];
+    const FALLBACK_FACTS = {
+      "tr": { capital: ["Ankara"], population: 85372377, currencies: { TRY: { name: "Türk Lirası" }}, languages: { tur: "Türkçe" } },
+      "it": { capital: ["Roma"], population: 58850717, currencies: { EUR: { name: "Euro" }}, languages: { ita: "İtalyanca" } },
+      "fr": { capital: ["Paris"], population: 67391582, currencies: { EUR: { name: "Euro" }}, languages: { fra: "Fransızca" } },
+      "de": { capital: ["Berlin"], population: 83166711, currencies: { EUR: { name: "Euro" }}, languages: { deu: "Almanca" } },
+      "es": { capital: ["Madrid"], population: 47351567, currencies: { EUR: { name: "Euro" }}, languages: { spa: "İspanyolca" } },
+      "gb": { capital: ["Londra"], population: 67081234, currencies: { GBP: { name: "İngiliz Sterlini" }}, languages: { eng: "İngilizce" } },
+      "us": { capital: ["Washington, D.C."], population: 331449281, currencies: { USD: { name: "Amerikan Doları" }}, languages: { eng: "İngilizce" } },
+      "nl": { capital: ["Amsterdam"], population: 17441139, currencies: { EUR: { name: "Euro" }}, languages: { nld: "Felemenkçe" } },
+      "gr": { capital: ["Atina"], population: 10715549, currencies: { EUR: { name: "Euro" }}, languages: { ell: "Yunanca" } },
+      "eg": { capital: ["Kahire"], population: 102334404, currencies: { EGP: { name: "Mısır Lirası" }}, languages: { ara: "Arapça" } },
+      "ru": { capital: ["Moskova"], population: 145912025, currencies: { RUB: { name: "Rus Rublesi" }}, languages: { rus: "Rusça" } },
+      "jp": { capital: ["Tokyo"], population: 125836021, currencies: { JPY: { name: "Japon Yeni" }}, languages: { jpn: "Japonca" } },
+      "az": { capital: ["Bakü"], population: 10110116, currencies: { AZN: { name: "Azerbaycan Manatı" }}, languages: { aze: "Azerbaycan Türkçesi" } },
+      "at": { capital: ["Viyana"], population: 8917205, currencies: { EUR: { name: "Euro" }}, languages: { deu: "Almanca" } },
+      "be": { capital: ["Brüksel"], population: 11555997, currencies: { EUR: { name: "Euro" }}, languages: { nld: "Felemenkçe", fra: "Fransızca", deu: "Almanca" } },
+      "ch": { capital: ["Bern"], population: 8636896, currencies: { CHF: { name: "İsviçre Frangı" }}, languages: { deu: "Almanca", fra: "Fransızca", ita: "İtalyanca" } },
+      "ae": { capital: ["Abu Dabi"], population: 9890400, currencies: { AED: { name: "BAE Dirhemi" }}, languages: { ara: "Arapça" } },
+      "ge": { capital: ["Tiflis"], population: 3714000, currencies: { GEL: { name: "Lari" }}, languages: { kat: "Gürcüce" } }
+    };
     const STATUS_TEXT = { visited: "Gezildi", planned: "Planlaniyor", again: "Tekrar gidilecek" };
     const HOME_COORDS = [41.0082, 28.9784]; // İstanbul (Varsayılan Merkez)
     let currentScreen = "home"; 
@@ -3852,36 +3875,43 @@
       const cleanCode = String(countryCode || "").trim().toLowerCase();
       const cleanName = String(countryName || "").trim();
 
-      // 1. Search by Code (if valid)
-      if (cleanCode && cleanCode !== 'xx') {
-        try {
-          const alphaUrl = "https://restcountries.com/v3.1/alpha/" + encodeURIComponent(cleanCode) + "?fields=name,currencies,languages,population,capital";
-          const r = await fetch(alphaUrl);
-          if (r.ok) {
-            const j = await r.json();
-            facts = Array.isArray(j) ? j[0] : j;
-          }
-        } catch (e) { console.warn("Alpha fetch error:", e); }
+      // 0. CHECK HARDCODED FALLBACK (Priority during API Outages)
+      if (FALLBACK_FACTS[cleanCode]) {
+        facts = FALLBACK_FACTS[cleanCode];
       }
 
-      // 2. Search by Name (if code failed or missing)
-      if (!facts && cleanName && cleanName !== 'Bilinmeyen Ülke') {
-        try {
-          // Try fullText search first for precision
-          const byNameUrl = "https://restcountries.com/v3.1/name/" + encodeURIComponent(cleanName) + "?fullText=true&fields=name,currencies,languages,population,capital";
-          const r2 = await fetch(byNameUrl);
-          if (r2.ok) {
-            const j2 = await r2.json();
-            facts = Array.isArray(j2) ? j2[0] : j2;
-          } else {
-            // Fallback to fuzzy search
-            const r3 = await fetch("https://restcountries.com/v3.1/name/" + encodeURIComponent(cleanName) + "?fields=name,currencies,languages,population,capital");
-            if (r3.ok) {
-               const j3 = await r3.json();
-               facts = j3[0];
+      if (!facts) {
+        // 1. Search by Code (if valid)
+        if (cleanCode && cleanCode !== 'xx') {
+          try {
+            const alphaUrl = "https://restcountries.com/v3.1/alpha/" + encodeURIComponent(cleanCode) + "?fields=name,currencies,languages,population,capital";
+            const r = await fetch(alphaUrl);
+            if (r.ok) {
+              const j = await r.json();
+              facts = Array.isArray(j) ? j[0] : j;
             }
-          }
-        } catch (e) { console.warn("Name fetch error:", e); }
+          } catch (e) { console.warn("Alpha fetch error:", e); }
+        }
+
+        // 2. Search by Name (if code failed or missing)
+        if (!facts && cleanName && cleanName !== 'Bilinmeyen Ülke') {
+          try {
+            // Try fullText search first for precision
+            const byNameUrl = "https://restcountries.com/v3.1/name/" + encodeURIComponent(cleanName) + "?fullText=true&fields=name,currencies,languages,population,capital";
+            const r2 = await fetch(byNameUrl);
+            if (r2.ok) {
+              const j2 = await r2.json();
+              facts = Array.isArray(j2) ? j2[0] : j2;
+            } else {
+              // Fallback to fuzzy search
+              const r3 = await fetch("https://restcountries.com/v3.1/name/" + encodeURIComponent(cleanName) + "?fields=name,currencies,languages,population,capital");
+              if (r3.ok) {
+                 const j3 = await r3.json();
+                 facts = j3[0];
+              }
+            }
+          } catch (e) { console.warn("Name fetch error:", e); }
+        }
       }
 
       if (!facts) {
