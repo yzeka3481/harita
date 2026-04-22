@@ -1836,7 +1836,7 @@
       }
 
       try {
-        const resized = await Promise.all(selected.map(file => resizeImageFile(file, 960, 960, 0.72)));
+        const resized = await Promise.all(selected.map(file => resizeImageFile(file, 800, 800, 0.6)));
         workingPhotos = workingPhotos.concat(resized.filter(Boolean)).slice(0, 8);
         renderPhotoPreview();
       } catch {
@@ -2635,7 +2635,15 @@
          return;
       }
       
-      localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
+      try {
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
+      } catch (e) {
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+          alert("Tarayıcı hafızası doldu! Bazı eski fotoğrafları silmeniz veya verilerinizi yedeklemeniz gerekebilir. Kayıtlarınız yine de buluta gönderilmeye çalışılacak.");
+        } else {
+          console.error("LocalStorage save error:", e);
+        }
+      }
       
       if (options.syncNow) {
          await persistCloudRecords();
