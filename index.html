@@ -1541,7 +1541,8 @@
           const isErr = statusMsg.toLowerCase().includes("hata") || statusMsg.toLowerCase().includes("okunamadi");
           const isBusy = statusMsg.toLowerCase().includes("bekleniyor") || statusMsg.toLowerCase().includes("baglaniyor");
           dot.className = "sync-dot" + (isErr ? " err" : isBusy ? " busy" : " ok");
-          txt.textContent = statusMsg + " · " + records.length + " kayıt · uid:" + uidShort;
+          const uidRef = String(currentUser.uid || "").slice(0, 8);
+          txt.textContent = statusMsg + " · " + records.length + " kayıt · ID:" + uidRef;
         }
       } else {
         els.authStateText.textContent = "Hesap: Misafir modunda.";
