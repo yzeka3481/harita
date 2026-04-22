@@ -1503,7 +1503,9 @@
             })
             .catch(error => {
               console.warn("Bulut yukleme hatasi:", error);
-              subscribeCloudRecordsRealtime();
+              cloudSyncStatus = "Hata: Veri alınamadı.";
+              renderAll();
+              subscribeCloudRecordsRealtime(uid);
             });
         });
         firebaseAuth.getRedirectResult()
@@ -2380,19 +2382,19 @@
 
     async function forceReloadCloudRecords() {
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return [];
-      const uid = currentUser.uid;
-      const colRef = firebaseDb.collection("users").doc(uid).collection("records");
-      let snap;
       try {
-        snap = await colRef.get({ source: "server" });
-      } catch {
-        snap = await colRef.get();
+        cloudSyncStatus = "Bulut taranıyor...";
+        renderAuthPanel();
+        const cloud = await fetchCloudRecords(currentUser.uid);
+        cloudSyncStatus = "Senkronize edildi.";
+        renderAuthPanel();
+        return cloud;
+      } catch (err) {
+        console.warn("Bulut yenileme hatasi:", err);
+        cloudSyncStatus = "Hata: Sunucuya ulaşılamadı.";
+        renderAuthPanel();
+        return [];
       }
-      const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      cloudSyncStatus = "Serverdan guncel veri alindi.";
-      renderAuthPanel();
-      return cloud;
     }
 
     async function loadRecordsForCurrentUser() {
