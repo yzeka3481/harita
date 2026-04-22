@@ -522,10 +522,11 @@
               <span id="syncDot" class="sync-dot"></span>
               <span id="syncText" class="sync-text">Kontrol ediliyor...</span>
             </div>
-            <div style="margin-top:10px; width:100%;">
+            <div style="margin-top:10px; width:100%; display:flex; flex-direction:column; gap:6px;">
               <button id="optimizeStorageBtn" class="auth-btn ghost" style="width:100%; font-size:10px; border-color:rgba(255,255,255,0.1);" type="button">Hafızayı Optimize Et (Yer Aç)</button>
+              <button id="hardResetBtn" class="auth-btn ghost" style="width:100%; font-size:10px; color:#ff4d4d; border-color:rgba(255,77,77,0.2);" type="button">Hafızayı Sıfırla ve Buluttan Getir</button>
             </div>
-            <div id="authHelpText" style="margin-top:4px;"></div>
+            <div id="authHelpText" style="margin-top:4px; font-size:9px; color:rgba(255,255,255,0.4); text-align:center;">Hafıza dolarsa Sıfırla butonunu kullanın.</div>
           </div>
         </article>
         
@@ -1153,6 +1154,7 @@
       friendMapBackBtn: document.getElementById("friendMapBackBtn"),
       mainNav: document.querySelector(".tabs"),
       optimizeStorageBtn: document.getElementById("optimizeStorageBtn"),
+      hardResetBtn: document.getElementById("hardResetBtn"),
       travelPathLayer: null
     };
 
@@ -1419,6 +1421,9 @@
       bindProEvents();
       if (els.optimizeStorageBtn) {
         els.optimizeStorageBtn.addEventListener("click", bulkOptimizePhotos);
+      }
+      if (els.hardResetBtn) {
+        els.hardResetBtn.addEventListener("click", hardReset);
       }
       if (els.tagsContainer) {
         els.tagsContainer.addEventListener("click", e => {
@@ -1935,7 +1940,7 @@
         if (record.photos && record.photos.length) {
           const newPhotos = [];
           for (const p of record.photos) {
-            if (p && p.length > 65000) { // ~65KB'dan büyükse optimize et
+            if (p && p.length > 65000) {
               newPhotos.push(await resizeBase64(p, 800, 800, 0.55));
               count++;
             } else {
@@ -1949,7 +1954,6 @@
           const pct = Math.round((totalProcessed / userOwnRecords.length) * 100);
           btn.textContent = `Optimize Ediliyor: %${pct}`;
         }
-        // UI'ın donmasını engellemek için küçük bir ara
         if (i % 3 === 0) await new Promise(r => setTimeout(r, 10));
       }
       
@@ -1975,6 +1979,17 @@
            btn.textContent = originalText;
         }
       }
+    }
+
+    function hardReset() {
+      if (!confirm("Tüm yerel hafıza temizlenecek ve veriler buluttan (Firebase) tekrar yüklenecek. Emin misiniz?")) return;
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes("harita") || key.includes("user_") || key.includes("records")) {
+          localStorage.removeItem(key);
+        }
+      });
+      alert("Hafıza temizlendi. Sayfa yenileniyor...");
+      window.location.reload();
     }
 
     function renderPhotoPreview() {
