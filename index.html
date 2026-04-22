@@ -522,11 +522,7 @@
               <span id="syncDot" class="sync-dot"></span>
               <span id="syncText" class="sync-text">Kontrol ediliyor...</span>
             </div>
-            <div style="margin-top:10px; width:100%; display:flex; flex-direction:column; gap:6px;">
-              <button id="optimizeStorageBtn" class="auth-btn ghost" style="width:100%; font-size:10px; border-color:rgba(255,255,255,0.1);" type="button">Hafızayı Optimize Et (Yer Aç)</button>
-              <button id="hardResetBtn" class="auth-btn ghost" style="width:100%; font-size:10px; color:#ff4d4d; border-color:rgba(255,77,77,0.2);" type="button">Hafızayı Sıfırla ve Buluttan Getir</button>
-            </div>
-            <div id="authHelpText" style="margin-top:4px; font-size:9px; color:rgba(255,255,255,0.4); text-align:center;">Hafıza dolarsa Sıfırla butonunu kullanın.</div>
+            <div id="authHelpText" style="margin-top:4px; font-size:9px; color:rgba(255,255,255,0.4); text-align:center;">Tüm verileriniz bulutta güvenle saklanır.</div>
           </div>
         </article>
         
@@ -1160,6 +1156,7 @@
 
     let records = [];
     let userOwnRecords = [];
+    let isStorageFull = false;
     let originalRecords = [];
     let currentFriendData = null;
     let isFriendView = false;
@@ -1632,7 +1629,12 @@
     function renderAuthPanel() {
       if (currentUser) {
         const name = currentUser.name || currentUser.email || "Kullanici";
-        els.authStateText.textContent = "Hesap: " + name;
+        let statusHtml = "Hesap: " + name;
+        if (isStorageFull) {
+          statusHtml += ` <span style="color:#ff4d4d; font-size:9px; background:rgba(255,77,77,0.1); padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">Hafıza Dolu (Bulut Aktif)</span>`;
+        }
+        els.authStateText.innerHTML = statusHtml;
+        
         if (els.heroAuthIcon) {
            const initial = name.charAt(0).toUpperCase();
            els.heroAuthIcon.innerHTML = `<span class="user-initial">${initial}</span>`;
@@ -1836,6 +1838,12 @@
     }
 
     async function onPhotoInputChange(event) {
+      if (!currentUser) {
+        alert("Fotoğraf eklemek için lütfen giriş yapın.");
+        event.target.value = "";
+        openAuthModal("login");
+        return;
+      }
       const files = Array.from(event.target.files || []);
       if (!files.length) return;
 
@@ -2669,8 +2677,9 @@
           // Only update active 'records' and trigger re-render if NOT in friend view
           if (!isFriendView) {
             records = [...cloudMerged];
-            localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+            // Yerel hafizayi artik kullanmiyoruz (Kullanici istegi)
             renderAll();
+            renderAuthPanel();
           }
         }
         
@@ -2746,7 +2755,6 @@
         await batch.commit();
       } catch (err) { console.warn("Cloud save error:", err); }
     }
-
     async function saveRecords(options = {}) {
       if (!currentUser || !currentUser.uid || isFriendView) {
          if (isFriendView) console.warn("Arkadas modunda kayit engellendi.");
@@ -2754,19 +2762,19 @@
       }
       
       try {
-        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
+        // YEREL HAFIZA OPTIMIZASYONU: Fotograflari yerele yazmiyoruz
+        const liteRecords = userOwnRecords.map(r => ({ ...r, photos: [] }));
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(liteRecords));
+        isStorageFull = false;
       } catch (e) {
-        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-          alert("Tarayıcı hafızası doldu! Bazı eski fotoğrafları silmeniz veya verilerinizi yedeklemeniz gerekebilir. Kayıtlarınız yine de buluta gönderilmeye çalışılacak.");
-        } else {
-          console.error("LocalStorage save error:", e);
-        }
+        isStorageFull = true;
       }
       
       if (options.syncNow) {
          await persistCloudRecords();
       }
       renderAll();
+      renderAuthPanel();
     }
 
     function getRecordsStorageKey() {
