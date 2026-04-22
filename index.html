@@ -1071,7 +1071,6 @@
     let currentFriendData = null;
     let isFriendView = false;
     let currentUser = null;
-    let STORAGE_KEY = "yoldas_records";
     let firebaseReady = false;
     let authMode = "login";
     let firebaseAuth = null;
@@ -1133,28 +1132,38 @@
         splash.style.opacity = "0";
         splash.style.pointerEvents = "none";
         setTimeout(function() {
-          if (splash.parentNode) splash.parentNode.removeChild(splash);
+          if (splash && splash.parentNode) try { splash.parentNode.removeChild(splash); } catch(e){}
         }, 800);
       }
-      // En fazla 2.5 saniye bekle - ne olursa olsun kapat
-      setTimeout(dismissSplash, 2000);
+      // En fazla 2.5 saniye bekle - ZORUNLU KAPATMA
+      setTimeout(dismissSplash, 2500);
       // init() bittikten sonra da kapat
       document.addEventListener("appReady", dismissSplash, { once: true });
+      window.addEventListener("load", function() { setTimeout(dismissSplash, 3000); });
     })();
 
     // Tum const'lar yuklendikten sonra calistir
     setTimeout(init, 0);
 
     function init() {
-      const versionEl = document.getElementById("appVersionChip");
-      if (versionEl) versionEl.textContent = APP_VERSION;
-      initMaps();
-      bindEvents();
-      initAuth();
-      loadWorldData();
-      renderAll();
-      // Splash'a "hazır" sinyali gönder
-      setTimeout(() => document.dispatchEvent(new Event("appReady")), 200);
+      try {
+        const versionEl = document.getElementById("appVersionChip");
+        if (versionEl) versionEl.textContent = APP_VERSION;
+        
+        initMaps();
+        bindEvents();
+        initAuth();
+        
+        // World data loads async but we continue boot
+        loadWorldData().catch(e => console.warn("World data load failed", e));
+        
+        renderAll();
+      } catch (error) {
+        console.error("Critical Init Error:", error);
+      } finally {
+        // Her halukarda "hazır" sinyali gönder
+        setTimeout(() => document.dispatchEvent(new Event("appReady")), 200);
+      }
     }
 
     function initMaps() {
@@ -1872,7 +1881,11 @@
       // Friends Listener
       const unsubFriends = firebaseDb.collection("profiles").doc(currentUser.uid).collection("friends")
         .onSnapshot(snap => {
-          renderSocialFriends(snap.docs.map(d => ({ friendId: d.id, ...d.data() })));
+          // friendId karmaşasını önlemek için d.id'yi her zaman uid olarak alıyoruz
+          const friends = snap.docs
+            .map(d => ({ uid: d.id, ...(d.data() || {}) }))
+            .filter(f => f.uid && f.uid !== currentUser.uid);
+          renderSocialFriends(friends);
         });
       socialListeners.push(unsubFriends);
     }
@@ -1980,47 +1993,65 @@
         els.socialFriendsList.innerHTML = '<div class="hint" style="text-align:center; padding:10px;">Henüz kimseyle arkadas degilsin.</div>';
         return;
       }
-      els.socialFriendsList.innerHTML = friends.map(f => `
-        <div class="social-card">
-          <div class="social-avatar">${(f.name || "?")[0].toUpperCase()}</div>
-          <div class="social-info">
-            <div class="social-name">${esc(f.name)}</div>
-            <div class="social-mail">${esc(f.email)}</div>
+      els.socialFriendsList.innerHTML = friends.map(f => {
+        const uid = f.uid || f.friendId; // Geriye donuk uyumluluk
+        return `
+          <div class="social-card">
+            <div class="social-avatar">${(f.name || "?")[0].toUpperCase()}</div>
+            <div class="social-info">
+              <div class="social-name">${esc(f.name)}</div>
+              <div class="social-mail">${esc(f.email || "")}</div>
+            </div>
+            <div class="social-actions">
+              <button class="social-btn view" onclick="enterFriendView('${uid}', '${esc(f.name)}')">Haritaya Bak</button>
+            </div>
           </div>
-          <div class="social-actions">
-            <button class="social-btn view" onclick="enterFriendView('${f.uid}', '${esc(f.name)}')">Haritaya Bak</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     async function enterFriendView(friendUid, friendName) {
-      if (!firebaseDb) return;
+      if (!firebaseDb || !currentUser) return;
+
+      // KESIN GUVENLIK KONTROLU: Kendi UID'sini arkadas gibi acmasini engelle
+      if (!friendUid || friendUid === currentUser.uid) {
+        console.warn("Kendi profilini arkadas moduyla acma denemesi engellendi.");
+        alert("Bu senin kendi profilin! Arkadaslarinin seyahatlerini gormek icin baska bir kullanici secin.");
+        switchScreen("summary");
+        return;
+      }
+
       try {
         const snap = await firebaseDb.collection("users").doc(friendUid).collection("records").get();
         const fRecordsRaw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         const fRecords = normalizeRecordsArray(fRecordsRaw);
         
-        // Hold the records but don't set isFriendView=true yet for the global state
+        // Kritik: Arkadas profiline girildigi an global context'i arkadas moduna geciriyoruz.
+        // Boylece arka plandaki sync dinleyicisi (isFriendView kontrolu sayesinde) veriyi ezemez.
+        isFriendView = true;
+        records = fRecords;
         currentFriendData = { uid: friendUid, name: friendName, records: fRecords };
         
-        // Populate Friend Profile Screen using ALWAYS the master userOwnRecords for comparison
+        // Friend Profile Screen'i olustur
         renderFriendProfile(friendName, userOwnRecords, fRecords);
         
         switchScreen("friendProfile");
+
+        // UI Badge guncelle
+        if (els.friendViewBadge) {
+          const nameEl = els.friendViewBadge.querySelector(".friend-name");
+          if (nameEl) nameEl.textContent = friendName + " Profili";
+          els.friendViewBadge.classList.add("active");
+        }
       } catch (err) { 
-        alert("Arkadas verisi alinamadi. (Güvenlik kurallarini kontrol etmeyi unutma!)"); 
-        console.warn(err);
+        console.warn("Arkadas verisi hatasi:", err);
+        alert("Arkadas verisi alinamadi. Firestore kurallarini ve baglantinizi kontrol edin.");
+        exitFriendView();
       }
     }
 
     function startFriendMapMode() {
       if (!currentFriendData) return;
-      // Backup current state if not already in friend mode
-      if (!isFriendView) originalRecords = [...records];
-      
-      records = currentFriendData.records;
-      isFriendView = true;
       els.friendViewName.textContent = currentFriendData.name + " Haritası";
       els.friendViewBadge.classList.add("active");
       renderAll();
@@ -2337,14 +2368,24 @@
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
         const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        const cloudMerged = mergeCloudWithLocalPhotos(cloud, records);
-        const localSig = recordsSignature(records || []);
-        const cloudSig = recordsSignature(cloudMerged);
-        if (localSig !== cloudSig) {
-          records = cloudMerged;
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-          renderAll();
+        
+        // CRITICAL: Always use userOwnRecords as base for syncing user's own data
+        // This ensures the local source of truth for the user stays up to date
+        const cloudMerged = mergeCloudWithLocalPhotos(cloud, userOwnRecords);
+        userOwnRecords = cloudMerged;
+        
+        // Only update active 'records' and trigger re-render if NOT in friend view
+        // This prevents friend profile view from being overwritten by user's own background sync
+        if (!isFriendView) {
+          const localSig = recordsSignature(records || []);
+          const cloudSig = recordsSignature(cloudMerged);
+          if (localSig !== cloudSig) {
+            records = cloudMerged;
+            localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+            renderAll();
+          }
         }
+        
         cloudSyncStatus = "Bulut esitlendi (canli).";
         renderAuthPanel();
       }, error => {
@@ -2795,25 +2836,7 @@
       renderPhotoPreview();
     }
 
-    function renderAll() {
-      if (els.openAddBtn) {
-        els.openAddBtn.style.display = isFriendView ? "none" : "flex";
-      }
-      renderAuthPanel();
-      renderHero();
-      renderHomeGlobe();
-      renderHomeInsights();
-      renderAchievements();
-      renderBucketList();
-      renderRecent();
-      renderRecords();
-      renderFlags();
-      renderExplorePins();
-      renderWorldLayers();
-      renderExplorerInsights();
-      renderSummaryDashboard();
-      renderTimeline();
-    }
+
 
     function renderHero() {
       const countries = [...new Set(records.map(item => item.country).filter(Boolean))];
@@ -3146,6 +3169,30 @@
     }
 
     const EMPTY_SVG_LUGGAGE = `<svg class='empty-svg' viewBox='0 0 72 72' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='14' y='26' width='44' height='34' rx='6' stroke='#6aaddf' stroke-width='2.5'/><path d='M26 26V19a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v7' stroke='#6aaddf' stroke-width='2.5' stroke-linecap='round'/><line x1='28' y1='38' x2='28' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><line x1='36' y1='38' x2='36' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><line x1='44' y1='38' x2='44' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><circle cx='21' cy='62' r='3' stroke='#6aaddf' stroke-width='2'/><circle cx='51' cy='62' r='3' stroke='#6aaddf' stroke-width='2'/></svg>`;
+
+    function renderAll() {
+      // Defensive guard: Ensure core UI elements and maps are ready before full render
+      if (!els.homeScreen || !els.recordsList) return;
+      
+      if (els.openAddBtn) {
+        els.openAddBtn.style.display = isFriendView ? "none" : "flex";
+      }
+      
+      renderAuthPanel();
+      renderHero();
+      renderHomeGlobe();
+      renderHomeInsights();
+      renderAchievements();
+      renderBucketList();
+      renderRecent();
+      renderRecords();
+      renderFlags();
+      renderExplorePins();
+      renderWorldLayers();
+      renderExplorerInsights();
+      renderSummaryDashboard();
+      renderTimeline();
+    }
 
     function renderRecords() {
       let visible = getVisibleRecords();
@@ -3533,6 +3580,7 @@
     }
 
     function renderExplorePins() {
+      if (!exploreMarkerLayer || !exploreMap) return;
       exploreMarkerLayer.clearLayers();
       const points = [];
       records.forEach(item => {
