@@ -1466,8 +1466,22 @@
 
           // ONLY load from user-specific key
           const uid = currentUser.uid;
-          // LOCAL FIRST: Hemen yerel veriyi yukle ki ekran bos kalmasin
-          const localData = JSON.parse(localStorage.getItem(getRecordsStorageKey()) || "[]");
+          
+          // DATA RECOVERY: Eski anahtardan veri kurtarma denemesi
+          const newKey = getRecordsStorageKey();
+          const oldKey = "anti_records:" + uid;
+          let localRaw = localStorage.getItem(newKey);
+          
+          if (!localRaw) {
+             const oldRaw = localStorage.getItem(oldKey);
+             if (oldRaw) {
+                console.log("Eski yerel veri bulundu, tasiniyor...");
+                localRaw = oldRaw;
+                localStorage.setItem(newKey, oldRaw);
+             }
+          }
+          
+          const localData = JSON.parse(localRaw || "[]");
           records = normalizeRecordsArray(localData);
           userOwnRecords = [...records];
           renderAll();
@@ -2332,33 +2346,36 @@
       try {
         const key = getRecordsStorageKey();
         const raw = localStorage.getItem(key);
-        if (!raw) return []; // No fallback for logged in users
-        const parsed = JSON.parse(raw);
-        return normalizeRecordsArray(parsed);
+        if (!raw) return [];
+        return normalizeRecordsArray(JSON.parse(raw));
       } catch { return []; }
     }
 
     async function fetchCloudRecords(uid) {
       if (!uid || !firebaseReady || !firebaseDb) return [];
-      const colRef = firebaseDb.collection("users").doc(uid).collection("records");
-      let snap;
+      let cloudList = [];
+      
       try {
-        snap = await colRef.get({ source: "server" });
-      } catch {
-        snap = await colRef.get();
-      }
-      const primary = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      if (primary.length) return primary;
-
-      // Backward-compatible fallback for older clients/data model.
-      try {
+        // 1. Yeni Koleksiyon Yapisi (users/{uid}/records)
+        const colRef = firebaseDb.collection("users").doc(uid).collection("records");
+        const snap = await colRef.get({ source: "server" }).catch(() => colRef.get());
+        cloudList = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) }));
+        
+        // 2. Eski Yedek Yapisi (users/{uid}/appData/records)
         const legacyRef = firebaseDb.collection("users").doc(uid).collection("appData").doc("records");
-        const legacySnap = await legacyRef.get();
-        const legacyRows = legacySnap.exists ? (legacySnap.data() && legacySnap.data().records) : [];
-        return normalizeRecordsArray(legacyRows).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      } catch {
-        return [];
+        const legSnap = await legacyRef.get();
+        if (legSnap.exists) {
+           const legData = legSnap.data();
+           const legRows = (legData.records || legData.list || []);
+           legRows.forEach(r => {
+              if (!cloudList.find(x => x.id === r.id)) cloudList.push(r);
+           });
+        }
+        
+        return normalizeRecordsArray(cloudList).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      } catch (err) {
+        console.warn("Bulut tarama hatasi:", err);
+        return normalizeRecordsArray(cloudList);
       }
     }
 
