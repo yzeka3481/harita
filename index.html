@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{color-scheme:dark;--bg:#142640;--panel:#213a5b;--panel2:#2a4a70;--line:#4f7398;--text:#f0f7ff;--muted:#c6d9ef;--primary:#61b0ff;--primary2:#3d8fe8;--social:#a0c4ff;--tabh:68px;--glass-bg:rgba(15,35,64,0.62);--glass-border:rgba(255,255,255,0.12);--glass-blur:14px;}
+    :root{color-scheme:dark;--bg:#142640;--panel:#213a5b;--panel2:#2a4a70;--line:#4f7398;--text:#f0f7ff;--muted:#c6d9ef;--primary:#61b0ff;--primary2:#3d8fe8;--tabh:68px;--glass-bg:rgba(15,35,64,0.62);--glass-border:rgba(255,255,255,0.12);--glass-blur:14px;}
     html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
     *{box-sizing:border-box}
     body{margin:0;position:fixed;inset:0;background:radial-gradient(circle at 10% -10%,#6faee8,transparent 42%),radial-gradient(circle at 90% -20%,#67c8bb,transparent 38%),linear-gradient(180deg,#153154,#112743 50%,#10223b);color:var(--text);font-family:'Plus Jakarta Sans',Segoe UI,Tahoma,sans-serif;overflow:hidden}
@@ -25,8 +25,8 @@
     .tool-btn.export{background:#2f7cde;color:#fff}
     .tool-btn.import{background:#2c8b6b;color:#fff}
     .tool-btn.stats{background:#394f6c;color:#e6f1ff}
-    .hero{border:none;border-radius:36px 36px 0 0;overflow:hidden;height:290px;margin:-14px -14px -120px;position:relative;background:#060c18;z-index:1}
-    .hero img{position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:calc(100% + 120px);object-fit:cover;transition:opacity 0.6s ease;background:#060c18}
+    .hero{border:none;border-radius:0;overflow:visible;height:290px;margin:-14px -14px -120px;position:relative;background:transparent;z-index:1}
+    .hero img{position:absolute;left:0;right:0;top:-20px;bottom:0;width:100%;height:calc(100% + 120px);object-fit:cover;transform:none}
     .hero:after{
       content:"";
       position:absolute;
@@ -35,10 +35,10 @@
         linear-gradient(180deg,
           rgba(20,38,64,0) 0%,
           rgba(20,38,64,0) 28%,
-          rgba(20,38,64,.3) 50%,
-          rgba(20,38,64,.6) 68%,
-          rgba(20,38,64,.85) 82%,
-          var(--bg) 100%);
+          rgba(20,38,64,.35) 50%,
+          rgba(20,38,64,.72) 68%,
+          rgba(20,38,64,.92) 82%,
+          rgba(20,38,64,1) 100%);
     }
     .hero-content{position:relative;z-index:1;height:100%;padding:24px 20px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
     .hero-head{display:flex;justify-content:flex-end;align-items:center;gap:8px}.hero h1{margin:0;font-size:22px}.badge{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 10px;font-size:12px;background:rgba(16,25,37,.7)}
@@ -158,8 +158,8 @@
     .splash-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;color:#ecf5ff;letter-spacing:-.3px}
     .splash-sub{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:#88aad0;margin-top:-8px}
     .tabs{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:2200;width:calc(100% - 40px);max-width:440px;padding:0;background:none}
-    .tabs-inner{border:1px solid rgba(255,255,255,0.18);border-radius:24px;background:rgba(6,12,24,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);height:var(--tabh);display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px;position:relative;box-shadow:0 18px 48px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1)}
-    .tab-indicator{position:absolute;top:6px;left:6px;width:calc((100% - 12px) / 5);height:calc(100% - 12px);background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.12);border-radius:18px;z-index:0;transition:transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+    .tabs-inner{border:1px solid rgba(255,255,255,0.18);border-radius:24px;background:rgba(6,12,24,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);height:var(--tabh);display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:6px;position:relative;box-shadow:0 18px 48px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1)}
+    .tab-indicator{position:absolute;top:6px;left:6px;width:calc((100% - 12px) / 4);height:calc(100% - 12px);background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.12);border-radius:18px;z-index:0;transition:transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
     .tab-btn{border:none;border-radius:18px;background:none;color:#8fabca;font-size:12px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1;position:relative;z-index:1;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);overflow:hidden}
     .tab-btn.active{color:#fff;transform:translateY(-1px)}
     .tab-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;transition:transform 0.3s ease}
@@ -268,87 +268,6 @@
     .sync-dot.busy{background:#ffd88f;animation:syncPulse .8s ease-in-out infinite}
     @keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.3}}
     .sync-text{font-size:11px;color:#c6dbf3;line-height:1.4}
-    /* Social / Friends UI */
-    .social-screen{padding:20px 16px 80px}
-    .social-head{margin-bottom:20px}
-    .social-search-box{display:flex;gap:8px;background:rgba(255,255,255,0.05);padding:6px;border-radius:14px;border:1px solid rgba(255,255,255,0.08)}
-    .social-search-box input{flex:1;background:transparent;border:none;padding:10px;color:#fff;font-size:13px;outline:none}
-    .social-search-btn{background:var(--primary);color:#0a1e36;border:none;border-radius:10px;padding:0 16px;font-size:12px;font-weight:800;cursor:pointer}
-    .social-section-title{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px;padding-left:4px}
-    .social-list{display:flex;flex-direction:column;gap:10px}
-    
-    .social-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:all 0.2s}
-    .social-avatar{width:44px;height:44px;background:linear-gradient(135deg,var(--primary),var(--social));border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px;color:#0a1e36}
-    .social-info{flex:1}
-    .social-name{font-size:14px;font-weight:700;color:#fff}
-    .social-mail{font-size:11px;color:var(--muted)}
-    
-    .social-actions{display:flex;gap:6px}
-    .social-btn{border:none;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s}
-    .social-btn.add{background:var(--primary);color:#0a1e36}
-    .social-btn.view{background:rgba(255,255,255,0.1);color:#fff}
-    .social-btn.accept{background:#3fd4a0;color:#0a1e36}
-    .social-btn.reject{background:rgba(255,107,107,0.1);color:#ff6b6b}
-    
-    .friend-view-badge{position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--primary); color:#0a1e36; padding:8px 16px; border-radius:99px; font-weight:800; font-size:12px; z-index:9000; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none; align-items:center; gap:10px;}
-    .friend-view-badge.active{display:flex}
-    .friend-view-close{background:rgba(0,0,0,0.2); border:none; width:20px; height:20px; border-radius:50%; color:#0a1e36; font-size:14px; font-weight:800; cursor:pointer}
-
-    /* Privacy Toggle Styling */
-    .privacy-toggle {
-      display: flex;
-      gap: 10px;
-      margin-top: 5px;
-    }
-    .privacy-toggle label {
-      flex: 1;
-      cursor: pointer;
-    }
-    .privacy-toggle input {
-      display: none;
-    }
-    .privacy-toggle span {
-      display: block;
-      padding: 10px;
-      text-align: center;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      transition: all 0.2s;
-    }
-    .privacy-toggle input:checked + span {
-      background: rgba(97,176,255,0.15);
-      border-color: var(--primary);
-      color: var(--primary);
-      box-shadow: 0 0 15px rgba(97,176,255,0.2);
-    }
-
-    /* Friend Map Back Button */
-    .friend-back-btn {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 2000;
-      background: rgba(18,50,95,0.85);
-      backdrop-filter: blur(10px);
-      border: 1.5px solid rgba(255,255,255,0.2);
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 15px;
-      font-weight: 700;
-      font-size: 14px;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-      transition: all 0.2s;
-    }
-    .friend-back-btn:active { transform: scale(0.95); }
-
     @media (min-width:780px){.app{max-width:900px}.screen{padding-left:16px;padding-right:16px}.home-globe{width:min(72vw,420px)}#exploreMapWrap{height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom))}.tabs-inner{max-width:900px}#countryMap{height:320px}}
     .country-album-section{margin-top:20px;padding:0 4px}
     .country-album-section h2{margin:0 0 12px;font-size:16px;color:#fff;display:flex;align-items:center;gap:8px}
@@ -665,14 +584,6 @@
               </select>
             </div>
           </div>
-          <div style="margin-bottom:16px;">
-            <label class="field-label">Paylaşım Ayarı</label>
-            <div class="privacy-toggle">
-               <label><input type="radio" name="privacy" value="public" checked> <span>🌐 Herkese Açık</span></label>
-               <label><input type="radio" name="privacy" value="private"> <span>🔒 Özel</span></label>
-            </div>
-            <div class="hint">"Özel" seçilirse fotoğrafların arkadaşlarına gösterilmez.</div>
-          </div>
           <div>
             <label class="field-label" for="photoInput">Ani galerisi (foto)</label>
             <input id="photoInput" class="file-input" type="file" accept="image/*" multiple>
@@ -773,36 +684,6 @@
       </article>
     </section>
 
-    <section id="socialScreen" class="screen">
-      <div style="padding: 0 8px;">
-        <div class="screen-head" style="background:linear-gradient(135deg,rgba(18,50,95,0.9),rgba(11,32,68,0.95)); border:1px solid rgba(255,255,255,0.2); padding:16px 20px; border-radius:20px; backdrop-filter:blur(10px); box-shadow:0 6px 24px rgba(0,0,0,0.3); margin-bottom:16px;">
-          <h2 style="font-size:22px; font-weight:800; color:#fff; letter-spacing:-0.5px; margin:0; line-height:1.2;">Sosyal</h2>
-        </div>
-        
-        <article class="card" style="margin-bottom:20px;">
-          <h3 style="margin-top:0;">Gezgin Ara</h3>
-          <p class="hint">E-posta adresi ile arkadaşlarını bul.</p>
-          <div class="search-row" style="display:flex;gap:10px;">
-            <input id="socialSearchInput" type="email" placeholder="arkadas@email.com" autocapitalize="none" style="flex:1;">
-            <button id="socialSearchBtn" class="save-btn" style="width: auto; padding: 0 20px;">Ara</button>
-          </div>
-          <div id="socialSearchResults" style="margin-top:12px;"></div>
-        </article>
-
-        <div class="social-section-title">Arkadaşlık İstekleri</div>
-        <div id="socialRequestsList" class="social-list" style="display:grid;gap:10px;margin-bottom:24px;"></div>
-
-        <div class="social-section-title">Arkadaşlarım</div>
-        <div id="socialFriendsList" class="social-list" style="display:grid;gap:10px;margin-bottom:80px;"></div>
-      </div>
-    </section>
-
-    <section id="friendProfileScreen" class="screen">
-      <div style="padding: 0 8px;">
-        <div id="friendProfileContent"></div>
-      </div>
-    </section>
-
     <section id="countryScreen" class="screen">
       <div style="padding: 0 8px;">
         <div class="screen-head" style="background:linear-gradient(135deg,rgba(18,50,95,0.9),rgba(11,32,68,0.95)); border:1px solid rgba(97,176,255,0.2); padding:16px 20px; border-radius:20px; backdrop-filter:blur(10px); box-shadow:0 6px 24px rgba(0,0,0,0.3); margin-bottom:16px;">
@@ -826,14 +707,10 @@
     </section>
   </main>
 
-  <button id="friendMapBackBtn" class="friend-back-btn" type="button" onclick="switchScreen('friendProfile')">
-     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Profil
-  </button>
-
   <button id="openAddBtn" class="add-btn" type="button" aria-label="Sehir ekle"></button>
 
   <nav class="tabs" aria-label="Menu">
-    <div id="tabsInner" class="tabs-inner">
+    <div class="tabs-inner">
       <div id="tabIndicator" class="tab-indicator"></div>
       <button class="tab-btn active" data-screen="home" type="button" aria-label="Ana">
         <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
@@ -846,10 +723,6 @@
       <button class="tab-btn" data-screen="records" type="button" aria-label="Kayitlar">
         <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
         <span class="tab-label">Kayıtlar</span>
-      </button>
-      <button class="tab-btn" data-screen="social" type="button" aria-label="Sosyal">
-        <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-        <span class="tab-label">Sosyal</span>
       </button>
       <button class="tab-btn" data-screen="summary" type="button" aria-label="Genel">
         <span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
@@ -876,11 +749,6 @@
     <div class="journey-map-body">
       <div id="journeyMapContainer"></div>
     </div>
-  </div>
-
-  <div id="friendViewBadge" class="friend-view-badge">
-    <span id="friendViewName">Arkadas Modu</span>
-    <button class="friend-view-close" onclick="exitFriendView()" aria-label="Kapat">×</button>
   </div>
 
   <div id="photoLightbox" class="lightbox" aria-hidden="true">
@@ -951,14 +819,6 @@
       recordsScreen: document.getElementById("recordsScreen"),
       addScreen: document.getElementById("addScreen"),
       summaryScreen: document.getElementById("summaryScreen"),
-      socialScreen: document.getElementById("socialScreen"),
-      socialSearchInput: document.getElementById("socialSearchInput"),
-      socialSearchBtn: document.getElementById("socialSearchBtn"),
-      socialSearchResults: document.getElementById("socialSearchResults"),
-      socialRequestsList: document.getElementById("socialRequestsList"),
-      socialFriendsList: document.getElementById("socialFriendsList"),
-      friendViewBadge: document.getElementById("friendViewBadge"),
-      friendViewName: document.getElementById("friendViewName"),
       countryScreen: document.getElementById("countryScreen"),
       heroImage: document.getElementById("heroImage"),
       heroBadge: document.getElementById("heroBadge"),
@@ -1056,20 +916,10 @@
       cityDetailModal: document.getElementById("cityDetailModal"),
       cityDetailCloseBtn: document.getElementById("cityDetailCloseBtn"),
       cityDetailTitle: document.getElementById("cityDetailTitle"),
-      cityDetailChart: document.getElementById("cityDetailChart"),
-      tabsInner: document.getElementById("tabsInner"),
-      friendProfileScreen: document.getElementById("friendProfileScreen"),
-      friendProfileContent: document.getElementById("friendProfileContent"),
-      friendPrivacyInputs: document.getElementsByName("privacy"),
-      friendMapBackBtn: document.getElementById("friendMapBackBtn"),
-      mainNav: document.querySelector(".tabs")
+      cityDetailChart: document.getElementById("cityDetailChart")
     };
 
-    let records = [];
-    let userOwnRecords = [];
-    let originalRecords = [];
-    let currentFriendData = null;
-    let isFriendView = false;
+    let records = loadRecords();
     let currentUser = null;
     let firebaseReady = false;
     let authMode = "login";
@@ -1132,38 +982,28 @@
         splash.style.opacity = "0";
         splash.style.pointerEvents = "none";
         setTimeout(function() {
-          if (splash && splash.parentNode) try { splash.parentNode.removeChild(splash); } catch(e){}
+          if (splash.parentNode) splash.parentNode.removeChild(splash);
         }, 800);
       }
-      // En fazla 2.5 saniye bekle - ZORUNLU KAPATMA
-      setTimeout(dismissSplash, 2500);
+      // En fazla 2.5 saniye bekle - ne olursa olsun kapat
+      setTimeout(dismissSplash, 2000);
       // init() bittikten sonra da kapat
       document.addEventListener("appReady", dismissSplash, { once: true });
-      window.addEventListener("load", function() { setTimeout(dismissSplash, 3000); });
     })();
 
     // Tum const'lar yuklendikten sonra calistir
     setTimeout(init, 0);
 
     function init() {
-      try {
-        const versionEl = document.getElementById("appVersionChip");
-        if (versionEl) versionEl.textContent = APP_VERSION;
-        
-        initMaps();
-        bindEvents();
-        initAuth();
-        
-        // World data loads async but we continue boot
-        loadWorldData().catch(e => console.warn("World data load failed", e));
-        
-        renderAll();
-      } catch (error) {
-        console.error("Critical Init Error:", error);
-      } finally {
-        // Her halukarda "hazır" sinyali gönder
-        setTimeout(() => document.dispatchEvent(new Event("appReady")), 200);
-      }
+      const versionEl = document.getElementById("appVersionChip");
+      if (versionEl) versionEl.textContent = APP_VERSION;
+      initMaps();
+      bindEvents();
+      initAuth();
+      loadWorldData();
+      renderAll();
+      // Splash'a "hazır" sinyali gönder
+      setTimeout(() => document.dispatchEvent(new Event("appReady")), 200);
     }
 
     function initMaps() {
@@ -1311,7 +1151,6 @@
         });
       });
       window.addEventListener("resize", () => setTimeout(() => { resizeHomeGlobe(); exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
-      els.socialSearchBtn.addEventListener("click", onSocialSearch);
       bindProEvents();
       if (els.tagsContainer) {
         els.tagsContainer.addEventListener("click", e => {
@@ -1428,40 +1267,57 @@
         firebaseAuth = firebase.auth();
         firebaseDb = (firebase.firestore && typeof firebase.firestore === "function") ? firebase.firestore() : null;
         firebaseReady = true;
+        if (firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence) {
+          firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+        }
         firebaseAuth.onAuthStateChanged(user => {
           detachCloudListeners();
-          
-          // CRITICAL: Instant Purge on account change
-          isFriendView = false;
-          currentFriendData = null;
-          records = [];
-          userOwnRecords = [];
-          originalRecords = [];
-          renderAll(); // Blank screen immediately
-          
           shownCloudPermissionAlert = false;
           currentUser = user ? { uid: user.uid, email: user.email || "", name: user.displayName || "" } : null;
-          
-          if (!currentUser) {
-             cloudSyncStatus = "";
-             renderAuthPanel();
-             return;
-          }
-          
-          cloudSyncStatus = "Veriler yukleniyor...";
-          renderAuthPanel();
-
-          // ONLY load from user-specific key
-          const uid = currentUser.uid;
+          records = loadRecords();
+          cloudSyncStatus = currentUser ? "Bulut baglaniyor (server)..." : "";
+          renderAll();
+          if (!currentUser || !currentUser.uid) return;
           forceReloadCloudRecords()
             .then(cloudRecords => {
-              records = Array.isArray(cloudRecords) ? cloudRecords : [];
-              userOwnRecords = [...records];
-              localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+              let finalRecords = Array.isArray(cloudRecords) ? cloudRecords : [];
+              const guestKeys = [STORAGE_KEY + ":guest", STORAGE_KEY];
+              for (const guestKey of guestKeys) {
+                const rawGuest = localStorage.getItem(guestKey);
+                if (rawGuest && rawGuest !== "[]") {
+                  try {
+                    const guestRecords = normalizeRecordsArray(JSON.parse(rawGuest));
+                    if (guestRecords.length > 0) {
+                      let merged = false;
+                      const cloudIds = new Set(finalRecords.map(r => r.id));
+                      for (const g of guestRecords) {
+                        if (!cloudIds.has(g.id)) {
+                          finalRecords.push(g);
+                          cloudIds.add(g.id);
+                          merged = true;
+                        }
+                      }
+                      if (merged) {
+                        finalRecords.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+                        setTimeout(() => persistCloudRecords(finalRecords), 500);
+                      }
+                    }
+                    localStorage.removeItem(guestKey);
+                  } catch (e) { console.warn("Guest migration error:", e); }
+                }
+              }
+              records = mergeCloudWithLocalPhotos(finalRecords, records);
               renderAll();
+              try {
+                localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+              } catch (lsErr) {
+                console.warn("LocalStorage quota hatasi (fotolar cikartiliyor):", lsErr);
+                try {
+                  const compact = records.map(r => ({ ...r, photos: [] }));
+                  localStorage.setItem(getRecordsStorageKey(), JSON.stringify(compact));
+                } catch (e2) { console.warn("LocalStorage minimal write de basarisiz:", e2); }
+              }
               subscribeCloudRecordsRealtime();
-              syncUserProfile();
-              subscribeSocialData();
             })
             .catch(error => {
               console.warn("Bulut ilk yukleme hatasi:", error);
@@ -1794,49 +1650,21 @@
 
     function switchScreen(name) {
       closePhotoLightbox();
-      if (isFriendView && (name === "add" || name === "records")) {
-        switchScreen(lastNonCountryScreen || "map");
-        return;
-      }
-
       if (name !== "country") lastNonCountryScreen = name;
       els.homeScreen.classList.toggle("active", name === "home");
       els.mapScreen.classList.toggle("active", name === "map");
       els.recordsScreen.classList.toggle("active", name === "records");
       els.addScreen.classList.toggle("active", name === "add");
       els.summaryScreen.classList.toggle("active", name === "summary");
-      els.socialScreen.classList.toggle("active", name === "social");
       els.countryScreen.classList.toggle("active", name === "country");
-      els.friendProfileScreen.classList.toggle("active", name === "friendProfile");
-
-      // Friends Navigation Control
-      if (els.mainNav) {
-         els.mainNav.style.display = (isFriendView && name === "map") ? "none" : "flex";
-      }
-      if (els.friendMapBackBtn) {
-         els.friendMapBackBtn.style.display = (isFriendView && name === "map") ? "flex" : "none";
-      }
       
       // Update Tab State and Move Indicator
-      const visibleTabs = Array.from(els.tabs).filter(btn => {
-        const s = btn.dataset.screen;
-        const isRestricted = isFriendView && (s === "add" || s === "records");
-        btn.style.display = isRestricted ? "none" : "flex";
-        return !isRestricted;
-      });
-      
-      if (els.tabsInner) {
-         els.tabsInner.style.gridTemplateColumns = `repeat(${visibleTabs.length}, 1fr)`;
-      }
-      if (els.tabIndicator) {
-         els.tabIndicator.style.width = `calc((100% - 12px) / ${visibleTabs.length})`;
-      }
-
-      visibleTabs.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === name));
-      
-      const vIdx = visibleTabs.findIndex(b => b.dataset.screen === name);
-      if (vIdx !== -1 && els.tabIndicator) {
-        els.tabIndicator.style.transform = `translateX(${vIdx * 100}%)`;
+      els.tabs.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === name));
+      const activeBtn = Array.from(els.tabs).find(b => b.dataset.screen === name);
+      if (activeBtn && els.tabIndicator) {
+        const idx = Array.from(els.tabs).indexOf(activeBtn);
+        // Each tab is 25% of the bar. We shift the indicator by idx * 100%
+        els.tabIndicator.style.transform = `translateX(${idx * 100}%)`;
       }
 
       els.homeScreen.scrollTop = 0;
@@ -1853,350 +1681,6 @@
       }, 90);
     }
 
-    async function syncUserProfile() {
-      if (!currentUser || !firebaseDb) return;
-      try {
-        await firebaseDb.collection("profiles").doc(currentUser.uid).set({
-          uid: currentUser.uid,
-          email: (currentUser.email || "").toLowerCase(),
-          name: currentUser.name || (currentUser.email ? currentUser.email.split('@')[0] : "Gezgin"),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      } catch (err) { console.warn("Profile sync fail:", err); }
-    }
-
-    let socialListeners = [];
-    function subscribeSocialData() {
-      if (!currentUser || !firebaseDb) return;
-      socialListeners.forEach(unsub => unsub());
-      socialListeners = [];
-
-      // Requests Listener
-      const unsubReq = firebaseDb.collection("profiles").doc(currentUser.uid).collection("friendRequests")
-        .onSnapshot(snap => {
-          renderSocialRequests(snap.docs.map(d => ({ requestId: d.id, ...d.data() })));
-        });
-      socialListeners.push(unsubReq);
-
-      // Friends Listener
-      const unsubFriends = firebaseDb.collection("profiles").doc(currentUser.uid).collection("friends")
-        .onSnapshot(snap => {
-          // friendId karmaşasını önlemek için d.id'yi her zaman uid olarak alıyoruz
-          const friends = snap.docs
-            .map(d => ({ uid: d.id, ...(d.data() || {}) }))
-            .filter(f => f.uid && f.uid !== currentUser.uid);
-          renderSocialFriends(friends);
-        });
-      socialListeners.push(unsubFriends);
-    }
-
-    async function onSocialSearch() {
-      const email = String(els.socialSearchInput.value || "").trim().toLowerCase();
-      if (!email) return;
-      if (email === (currentUser?.email || "").toLowerCase()) {
-        alert("Kendini ekleyemezsin :)");
-        return;
-      }
-      els.socialSearchBtn.disabled = true;
-      els.socialSearchBtn.textContent = "...";
-      try {
-        const snap = await firebaseDb.collection("profiles").where("email", "==", email).limit(1).get();
-        if (snap.empty) {
-          els.socialSearchResults.innerHTML = '<div class="hint">Kullanici bulunamadi.</div>';
-        } else {
-          const user = snap.docs[0].data();
-          renderSearchResult(user);
-        }
-      } catch (err) { alert("Arama hatasi: " + err.message); }
-      finally {
-        els.socialSearchBtn.disabled = false;
-        els.socialSearchBtn.textContent = "Bul";
-      }
-    }
-
-    function renderSearchResult(user) {
-      els.socialSearchResults.innerHTML = `
-        <div class="social-card" style="border-color: var(--primary2)">
-          <div class="social-avatar">${(user.name || "?")[0].toUpperCase()}</div>
-          <div class="social-info">
-            <div class="social-name">${esc(user.name)}</div>
-            <div class="social-mail">${esc(user.email)}</div>
-          </div>
-          <div class="social-actions">
-            <button class="social-btn add" onclick="sendFriendRequest('${user.uid}', '${esc(user.name)}', '${esc(user.email)}')">Ekle</button>
-          </div>
-        </div>
-      `;
-    }
-
-    async function sendFriendRequest(targetUid, targetName, targetEmail) {
-      if (!currentUser || !firebaseDb) return;
-      try {
-        // Send request TO target
-        await firebaseDb.collection("profiles").doc(targetUid).collection("friendRequests").doc(currentUser.uid).set({
-          fromUid: currentUser.uid,
-          fromName: currentUser.name || currentUser.email,
-          fromEmail: currentUser.email,
-          status: 'pending',
-          at: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("İstek gönderildi!");
-        els.socialSearchResults.innerHTML = "";
-        els.socialSearchInput.value = "";
-      } catch (err) { alert("İstek hatasi: " + err.message); }
-    }
-
-    function renderSocialRequests(reqs) {
-      if (!reqs.length) {
-        els.socialRequestsList.innerHTML = '<div class="hint" style="text-align:center; padding:10px;">Gelen istek yok.</div>';
-        return;
-      }
-      els.socialRequestsList.innerHTML = reqs.map(r => `
-        <div class="social-card">
-          <div class="social-avatar">${(r.fromName || "?")[0].toUpperCase()}</div>
-          <div class="social-info">
-            <div class="social-name">${esc(r.fromName)}</div>
-            <div class="social-mail">${esc(r.fromEmail)}</div>
-          </div>
-          <div class="social-actions">
-            <button class="social-btn accept" onclick="handleFriendRequest('${r.requestId}', true)">Kabul</button>
-            <button class="social-btn reject" onclick="handleFriendRequest('${r.requestId}', false)">Red</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function handleFriendRequest(requestId, accept) {
-      if (!currentUser || !firebaseDb) return;
-      try {
-        const reqDoc = await firebaseDb.collection("profiles").doc(currentUser.uid).collection("friendRequests").doc(requestId).get();
-        if (!reqDoc.exists) return;
-        const reqData = reqDoc.data();
-
-        if (accept) {
-          // Add to MY friends
-          await firebaseDb.collection("profiles").doc(currentUser.uid).collection("friends").doc(requestId).set({
-            uid: requestId, name: reqData.fromName, email: reqData.fromEmail, at: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          // Add ME to THEIR friends
-          await firebaseDb.collection("profiles").doc(requestId).collection("friends").doc(currentUser.uid).set({
-            uid: currentUser.uid, name: currentUser.name || currentUser.email, email: currentUser.email, at: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        }
-        // Always delete the request
-        await firebaseDb.collection("profiles").doc(currentUser.uid).collection("friendRequests").doc(requestId).delete();
-      } catch (err) { alert("İşlem hatasi: " + err.message); }
-    }
-
-    function renderSocialFriends(friends) {
-      if (!friends.length) {
-        els.socialFriendsList.innerHTML = '<div class="hint" style="text-align:center; padding:10px;">Henüz kimseyle arkadas degilsin.</div>';
-        return;
-      }
-      els.socialFriendsList.innerHTML = friends.map(f => {
-        const uid = f.uid || f.friendId; // Geriye donuk uyumluluk
-        return `
-          <div class="social-card">
-            <div class="social-avatar">${(f.name || "?")[0].toUpperCase()}</div>
-            <div class="social-info">
-              <div class="social-name">${esc(f.name)}</div>
-              <div class="social-mail">${esc(f.email || "")}</div>
-            </div>
-            <div class="social-actions">
-              <button class="social-btn view" onclick="enterFriendView('${uid}', '${esc(f.name)}')">Haritaya Bak</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function enterFriendView(friendUid, friendName) {
-      if (!firebaseDb || !currentUser) return;
-
-      // KESIN GUVENLIK KONTROLU: Kendi UID'sini arkadas gibi acmasini engelle
-      if (!friendUid || friendUid === currentUser.uid) {
-        console.warn("Kendi profilini arkadas moduyla acma denemesi engellendi.");
-        alert("Bu senin kendi profilin! Arkadaslarinin seyahatlerini gormek icin baska bir kullanici secin.");
-        switchScreen("summary");
-        return;
-      }
-
-      try {
-        const snap = await firebaseDb.collection("users").doc(friendUid).collection("records").get();
-        const fRecordsRaw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const fRecords = normalizeRecordsArray(fRecordsRaw);
-        
-        // Kritik: Arkadas profiline girildigi an global context'i arkadas moduna geciriyoruz.
-        // Boylece arka plandaki sync dinleyicisi (isFriendView kontrolu sayesinde) veriyi ezemez.
-        isFriendView = true;
-        records = fRecords;
-        currentFriendData = { uid: friendUid, name: friendName, records: fRecords };
-        
-        // Friend Profile Screen'i olustur
-        renderFriendProfile(friendName, userOwnRecords, fRecords);
-        
-        switchScreen("friendProfile");
-
-        // UI Badge guncelle
-        if (els.friendViewBadge) {
-          const nameEl = els.friendViewBadge.querySelector(".friend-name");
-          if (nameEl) nameEl.textContent = friendName + " Profili";
-          els.friendViewBadge.classList.add("active");
-        }
-      } catch (err) { 
-        console.warn("Arkadas verisi hatasi:", err);
-        alert("Arkadas verisi alinamadi. Firestore kurallarini ve baglantinizi kontrol edin.");
-        exitFriendView();
-      }
-    }
-
-    function startFriendMapMode() {
-      if (!currentFriendData) return;
-      els.friendViewName.textContent = currentFriendData.name + " Haritası";
-      els.friendViewBadge.classList.add("active");
-      renderAll();
-      switchScreen("map");
-    }
-
-    function renderFriendProfile(name, myRecords, friendRecords) {
-      // Filter for Visited only for stats
-      const myVisited = myRecords.filter(item => isTravelled(item.status));
-      const fVisited = friendRecords.filter(item => isTravelled(item.status));
-
-      const myUniqueCountries = new Set(myVisited.map(r => (r.countryCode || r.country || "").toLowerCase()).filter(Boolean));
-      const myUniqueCities = new Set(myVisited.map(r => (r.city || "").toLowerCase()).filter(Boolean));
-      
-      const fUniqueCountries = [...new Set(fVisited.map(r => (r.countryCode || r.country || "").toLowerCase()).filter(Boolean))];
-      const fUniqueCities = [...new Set(fVisited.map(r => (r.city || "").toLowerCase()).filter(Boolean))];
-      
-      // Mutual calculation based on unique city names
-      const mutualCityNames = fUniqueCities.filter(cityName => myUniqueCities.has(cityName));
-      // Map back to original casing for display (use friend's casing)
-      const mutualForDisplay = mutualCityNames.map(nameKey => {
-         const found = fVisited.find(r => (r.city || "").toLowerCase() === nameKey);
-         return found ? found.city : nameKey;
-      });
-
-      const fVisitTypes = { holiday: 0, business: 0, daytrip: 0, transit: 0 };
-      fVisited.forEach(r => { if (fVisitTypes[r.visitType] !== undefined) fVisitTypes[r.visitType]++; });
-
-      // Build Timeline Data (Chronological)
-      const countryGroups = {};
-      fVisited.forEach(item => {
-        const code = (item.countryCode || 'xx').toLowerCase();
-        if (!countryGroups[code]) {
-          countryGroups[code] = { code, name: item.country || 'Bilinmeyen Ülke', cities: new Set(), latestDate: 0, photo: null };
-        }
-        countryGroups[code].cities.add(item.city);
-        const time = getRecordTime(item);
-        if (time > countryGroups[code].latestDate) {
-          countryGroups[code].latestDate = time;
-          if (item.isPublic && Array.isArray(item.photos) && item.photos.length > 0) {
-            countryGroups[code].photo = item.photos[0];
-          }
-        }
-      });
-      const timelineData = Object.values(countryGroups).sort((a, b) => b.latestDate - a.latestDate);
-
-      // Versus Calculation (Countries)
-      const myCountC = myUniqueCountries.size;
-      const fCountC = fUniqueCountries.length;
-      const totalC = myCountC + fCountC;
-      const myPercentC = totalC === 0 ? 50 : (myCountC / totalC) * 100;
-
-      els.friendProfileContent.innerHTML = `
-        <div class="screen-head" style="background:linear-gradient(135deg,rgba(25,60,110,0.92),rgba(15,35,70,0.96)); border:1px solid rgba(255,255,255,0.15); padding:18px 20px; border-radius:24px; backdrop-filter:blur(12px); box-shadow:0 8px 32px rgba(0,0,0,0.4); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div class="social-avatar" style="width:36px; height:36px; background:var(--primary); font-size:16px;">${(name || "?")[0].toUpperCase()}</div>
-            <h2 style="font-size:18px; font-weight:800; color:#fff; margin:0;">${esc(name)}</h2>
-          </div>
-          <button onclick="exitFriendView()" class="ghost-btn" style="background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); color:#fff; border-radius:12px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer;">Kapat</button>
-        </div>
-
-        <div class="stats" style="grid-template-columns: 1fr 1fr; margin-bottom:16px;">
-          <div class="stat" style="background:rgba(97,176,255,0.12); border-color:rgba(97,176,255,0.3);">
-            <small style="color:#9ecbff">ÜLKE</small>
-            <strong>${fUniqueCountries.length}</strong>
-          </div>
-          <div class="stat" style="background:rgba(97,176,255,0.12); border-color:rgba(97,176,255,0.3);">
-            <small style="color:#9ecbff">ŞEHİR</small>
-            <strong>${fUniqueCities.length}</strong>
-          </div>
-        </div>
-
-        <section style="margin-bottom:24px;">
-           <div class="social-section-title" style="margin-top:0;">Zaman Çizelgesi</div>
-           <div class="country-reel-container" style="display:flex; gap:12px; overflow-x:auto; padding-bottom:10px; margin-left:-8px; padding-left:8px;">
-              ${timelineData.length ? timelineData.map(group => {
-                const bg = group.photo || 'https://picsum.photos/seed/' + group.code + '/400/600';
-                return `
-                  <div class="country-reel-card" onclick="openFriendCountryPhotos('${group.code}')" style="min-width:140px; height:200px;">
-                    <div class="reel-bg"><img src="${bg}" loading="lazy" alt=""></div>
-                    <div class="reel-flag"><img src="https://flagcdn.com/w80/${group.code}.png" alt=""></div>
-                    <div class="reel-overlay">
-                      <div class="reel-name">${esc(group.name)}</div>
-                      <div class="reel-stats">${group.cities.size} Şehir</div>
-                    </div>
-                  </div>
-                `;
-              }).join('') : '<div class="hint">Henüz seyahat yok.</div>'}
-           </div>
-        </section>
-
-        <article class="card" style="background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:20px; margin-bottom:16px;">
-          <h3 style="margin:0 0 16px; font-size:16px;">⚔️ Ülke Kıyaslaması</h3>
-          <div style="display:flex; flex-direction:column; gap:16px;">
-             <div>
-                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; color:var(--muted)"><span>Sen (${myCountC} Ülke)</span> <span>O (${fCountC} Ülke)</span></div>
-                <div style="height:12px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; display:flex;">
-                   <div style="width:${myPercentC}%; background:var(--primary); box-shadow:0 0 12px var(--primary);"></div>
-                   <div style="flex:1; background:var(--social); opacity:1;"></div>
-                </div>
-             </div>
-             
-             <div style="background:rgba(255,255,255,0.04); padding:14px; border-radius:18px; border:1px dashed rgba(255,255,255,0.1);">
-                <div style="font-size:13px; font-weight:700; color:#fff; margin-bottom:8px;">Ortak Gezilen Şehirler</div>
-                <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                   ${mutualForDisplay.length ? mutualForDisplay.slice(0, 8).map(cityName => `<span class="iinfo" style="background:rgba(63,212,160,0.15); border-color:rgba(63,212,160,0.3); color:#3fd4a0; font-size:10px;">${esc(cityName)}</span>`).join('') : '<span style="font-size:11px; color:var(--muted)">Henüz ortak şehir yok.</span>'}
-                   ${mutualForDisplay.length > 8 ? `<span style="font-size:11px; color:var(--muted); align-self:center;">+${mutualForDisplay.length - 8}</span>` : ''}
-                </div>
-             </div>
-          </div>
-        </article>
-
-        <button onclick="startFriendMapMode()" style="width:100%; background:linear-gradient(135deg, var(--primary), #3d8fe8); color:#0a1e36; border:none; border-radius:20px; padding:18px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 10px 25px rgba(97,176,255,0.35); margin-bottom:40px;">
-           HARİTASINI İNCELE 🌍
-        </button>
-      `;
-    }
-
-    function openFriendCountryPhotos(code) {
-      if (!currentFriendData) return;
-      const fRecs = currentFriendData.records;
-      // Filter only public photos for this country
-      const countryRecs = fRecs.filter(r => (r.countryCode || '').toLowerCase() === code.toLowerCase() && r.isPublic);
-      const allPhotos = countryRecs.flatMap(r => r.photos || []);
-      
-      if (!allPhotos.length) {
-         alert("Bu ülkeye ait herkese açık fotoğraf bulunamadı.");
-         return;
-      }
-      openPhotoLightbox(allPhotos, 0);
-    }
-
-    function exitFriendView() {
-      if (!isFriendView) {
-         // Even if not in map mode, ensure we clear the profile data when closing
-         switchScreen("social");
-         return;
-      }
-      records = [...userOwnRecords]; 
-      isFriendView = false;
-      currentFriendData = null;
-      els.friendViewBadge.classList.remove("active");
-      renderAll();
-      switchScreen("social");
-    }
     function normalizeRecordsArray(list) {
       const input = Array.isArray(list) ? list : [];
       return input.map(item => ({
@@ -2215,7 +1699,6 @@
         budget: normalizeMoney(item.budget),
         currency: normalizeCurrency(item.currency),
         tripDays: normalizeDays(item.tripDays),
-        isPublic: item.isPublic !== false, // Default to true
         photos: normalizePhotos(item.photos),
         note: item.note || "",
         createdAt: item.createdAt || new Date().toISOString()
@@ -2252,7 +1735,6 @@
         budget: normalizeMoney(item.budget),
         currency: normalizeCurrency(item.currency),
         tripDays: normalizeDays(item.tripDays),
-        isPublic: item.isPublic !== false,
         photos: safePhotos,
         note: String(item.note || ""),
         createdAt: item.createdAt || new Date().toISOString(),
@@ -2294,8 +1776,7 @@
     function loadRecords() {
       try {
         const key = getRecordsStorageKey();
-        const raw = localStorage.getItem(key);
-        if (!raw) return []; // No fallback for logged in users
+        const raw = localStorage.getItem(key) || (!currentUser ? localStorage.getItem(STORAGE_KEY) : "[]") || "[]";
         const parsed = JSON.parse(raw);
         return normalizeRecordsArray(parsed);
       } catch { return []; }
@@ -2368,24 +1849,14 @@
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
         const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        
-        // CRITICAL: Always use userOwnRecords as base for syncing user's own data
-        // This ensures the local source of truth for the user stays up to date
-        const cloudMerged = mergeCloudWithLocalPhotos(cloud, userOwnRecords);
-        userOwnRecords = cloudMerged;
-        
-        // Only update active 'records' and trigger re-render if NOT in friend view
-        // This prevents friend profile view from being overwritten by user's own background sync
-        if (!isFriendView) {
-          const localSig = recordsSignature(records || []);
-          const cloudSig = recordsSignature(cloudMerged);
-          if (localSig !== cloudSig) {
-            records = cloudMerged;
-            localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-            renderAll();
-          }
+        const cloudMerged = mergeCloudWithLocalPhotos(cloud, records);
+        const localSig = recordsSignature(records || []);
+        const cloudSig = recordsSignature(cloudMerged);
+        if (localSig !== cloudSig) {
+          records = cloudMerged;
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+          renderAll();
         }
-        
         cloudSyncStatus = "Bulut esitlendi (canli).";
         renderAuthPanel();
       }, error => {
@@ -2401,7 +1872,6 @@
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
       cloudSyncTimer = setTimeout(() => { persistCloudRecords(records); }, 350);
     }
-
 
     function handleCloudPermissionError(error) {
       const code = error && error.code ? String(error.code) : "";
@@ -2434,7 +1904,6 @@
     }
 
     async function deleteCloudRecordImmediately(recordId) {
-      if (isFriendView) return;
       if (!recordId || !currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
       try {
         const docRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(recordId);
@@ -2447,25 +1916,96 @@
       }
     }
 
-    async function persistCloudRecords() {
-      if (!firebaseDb || !currentUser || isFriendView) return;
+    async function persistCloudRecords(forceRecords = null) {
+      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+      if (cloudSyncBusy) {
+        if (Array.isArray(forceRecords)) setTimeout(() => persistCloudRecords(forceRecords), 600);
+        else queueCloudSync();
+        return;
+      }
+      cloudSyncBusy = true;
       try {
-        const batch = firebaseDb.batch();
-        userOwnRecords.forEach(r => {
-          const ref = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(r.id);
-          batch.set(ref, toCloudRecord(r));
+        const payload = normalizeRecordsArray(Array.isArray(forceRecords) ? forceRecords : records);
+        const colRef = firebaseDb.collection("users").doc(currentUser.uid).collection("records");
+        
+        // Use parallel writes for performance
+        const writePromises = payload.map(async item => {
+          const docRef = colRef.doc(item.id);
+          try {
+            await docRef.set({
+              ...toCloudRecord(item),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              deviceUpdatedAt: new Date().toISOString()
+            }, { merge: true });
+            return true;
+          } catch (writeError) {
+            if (isCloudPayloadTooLargeError(writeError)) {
+              try {
+                await docRef.set({
+                  ...toCloudRecordLite(item),
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  deviceUpdatedAt: new Date().toISOString(),
+                  cloudPhotoStripped: true
+                }, { merge: true });
+                return true;
+              } catch (liteError) { console.warn("Lite sync fail:", item.id, liteError); }
+            }
+            console.warn("Doc sync fail:", item.id, writeError);
+            return false;
+          }
         });
-        await batch.commit();
-      } catch (err) { console.warn("Cloud save error:", err); }
+
+        const results = await Promise.all(writePromises);
+        const okWrites = results.filter(Boolean).length;
+
+        // Legacy compatibility doc set in parallel
+        firebaseDb.collection("users").doc(currentUser.uid).collection("appData").doc("records").set({
+          records: payload.map(toCloudRecordLite),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          deviceUpdatedAt: new Date().toISOString(),
+          compatVersion: APP_VERSION
+        }, { merge: true }).catch(err => console.warn("Legacy sync skip:", err));
+
+        cloudSyncPending = false;
+        cloudSyncStatus = `Bulut esitlendi (${okWrites}/${payload.length}).`;
+        renderAuthPanel();
+      } catch (error) {
+        console.warn("Cloud sync fail:", error);
+        handleCloudPermissionError(error);
+        cloudSyncPending = false;
+        cloudSyncStatus = "Buluta yazma hatasi.";
+        renderAuthPanel();
+      } finally {
+        cloudSyncBusy = false;
+      }
     }
 
     async function saveRecords(options = {}) {
-      if (!currentUser) return; // Never save if not logged in (Guest mode disabled for safety)
-      if (currentUser.uid) {
-         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
+      const syncNow = !!(options && options.syncNow);
+      let wrote = tryWriteLocalRecordsSnapshot(records);
+      if (!wrote) {
+        const step1 = compactRecordsForLocalStorage(records, "keep-latest-one-photo");
+        wrote = tryWriteLocalRecordsSnapshot(step1);
       }
-      if (options.syncNow) await persistCloudRecords();
-      renderAll();
+      if (!wrote) {
+        const step2 = compactRecordsForLocalStorage(records, "no-photos");
+        wrote = tryWriteLocalRecordsSnapshot(step2);
+      }
+      if (!wrote) {
+        const step3 = compactRecordsForLocalStorage(records, "limit-record-count");
+        wrote = tryWriteLocalRecordsSnapshot(step3);
+      }
+      if (!wrote && !shownQuotaAlert) {
+        shownQuotaAlert = true;
+        alert("Tarayici depolama kotasi doldu. Sehirler kaydedildi ancak bazi fotograflar yerel onbellekten cikarildi. Tam fotograf senkronu icin Firebase Storage onerebilirim.");
+      }
+      cloudSyncPending = true;
+      lastLocalMutationAt = Date.now();
+      if (syncNow && currentUser && currentUser.uid && firebaseReady && firebaseDb) {
+        await persistCloudRecords(records);
+      } else {
+        queueCloudSync();
+      }
     }
 
     function getRecordsStorageKey() {
@@ -2540,7 +2080,6 @@
     async function onDeleteAllData() {
       if (!confirm("Tum kayitlari silmek istediginize emin misiniz? Bu islem geri alinamaz!")) return;
       records = [];
-      userOwnRecords = [];
       localStorage.removeItem(getRecordsStorageKey());
       
       if (currentUser && currentUser.uid && firebaseReady && firebaseDb) {
@@ -2614,7 +2153,6 @@
 
         if (!normalized.length) throw new Error("Gecerli kayit yok.");
         records = normalized.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        userOwnRecords = [...records];
         await saveRecords({ syncNow: true });
         renderAll();
         alert("JSON ice aktarma tamamlandi: " + records.length + " kayit.");
@@ -2642,7 +2180,6 @@
       const currency = normalizeCurrency(els.currencyInput.value);
       const tripDays = normalizeDays(els.tripDaysInput.value);
       const note = els.noteInput.value.trim();
-      const isPublic = Array.from(els.friendPrivacyInputs).find(i => i.checked)?.value === "public";
       if (!city) return;
 
       els.saveBtn.disabled = true;
@@ -2700,24 +2237,13 @@
           tripDays,
           photos: workingPhotos.slice(0, 8),
           tags: selectedTags,
-          note,
-          isPublic
+          note
         };
-
-        if (editId) {
-           // We ONLY update userOwnRecords because friend data is read-only
-           userOwnRecords = userOwnRecords.map(item => item.id === editId ? { ...item, ...payload } : item);
-           // If we are NOT in friend view, update active records too
-           if (!isFriendView) records = [...userOwnRecords];
-        } else {
-           const newId = crypto.randomUUID();
-           const now = new Date().toISOString();
-           const newRecord = { id: newId, createdAt: now, ...payload };
-           userOwnRecords.unshift(newRecord);
-           if (!isFriendView) records = [...userOwnRecords];
-        }
+        if (editId) records = records.map(item => item.id === editId ? { ...item, ...payload } : item);
+        else records.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
         
-        await saveRecords({ syncNow: true });
+        // Non-blocking background sync
+        saveRecords({ syncNow: true });
         
         resetAddForm();
         renderAll();
@@ -2747,13 +2273,6 @@
     }
 
     async function onRecordAction(event) {
-      if (isFriendView) {
-        const btn = event.target.closest("button[data-action]");
-        if (btn && btn.dataset.action !== "detail") {
-           alert("Okuma modunda sadece detaylari gorebilirsiniz.");
-           return;
-        }
-      }
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       if (button.dataset.action === "toggle-country") {
@@ -2774,6 +2293,9 @@
       if (button.dataset.action === "edit") openAddScreen(id);
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
+        records = records.filter(item => item.id !== id);
+        await saveRecords({ syncNow: true });
+        renderAll();
         await deleteCloudRecordImmediately(id);
       }
     }
@@ -2828,15 +2350,26 @@
       if (els.visitTypeInput) els.visitTypeInput.value = "holiday";
       els.currencyInput.value = "TRY";
       els.photoInput.value = "";
-      
-      // Default privacy to public
-      Array.from(els.friendPrivacyInputs).forEach(i => i.checked = (i.value === "public"));
-
       els.addScreenTitle.textContent = "Sehir Ekle";
       renderPhotoPreview();
     }
 
-
+    function renderAll() {
+      renderAuthPanel();
+      renderHero();
+      renderHomeGlobe();
+      renderHomeInsights();
+      renderAchievements();
+      renderBucketList();
+      renderRecent();
+      renderRecords();
+      renderFlags();
+      renderExplorePins();
+      renderWorldLayers();
+      renderExplorerInsights();
+      renderSummaryDashboard();
+      renderTimeline();
+    }
 
     function renderHero() {
       const countries = [...new Set(records.map(item => item.country).filter(Boolean))];
@@ -3044,9 +2577,7 @@
     }
 
     function renderRecent() {
-      recentItems = records.filter(item => item.status !== 'planned')
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        .slice(0, 3);
+      recentItems = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
       if (!recentItems.length) {
         recentIndex = 0;
         els.recentList.innerHTML = "<div class='empty'>Henuz kayit yok.</div>";
@@ -3169,30 +2700,6 @@
     }
 
     const EMPTY_SVG_LUGGAGE = `<svg class='empty-svg' viewBox='0 0 72 72' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='14' y='26' width='44' height='34' rx='6' stroke='#6aaddf' stroke-width='2.5'/><path d='M26 26V19a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v7' stroke='#6aaddf' stroke-width='2.5' stroke-linecap='round'/><line x1='28' y1='38' x2='28' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><line x1='36' y1='38' x2='36' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><line x1='44' y1='38' x2='44' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><circle cx='21' cy='62' r='3' stroke='#6aaddf' stroke-width='2'/><circle cx='51' cy='62' r='3' stroke='#6aaddf' stroke-width='2'/></svg>`;
-
-    function renderAll() {
-      // Defensive guard: Ensure core UI elements and maps are ready before full render
-      if (!els.homeScreen || !els.recordsList) return;
-      
-      if (els.openAddBtn) {
-        els.openAddBtn.style.display = isFriendView ? "none" : "flex";
-      }
-      
-      renderAuthPanel();
-      renderHero();
-      renderHomeGlobe();
-      renderHomeInsights();
-      renderAchievements();
-      renderBucketList();
-      renderRecent();
-      renderRecords();
-      renderFlags();
-      renderExplorePins();
-      renderWorldLayers();
-      renderExplorerInsights();
-      renderSummaryDashboard();
-      renderTimeline();
-    }
 
     function renderRecords() {
       let visible = getVisibleRecords();
@@ -3580,7 +3087,6 @@
     }
 
     function renderExplorePins() {
-      if (!exploreMarkerLayer || !exploreMap) return;
       exploreMarkerLayer.clearLayers();
       const points = [];
       records.forEach(item => {
@@ -3591,18 +3097,13 @@
         const popupMeta = [];
         if (item.ratingOverall != null) popupMeta.push("Puan: " + item.ratingOverall + "/10");
         if (item.budget != null) popupMeta.push("Butce: " + formatMoney(item.budget, item.currency || "TRY"));
-        
-        // Filter photos based on privacy if in friend view
-        const displayPhotos = isFriendView ? (item.isPublic ? (item.photos || []) : []) : (item.photos || []);
-        if (displayPhotos.length) popupMeta.push("Ani: " + displayPhotos.length + " foto");
-        
+        if (Array.isArray(item.photos) && item.photos.length) popupMeta.push("Ani: " + item.photos.length + " foto");
         marker.bindPopup(
           "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
           "Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" +
           (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") +
           (popupMeta.length ? esc(popupMeta.join(" | ")) + "<br>" : "") +
-          (item.note ? "Not: " + esc(item.note) : "") +
-          (displayPhotos.length ? `<div style='margin-top:8px;'><button class='ghost-btn' onclick='openPhotoLightbox(${JSON.stringify(displayPhotos)}, 0)' style='font-size:11px; padding:4px 8px;'>Fotoğraflara Bak</button></div>` : "")
+          (item.note ? "Not: " + esc(item.note) : "")
         );
         marker.addTo(exploreMarkerLayer);
         points.push([item.lat, item.lng]);
