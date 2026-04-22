@@ -468,7 +468,7 @@
     .close-journey{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:10px;cursor:pointer;display:grid;place-items:center;transition:all .2s}
     .close-journey:hover{background:rgba(255,50,50,0.2);border-color:rgba(255,50,50,0.4)}
     
-    .glowing-path{stroke:#00e5ff; stroke-width:2; stroke-opacity:0.6; filter: drop-shadow(0 0 4px #00e5ff); opacity:0.8; fill:none}
+    .glowing-path{stroke-width:2; stroke-opacity:0.6; filter: drop-shadow(0 0 4px currentColor); opacity:0.8; fill:none}
     .glowing-path.animated{stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawPath 3s forwards ease-out}
     @keyframes drawPath{ to { stroke-dashoffset: 0; } }
     .dot-marker{width:8px;height:8px;background:#00e5ff;border-radius:50%;box-shadow:0 0 12px #00e5ff;border:2px solid #fff}
@@ -1417,6 +1417,9 @@
       window.addEventListener("resize", () => setTimeout(() => { resizeHomeGlobe(); exploreMap.invalidateSize(); countryMap.invalidateSize(); renderHomeGlobe(); }, 80));
       els.socialSearchBtn.addEventListener("click", onSocialSearch);
       bindProEvents();
+      if (els.optimizeStorageBtn) {
+        els.optimizeStorageBtn.addEventListener("click", bulkOptimizePhotos);
+      }
       if (els.tagsContainer) {
         els.tagsContainer.addEventListener("click", e => {
           const chip = e.target.closest(".tag-chip");
@@ -1904,18 +1907,29 @@
     }
 
     async function bulkOptimizePhotos() {
-      if (!userOwnRecords.length) return;
+      if (!userOwnRecords.length) {
+        alert("Henüz kayıtlı seyahat veriniz bulunmuyor.");
+        return;
+      }
       const btn = els.optimizeStorageBtn;
       const originalText = btn ? btn.textContent : "Hafızayı Optimize Et";
-      if (btn) { btn.disabled = true; btn.textContent = "Optimize ediliyor..."; }
+      const originalBg = btn ? btn.style.background : "";
+      
+      if (btn) { 
+        btn.disabled = true; 
+        btn.style.background = "#fb8500";
+        btn.style.color = "#fff";
+        btn.textContent = "Hazırlanıyor..."; 
+      }
       
       let count = 0;
+      let totalProcessed = 0;
       for (let i = 0; i < userOwnRecords.length; i++) {
         const record = userOwnRecords[i];
         if (record.photos && record.photos.length) {
           const newPhotos = [];
           for (const p of record.photos) {
-            if (p && p.length > 60000) {
+            if (p && p.length > 65000) { // ~65KB'dan büyükse optimize et
               newPhotos.push(await resizeBase64(p, 800, 800, 0.55));
               count++;
             } else {
@@ -1924,12 +1938,37 @@
           }
           record.photos = newPhotos;
         }
-        if (btn && i % 5 === 0) btn.textContent = `İşleniyor: ${i}/${userOwnRecords.length}`;
+        totalProcessed++;
+        if (btn) {
+          const pct = Math.round((totalProcessed / userOwnRecords.length) * 100);
+          btn.textContent = `Optimize Ediliyor: %${pct}`;
+        }
+        // UI'ın donmasını engellemek için küçük bir ara
+        if (i % 3 === 0) await new Promise(r => setTimeout(r, 10));
       }
       
-      await saveRecords({ syncNow: true });
-      if (btn) { btn.disabled = false; btn.textContent = originalText; }
-      alert(`Hafıza optimizasyonu tamamlandı. ${count} fotoğraf sıkıştırıldı ve yer açıldı.`);
+      try {
+        await saveRecords({ syncNow: true });
+        if (btn) { 
+          btn.style.background = "#2c8b6b";
+          btn.textContent = count > 0 ? `Bitti: ${count} Foto Sıkıştırıldı` : "Hafıza Zaten Optimize Edilmiş";
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.style.background = originalBg;
+            btn.style.color = "";
+            btn.textContent = originalText;
+          }, 4000);
+        }
+        if (count > 0) alert(`Hafıza başarıyla temizlendi. ${count} adet büyük fotoğraf sıkıştırılarak yer açıldı.`);
+        else alert("Tüm fotoğraflarınız zaten optimize edilmiş durumda, ek yer açmaya gerek kalmadı.");
+      } catch (e) {
+        alert("Kaydederken hata oluştu: " + e.message);
+        if (btn) {
+           btn.disabled = false;
+           btn.style.background = originalBg;
+           btn.textContent = originalText;
+        }
+      }
     }
 
     function renderPhotoPreview() {
@@ -2439,6 +2478,8 @@
         budget: normalizeMoney(item.budget),
         currency: normalizeCurrency(item.currency),
         tripDays: normalizeDays(item.tripDays),
+        arrivalFrom: item.arrivalFrom || "",
+        transportMode: item.transportMode || "flight",
         isPublic: item.isPublic !== false, // Default to true
         photos: normalizePhotos(item.photos),
         note: item.note || "",
@@ -2476,6 +2517,8 @@
         budget: normalizeMoney(item.budget),
         currency: normalizeCurrency(item.currency),
         tripDays: normalizeDays(item.tripDays),
+        arrivalFrom: item.arrivalFrom || "",
+        transportMode: item.transportMode || "flight",
         isPublic: item.isPublic !== false,
         photos: safePhotos,
         note: String(item.note || ""),
@@ -4655,9 +4698,6 @@
 
       if (pathGroup.getLayers().length > 0) {
         journeyMap.fitBounds(pathGroup.getBounds(), { padding: [50, 50], maxZoom: 5 });
-      }
-      if (els.optimizeStorageBtn) {
-        els.optimizeStorageBtn.addEventListener("click", bulkOptimizePhotos);
       }
     }
 
