@@ -1442,6 +1442,11 @@
           records = [];
           userOwnRecords = [];
           originalRecords = [];
+          
+          // Haritayi temizle
+          if (exploreMarkerLayer) exploreMarkerLayer.clearLayers();
+          if (countryMarkerLayer) countryMarkerLayer.clearLayers();
+          
           renderAll(); 
           
           // Clear any friend badge state
@@ -2494,7 +2499,8 @@
     }
 
     function getRecordsStorageKey() {
-      return currentUser && currentUser.uid ? (STORAGE_KEY + ":" + currentUser.uid) : (STORAGE_KEY + ":guest");
+      if (!currentUser || !currentUser.uid) return STORAGE_KEY + "_guest";
+      return "user_" + currentUser.uid + "_records";
     }
 
     function getVisibleRecords() {
