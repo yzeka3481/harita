@@ -2645,7 +2645,9 @@
       if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return [];
       try {
         const cloud = await fetchCloudRecords(currentUser.uid);
-        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(cloud));
+        userOwnRecords = [...cloud];
+        records = [...cloud];
+        saveRecords(); 
         return cloud;
       } catch (error) {
         console.warn("Bulut kayitlari okunamadi:", error);
@@ -3025,14 +3027,13 @@
         }
         
         // Save locally immediately
-        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
+        await saveRecords({ syncNow: true });
         
         resetAddForm();
         switchScreen("records");
         setTimeout(() => renderAll(), 50);
 
-        // Background sync
-        persistCloudRecords().catch(err => console.warn("Background sync failed:", err));
+
 
         editId = null; 
       } catch (error) {
