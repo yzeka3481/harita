@@ -1456,20 +1456,27 @@
 
           // ONLY load from user-specific key
           const uid = currentUser.uid;
+          // LOCAL FIRST: Hemen yerel veriyi yukle ki ekran bos kalmasin
+          const localData = JSON.parse(localStorage.getItem(getRecordsStorageKey()) || "[]");
+          records = normalizeRecordsArray(localData);
+          userOwnRecords = [...records];
+          renderAll();
+
+          // CLOUD SECOND: Buluttan guncel veriyi cek
           forceReloadCloudRecords()
             .then(cloudRecords => {
-              records = Array.isArray(cloudRecords) ? cloudRecords : [];
-              userOwnRecords = [...records];
-              localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-              renderAll();
+              if (Array.isArray(cloudRecords) && cloudRecords.length > 0) {
+                records = cloudRecords;
+                userOwnRecords = [...records];
+                localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+                renderAll();
+              }
               subscribeCloudRecordsRealtime();
               syncUserProfile();
               subscribeSocialData();
             })
             .catch(error => {
-              console.warn("Bulut ilk yukleme hatasi:", error);
-              cloudSyncStatus = "Bulut okunamadi.";
-              renderAuthPanel();
+              console.warn("Bulut yukleme hatasi:", error);
               subscribeCloudRecordsRealtime();
             });
         });
@@ -2006,7 +2013,7 @@
               <div class="social-mail">${esc(f.email || "")}</div>
             </div>
             <div class="social-actions">
-              <button class="social-btn view" onclick="enterFriendView('${uid}', '${esc(f.name)}')">Haritaya Bak</button>
+              <button class="social-btn view" onclick="enterFriendView('${uid}', '${esc(f.name)}')">Profili Gör</button>
             </div>
           </div>
         `;
@@ -2168,7 +2175,7 @@
         </article>
 
         <button onclick="startFriendMapMode()" style="width:100%; background:linear-gradient(135deg, var(--primary), #3d8fe8); color:#0a1e36; border:none; border-radius:20px; padding:18px; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 10px 25px rgba(97,176,255,0.35); margin-bottom:40px;">
-           HARİTASINI İNCELE 🌍
+           HARİTAYI GÖR 🌍
         </button>
       `;
     }
