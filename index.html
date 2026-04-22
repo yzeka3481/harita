@@ -1526,11 +1526,10 @@
         els.authStateText.textContent = "Hesap: " + name;
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
-        const uidShort = String(currentUser.uid || "").slice(0, 8);
         const statusMsg = firebaseDb
           ? (cloudSyncStatus || "Senkron bekleniyor...")
           : "Firestore bağlantısı yok.";
-        els.authHelpText.textContent = "Bulut: " + statusMsg + " [" + uidShort + " / " + records.length + " kayıt]";
+        els.authHelpText.innerHTML = "Bulut: " + statusMsg + "<br><span style='font-size:9px; opacity:0.6;'>UID: " + currentUser.uid + "</span>";
         // Görünür sync satırı
         const row = document.getElementById("syncStatusRow");
         const dot = document.getElementById("syncDot");
@@ -2423,16 +2422,17 @@
         const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         
-        // CRITICAL: Always use userOwnRecords as base for syncing user's own data
-        // This ensures the local source of truth for the user stays up to date
         const cloudMerged = mergeCloudWithLocalPhotos(cloud, userOwnRecords);
-        userOwnRecords = cloudMerged;
-        
-        // Only update active 'records' and trigger re-render if NOT in friend view
-        if (!isFriendView) {
-          records = cloudMerged;
-          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-          renderAll();
+        // GUVENLIK: Gelen verinin gercekten bu kullaniciya ait oldugunu dogrula
+        if (firebaseAuth.currentUser && firebaseAuth.currentUser.uid === uid) {
+          userOwnRecords = cloudMerged;
+          
+          // Only update active 'records' and trigger re-render if NOT in friend view
+          if (!isFriendView) {
+            records = [...cloudMerged];
+            localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+            renderAll();
+          }
         }
         
         cloudSyncStatus = "Bulut esitlendi (canli).";
@@ -2509,11 +2509,16 @@
     }
 
     async function saveRecords(options = {}) {
-      if (!currentUser) return; // Never save if not logged in (Guest mode disabled for safety)
-      if (currentUser.uid) {
-         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
+      if (!currentUser || !currentUser.uid || isFriendView) {
+         if (isFriendView) console.warn("Arkadas modunda kayit engellendi.");
+         return;
       }
-      if (options.syncNow) await persistCloudRecords();
+      
+      localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
+      
+      if (options.syncNow) {
+         await persistCloudRecords();
+      }
       renderAll();
     }
 
