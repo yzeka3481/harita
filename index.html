@@ -17,7 +17,7 @@
     .app{max-width:500px;margin:0 auto;height:100dvh;position:relative;padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));overflow:hidden;border-radius:36px 36px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,0.3);margin-top:12px;border:1px solid rgba(255,255,255,0.05);background:var(--bg)}
     .screen{display:none;padding:14px;height:calc(100dvh - var(--tabh) - env(safe-area-inset-bottom) - 12px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y;-webkit-overflow-scrolling:touch}.screen.active{display:block}
     .card{border:1px solid var(--glass-border);border-radius:16px;background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));padding:14px;margin-bottom:12px;box-shadow:0 8px 32px rgba(4,12,28,.32)}
-    .card h2{margin:0 0 10px;font-size:16px}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
+    .card h2{margin:0 0 10px;font-size:16px;font-weight:600}.hint{margin:8px 0 0;font-size:12px;color:var(--muted)}
     .control-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
     .control-row.single{grid-template-columns:1fr}
     .tool-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
@@ -44,7 +44,7 @@
     .hero-head{display:flex;justify-content:flex-end;align-items:center;gap:8px}.hero h1{margin:0;font-size:22px}.badge{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 10px;font-size:12px;background:rgba(16,25,37,.7)}
     .hero p{margin:0;font-size:12px;color:#d2e1fb;line-height:1.4}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-    .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px}
+    .stat{border:1px solid var(--line);border-radius:12px;background:rgba(14,22,34,.95);padding:10px 8px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.stat strong{font-size:20px;font-weight:600}
     .home-map-wrap{margin:100px -14px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2}
     .globe-title-plain{display:none}
     .version-chip{display:none}
@@ -95,6 +95,15 @@
     .star-rating{display:inline-flex;gap:4px;margin-top:4px}
     .star-rating span{font-size:24px;color:#355c84;cursor:pointer;line-height:1;transition:color .2s}
     .star-rating span.active{color:#f9c74f}
+    .hero-auth-trigger{position:absolute;top:16px;right:16px;z-index:100;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(0,0,0,0.2)}
+    .hero-auth-trigger:hover{transform:scale(1.1);background:rgba(255,255,255,0.2)}
+    .hero-auth-trigger svg{width:22px;height:22px;stroke:#fff}
+    .hero-auth-trigger .user-initial{color:#fff;font-weight:800;font-size:16px}
+    .auth-card.floating{position:absolute;top:66px;right:16px;width:280px;z-index:110;transform:translateY(-10px);opacity:0;pointer-events:none;transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);box-shadow:0 15px 40px rgba(0,0,0,0.5)}
+    .auth-card.floating.open{transform:translateY(0);opacity:1;pointer-events:all}
+    .auth-card .auth-row{flex-direction:column;gap:12px;align-items:flex-start}
+    .auth-card .auth-actions{width:100%;display:flex;gap:8px}
+    .auth-card .auth-btn{flex:1;font-size:12px;padding:8px}
     .item-top-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
     .item-cityname{font-size:16px;font-weight:800;color:#eef7ff;letter-spacing:-.2px;line-height:1.2}
     .item-info-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
@@ -171,9 +180,9 @@
     /* Arkadas Modunda Menuleri Gizle */
     body.friend-mode .tabs, body.friend-mode .add-btn { display:none !important; }
     
-    .add-btn{position:fixed;right:22px;bottom:calc(var(--tabh) + 40px + env(safe-area-inset-bottom));z-index:2300;width:50px;height:50px;border:none;border-radius:18px;font-size:0;color:#fff;background:linear-gradient(135deg, #00d4ff, #0080ff);box-shadow:0 8px 24px rgba(0,128,255,0.4), inset 0 1px 0 rgba(255,255,255,0.2);cursor:pointer;display:grid;place-items:center;transition:all .2s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
+    .add-btn{position:fixed;right:22px;bottom:calc(var(--tabh) + 40px + env(safe-area-inset-bottom));z-index:2300;width:56px;height:56px;border:none;border-radius:50%;font-size:0;color:#fff;background:linear-gradient(135deg, #00d4ff, #0080ff);box-shadow:0 8px 24px rgba(0,128,255,0.4), inset 0 1px 0 rgba(255,255,255,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
     .add-btn:hover{transform:scale(1.08) translateY(-2px)}
-    .add-btn::before{content:"+";font-size:26px;font-weight:400}
+    .add-btn::before{content:"+";font-size:32px;font-weight:300;line-height:1;margin-top:-2px}
     .screen-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
     .screen-head h2{margin:0;font-size:17px}
     .ghost-btn{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
@@ -235,15 +244,17 @@
     .summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
     .summary-stat{border-radius:12px;background:rgba(10,24,42,.34);border:1px solid rgba(255,255,255,.23);padding:10px}
     .summary-stat small{display:block;font-size:11px;color:#d6e8fb;margin-bottom:6px}
-    .summary-stat strong{display:block;font-size:22px;line-height:1.1}
+    .summary-stat strong{display:block;font-size:22px;line-height:1.1;font-weight:600}
     .summary-note{margin-top:8px;font-size:12px;color:#dcecff}
     .story-actions{display:flex;align-items:center;gap:8px;margin-top:10px}
     .story-btn{border:none;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.14);color:#e7f3ff}
     .story-btn.primary{background:#67b4ff;color:#09223c}
     .story-btn:disabled{opacity:.5;cursor:not-allowed}
-    .story-preview{margin-top:10px;border:1px solid #44698f;border-radius:12px;background:#122b4a;padding:8px}
+    .story-preview{position:relative; margin-top:10px;border:1px solid #44698f;border-radius:12px;background:#122b4a;padding:8px}
     .story-preview img{display:block;width:100%;max-width:220px;margin:0 auto;border-radius:8px;border:1px solid rgba(255,255,255,.22)}
     .story-preview p{margin:8px 0 0;font-size:11px;color:#c8dbf1;text-align:center}
+    .story-close-btn{position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; font-weight:700; z-index:10; transition:all 0.2s}
+    .story-close-btn:hover{background:rgba(255,50,50,0.4); border-color:rgba(255,50,50,0.6)}
     .download-btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none}
     .download-btn.disabled{pointer-events:none;opacity:.55}
     .download-btn.story{background:#4a90e8;color:#fff}
@@ -369,7 +380,7 @@
     .badge-item:hover{transform:translateY(-3px)}
     .badge-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(18,40,70,0.6);border:1px solid rgba(255,255,255,0.08);filter:grayscale(1);opacity:0.35;position:relative;transition:all .4s ease}
     .badge-item.unlocked .badge-icon{filter:none;opacity:1;background:linear-gradient(135deg,rgba(97,176,255,0.2),rgba(97,176,255,0.05));border-color:rgba(97,176,255,0.4);box-shadow:0 6px 12px rgba(0,0,0,0.2)}
-    .badge-label{font-size:9px;font-weight:700;color:var(--muted);transition:color .3s;line-height:1.1}
+    .badge-label{font-size:9px;font-weight:500;color:var(--muted);transition:color .3s;line-height:1.1}
     .badge-item.unlocked .badge-label{color:#fff}
 
     /* Country Collection Reel CSS */
@@ -389,8 +400,8 @@
     .reel-flag{position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%; border:2px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.3); overflow:hidden; z-index:3}
     .reel-flag img{width:100%; height:100%; object-fit:cover}
     
-    .reel-name{font-size:17px; font-weight:800; color:#fff; letter-spacing:-0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .reel-stats{font-size:11px; font-weight:700; color:var(--primary); background:rgba(0,229,255,0.12); padding:4px 10px; border-radius:99px; align-self:flex-start}
+    .reel-name{font-size:17px; font-weight:600; color:#fff; letter-spacing:-0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .reel-stats{font-size:11px; font-weight:500; color:var(--primary); background:rgba(0,229,255,0.12); padding:4px 10px; border-radius:99px; align-self:flex-start}
 
 
 
@@ -477,8 +488,29 @@
     <div class="splash-sub">Seyahat anıların seninle ✈️</div>
   </div>
   <main class="app">
-    <section id="homeScreen" class="screen active">
+    <section id="homeScreen" class="screen active" style="position:relative;">
       <article class="hero">
+        <button id="heroAuthTrigger" class="hero-auth-trigger" type="button" title="Profil">
+          <div id="heroAuthIcon">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+        </button>
+
+        <article id="authCard" class="auth-card floating">
+          <div class="auth-row">
+            <div id="authStateText" class="auth-state">Hesap: Misafir modunda.</div>
+            <div class="auth-actions">
+              <button id="openAuthBtn" class="auth-btn primary" type="button">Giris / Kayit</button>
+              <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Çıkış</button>
+            </div>
+            <div id="syncStatusRow" class="sync-status-row" hidden>
+              <span id="syncDot" class="sync-dot"></span>
+              <span id="syncText" class="sync-text">Kontrol ediliyor...</span>
+            </div>
+            <div id="authHelpText" style="margin-top:4px;"></div>
+          </div>
+        </article>
+        
         <img id="heroImage" alt="Ülke Fotoğrafı" src="">
         <div class="hero-content">
           <div class="hero-head">
@@ -543,8 +575,11 @@
     </section>
 
     <section id="recordsScreen" class="screen">
+      <div class="screen-head" style="margin-bottom:20px; padding:0 8px;">
+        <h2 style="font-size:24px; font-weight:800; color:#fff; letter-spacing:-0.5px; margin:0;">Zaman Çizelgesi</h2>
+      </div>
       <article class="card">
-        <h2>Tüm Kayıtlar</h2>
+        <h2 style="font-size:14px; opacity:0.7; margin-bottom:12px;">Filtrele & Ara</h2>
         <div class="control-row single">
           <input id="recordsSearchInput" type="text" placeholder="Sehir / ulke ara">
         </div>
@@ -693,21 +728,11 @@
       </article>
     </section>
 
-    <section id="summaryScreen" class="screen">
-      <article class="auth-card">
-        <div class="auth-row">
-          <div id="authStateText" class="auth-state">Hesap: Misafir modunda.</div>
-          <div class="auth-actions">
-            <button id="openAuthBtn" class="auth-btn primary" type="button">Giris / Kayit</button>
-            <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Çıkış</button>
-          </div>
-          <div id="syncStatusRow" class="sync-status-row" hidden>
-            <span id="syncDot" class="sync-dot"></span>
-            <span id="syncText" class="sync-text">Kontrol ediliyor...</span>
-          </div>
-        </div>
-      </article>
+    <section id="exploreScreen" class="screen">
+      <div id="exploreMap"></div>
+    </section>
 
+    <section id="summaryScreen" class="screen">
       <article class="card summary-hero">
         <div class="summary-top">
           <h2 class="summary-title">Seyahat Ozeti</h2>
@@ -743,11 +768,12 @@
       </article>
 
       <article class="achievements-section">
-        <h2 style="font-size:16px; margin-bottom:12px;">Rozetlerim</h2>
+        <h2 style="font-size:16px; margin-bottom:12px; font-weight:600;">Rozetlerim</h2>
         <div id="achievementsGrid" class="achievements-grid"></div>
       </article>
 
       <article class="timeline-section">
+        <h2 style="font-size:16px; margin-bottom:12px; color:#fff; font-weight:600;">Seyahat Koleksiyonu</h2>
         <div id="timelineContainer" class="timeline-container-root"></div>
       </article>
 
@@ -759,6 +785,7 @@
           <a id="downloadStoryBtn" class="download-btn story disabled" href="#" download="seyahat-story.png">Indir</a>
         </div>
         <div id="storyPreviewWrap" class="story-preview" hidden>
+          <button id="closeStoryBtn" class="story-close-btn" type="button" title="Kapat">×</button>
           <img id="storyPreviewImg" alt="Story onizleme">
           <p>Onizleme - indirmek icin "Story indir" butonunu kullan.</p>
         </div>
@@ -990,6 +1017,7 @@
       downloadStoryBtn: document.getElementById("downloadStoryBtn"),
       storyPreviewWrap: document.getElementById("storyPreviewWrap"),
       storyPreviewImg: document.getElementById("storyPreviewImg"),
+      closeStoryBtn: document.getElementById("closeStoryBtn"),
       exportJsonBtn: document.getElementById("exportJsonBtn"),
       importJsonBtn: document.getElementById("importJsonBtn"),
       importJsonInput: document.getElementById("importJsonInput"),
@@ -1017,6 +1045,9 @@
       tagsContainer: document.getElementById("tagsContainer"),
       homeBucketList: document.getElementById("homeBucketList"),
       openAddBtn: document.getElementById("openAddBtn"),
+      heroAuthTrigger: document.getElementById("heroAuthTrigger"),
+      heroAuthIcon: document.getElementById("heroAuthIcon"),
+      authCard: document.getElementById("authCard"),
       worldProgressText: document.getElementById("worldProgressText"),
       worldProgressFill: document.getElementById("worldProgressFill"),
       explorerInsightsGrid: document.getElementById("explorerInsightsGrid"),
@@ -1236,6 +1267,16 @@
       });
       els.countryBackBtn.addEventListener("click", () => switchScreen(lastNonCountryScreen || "home"));
       els.openAddBtn.addEventListener("click", () => openAddScreen());
+      if (els.heroAuthTrigger) {
+         els.heroAuthTrigger.addEventListener("click", (e) => {
+            e.stopPropagation();
+            els.authCard.classList.toggle("open");
+         });
+         document.addEventListener("click", () => {
+            if (els.authCard) els.authCard.classList.remove("open");
+         });
+         els.authCard.addEventListener("click", (e) => e.stopPropagation());
+      }
       els.cityForm.addEventListener("submit", onSave);
       els.recordsList.addEventListener("click", onRecordAction);
       els.tabs.forEach(btn => btn.addEventListener("click", () => {
@@ -1258,6 +1299,9 @@
       els.authGoogleBtn.addEventListener("click", onGoogleSignIn);
       els.summaryYearSelect.addEventListener("change", renderSummaryDashboard);
       els.generateStoryBtn.addEventListener("click", generateStorySummary);
+      els.closeStoryBtn.addEventListener("click", () => {
+        els.storyPreviewWrap.hidden = true;
+      });
       els.exportJsonBtn.addEventListener("click", exportJson);
       els.importJsonBtn.addEventListener("click", () => els.importJsonInput.click());
       els.importJsonInput.addEventListener("change", onImportJson);
@@ -1497,7 +1541,7 @@
               cloudSyncStatus = "Bulut verisi hazır (" + records.length + " kayıt)";
               renderAll();
               
-              subscribeCloudRecordsRealtime();
+              subscribeCloudRecordsRealtime(uid);
               syncUserProfile();
               subscribeSocialData();
             })
@@ -1526,6 +1570,10 @@
       if (currentUser) {
         const name = currentUser.name || currentUser.email || "Kullanici";
         els.authStateText.textContent = "Hesap: " + name;
+        if (els.heroAuthIcon) {
+           const initial = name.charAt(0).toUpperCase();
+           els.heroAuthIcon.innerHTML = `<span class="user-initial">${initial}</span>`;
+        }
         els.openAuthBtn.hidden = true;
         els.logoutBtn.hidden = false;
         const statusMsg = firebaseDb
@@ -1546,6 +1594,9 @@
         }
       } else {
         els.authStateText.textContent = "Hesap: Misafir modunda.";
+        if (els.heroAuthIcon) {
+           els.heroAuthIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+        }
         els.openAuthBtn.hidden = false;
         els.logoutBtn.hidden = true;
         els.authHelpText.textContent = firebaseReady
@@ -2416,10 +2467,11 @@
       unsubscribeCloudRecords = null;
     }
 
-    function subscribeCloudRecordsRealtime() {
-      if (!currentUser || !currentUser.uid || !firebaseReady || !firebaseDb) return;
+    function subscribeCloudRecordsRealtime(uidArg = null) {
+      if (!firebaseReady || !firebaseDb) return;
+      const uid = uidArg || (currentUser ? currentUser.uid : null);
+      if (!uid) return;
       detachCloudListeners();
-      const uid = currentUser.uid;
       const colRef = firebaseDb.collection("users").doc(uid).collection("records");
       unsubscribeCloudRecords = colRef.onSnapshot(snap => {
         const cloud = normalizeRecordsArray(snap.docs.map(doc => ({ id: doc.id, ...(doc.data() || {}) })))
@@ -3420,7 +3472,7 @@
       const selectedYear = Number(els.summaryYearSelect.value) || new Date().getFullYear();
       const stats = getSummaryStats(selectedYear);
       if (!stats.yearTrips) {
-        alert(selectedYear + " icin kayit yok. Story olusturmak icin farkli bir yil sec.");
+        alert(selectedYear + " için kayıt yok. Story oluşturmak için farklı bir yıl seç.");
         return;
       }
 
@@ -3430,57 +3482,91 @@
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      // 1. Modern Arka Plan: Derin bir degrade
       const g = ctx.createLinearGradient(0, 0, 1080, 1920);
-      g.addColorStop(0, "#0d2a6a");
-      g.addColorStop(0.45, "#214f9a");
-      g.addColorStop(1, "#3db8bf");
+      g.addColorStop(0, "#081b33");
+      g.addColorStop(0.3, "#102a4d");
+      g.addColorStop(0.7, "#1a4a7a");
+      g.addColorStop(1, "#216091");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, 1080, 1920);
 
-      ctx.fillStyle = "rgba(255,255,255,.08)";
-      ctx.beginPath(); ctx.arc(980, 180, 230, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(130, 1580, 300, 0, Math.PI * 2); ctx.fill();
-      drawRoundedRect(ctx, 60, 80, 960, 1760, 44, "rgba(9,20,48,0.2)");
+      // Dekoratif Izgara (Grid)
+      ctx.strokeStyle = "rgba(255,255,255,0.03)";
+      ctx.lineWidth = 1;
+      for(let i=0; i<1080; i+=80) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,1920); ctx.stroke(); }
+      for(let i=0; i<1920; i+=80) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(1080,i); ctx.stroke(); }
+
+      // Dekoratif Daireler
+      ctx.fillStyle = "rgba(97,176,255,0.05)";
+      ctx.beginPath(); ctx.arc(980, 180, 400, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(0,229,255,0.04)";
+      ctx.beginPath(); ctx.arc(100, 1700, 500, 0, Math.PI * 2); ctx.fill();
+
+      // Ana Çerçeve (Glassmorphism Effect)
+      drawRoundedRect(ctx, 40, 40, 1000, 1840, 60, "rgba(255,255,255,0.02)");
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Üst Başlık Alanı
       drawPassportHeader(ctx, 96, 210, 888, 330, selectedYear);
-      drawRoundedRect(ctx, 96, 580, 430, 260, 24, "rgba(255,255,255,0.16)");
-      drawRoundedRect(ctx, 554, 580, 430, 260, 24, "rgba(255,255,255,0.16)");
-      drawRoundedRect(ctx, 96, 870, 430, 260, 24, "rgba(255,255,255,0.16)");
-      drawRoundedRect(ctx, 554, 870, 430, 260, 24, "rgba(255,255,255,0.16)");
-      drawRoundedRect(ctx, 96, 1170, 888, 500, 30, "rgba(9,27,60,0.33)");
-
+      
+      ctx.shadowColor = "rgba(0,0,0,0.4)";
+      ctx.shadowBlur = 15;
       ctx.fillStyle = "#ffffff";
-      ctx.font = "700 72px Segoe UI";
+      ctx.font = "800 82px 'Plus Jakarta Sans', Segoe UI";
       ctx.fillText("Travel Story", 140, 318);
-      ctx.font = "600 34px Segoe UI";
-      ctx.fillStyle = "#d8eeff";
-      ctx.fillText(selectedYear + " - Yillik Ozet", 140, 372);
-      ctx.font = "500 28px Segoe UI";
-      ctx.fillText(formatInteger(stats.yearTrips) + " seyahat kaydi", 140, 435);
+      ctx.shadowBlur = 0;
 
-      drawStoryStat(ctx, "Yol (km)", formatInteger(stats.yearKm), 126, 648);
-      drawStoryStat(ctx, "Sehir", formatInteger(stats.uniqueCities), 585, 648);
-      drawStoryStat(ctx, "Ulke", formatInteger(stats.uniqueCountries), 126, 940);
-      drawStoryStat(ctx, "Top ulke", stats.topCountry || "-", 585, 940);
+      ctx.font = "600 36px 'Plus Jakarta Sans', Segoe UI";
+      ctx.fillStyle = "var(--primary)";
+      ctx.fillText(selectedYear + " • YILLIK SERÜVEN", 140, 372);
+      
+      ctx.font = "500 28px 'Plus Jakarta Sans', Segoe UI";
+      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      ctx.fillText(formatInteger(stats.yearTrips) + " durak tamamlandı", 140, 435);
 
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "600 33px Segoe UI";
-      ctx.fillText("Highlight", 136, 1246);
-      ctx.font = "500 31px Segoe UI";
+      // İstatistik Kutuları (Glass Tiles)
+      const statsX1 = 96, statsX2 = 554;
+      const statsY1 = 580, statsY2 = 870;
+      
+      drawStoryStat(ctx, "🚗 Yol (km)", formatInteger(stats.yearKm), statsX1, statsY1);
+      drawStoryStat(ctx, "🏙️ Şehir", formatInteger(stats.uniqueCities), statsX2, statsY1);
+      drawStoryStat(ctx, "🌍 Ülke", formatInteger(stats.uniqueCountries), statsX1, statsY2);
+      drawStoryStat(ctx, "🏆 En Çok", stats.topCountry ? stats.topCountry.split(' ')[0] : "-", statsX2, statsY2);
+
+      // Özet Kartı (Highlights)
+      drawRoundedRect(ctx, 96, 1170, 888, 550, 40, "rgba(255,255,255,0.05)");
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      ctx.stroke();
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "700 38px 'Plus Jakarta Sans', Segoe UI";
+      ctx.fillText("✨ Sezonun Öne Çıkanları", 146, 1250);
+
+      ctx.font = "500 32px 'Plus Jakarta Sans', Segoe UI";
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
       const storyLines = [
-        selectedYear + " yılında yaklaşık " + formatInteger(stats.yearKm) + " km yol katettim.",
-        formatInteger(stats.uniqueCities) + " farklı şehir ve " + formatInteger(stats.uniqueCountries) + " ülke keşfettim.",
-        "Toplam " + formatInteger(stats.totalDays) + " günlük dolu dolu bir serüven.",
-        stats.topCountry ? "Favori rotam: " + stats.topCountry : "Yeni ufuklar beni bekliyor!"
+        `Bu yıl tam ${formatInteger(stats.yearKm)} km yol katederek sınırları aştım.`,
+        `${formatInteger(stats.uniqueCities)} farklı şehirde yeni anılar biriktirdim.`,
+        `${formatInteger(stats.totalDays)} günlük eşsiz bir keşif yolculuğu tamamlandı.`,
+        stats.topCountry ? `Favori rotam: ${stats.topCountry}` : "Yeni maceralar için bavullar hazır!"
       ];
-      let y = 1318;
+      
+      let curY = 1330;
       storyLines.forEach(line => {
-        y = drawWrappedLine(ctx, line, 136, y, 820, 52) + 24;
+        curY = drawWrappedLine(ctx, "• " + line, 156, curY, 780, 58) + 72;
       });
 
-      ctx.font = "500 24px Segoe UI";
-      ctx.fillStyle = "rgba(235,246,255,.9)";
-      ctx.fillText("Şehir Haritam ile olusturuldu", 136, 1738);
-      ctx.fillText(new Date().toLocaleDateString("tr-TR"), 828, 1738);
+      // Footer
+      ctx.font = "600 24px 'Plus Jakarta Sans', Segoe UI";
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      ctx.fillText("Şehir Haritam", 136, 1800);
+      ctx.fillText(new Date().toLocaleDateString("tr-TR"), 800, 1800);
+
+      // Verified Stamp
+      drawPassportStamp(ctx, 880, 1680, 90, "rgba(0,229,255,0.2)", "VERIFIED");
 
       const dataUrl = canvas.toDataURL("image/png");
       const fileDate = new Date().toISOString().slice(0, 10);
@@ -3488,7 +3574,7 @@
       els.storyPreviewWrap.hidden = false;
       els.downloadStoryBtn.classList.remove("disabled");
       els.downloadStoryBtn.href = dataUrl;
-      els.downloadStoryBtn.download = "travel-story-" + fileDate + ".png";
+      els.downloadStoryBtn.download = "sehir-haritam-story-" + fileDate + ".png";
     }
 
     function renderFlags() {
@@ -3991,12 +4077,18 @@
     }
 
     function drawStoryStat(ctx, label, value, x, y) {
-      ctx.fillStyle = "#d5ebff";
-      ctx.font = "600 28px Segoe UI";
-      ctx.fillText(label, x, y);
+      // Tile background
+      drawRoundedRect(ctx, x, y, 430, 260, 32, "rgba(255,255,255,0.06)");
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.font = "600 26px 'Plus Jakarta Sans', Segoe UI";
+      ctx.fillText(label, x + 34, y + 60);
+      
       ctx.fillStyle = "#ffffff";
-      ctx.font = "700 56px Segoe UI";
-      drawWrappedLine(ctx, String(value), x, y + 68, 360, 62);
+      ctx.font = "800 62px 'Plus Jakarta Sans', Segoe UI";
+      drawWrappedLine(ctx, String(value), x + 34, y + 145, 360, 68);
     }
 
     function drawPassportHeader(ctx, x, y, w, h, year) {
