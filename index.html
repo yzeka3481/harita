@@ -473,14 +473,22 @@
     @keyframes drawPath{ to { stroke-dashoffset: 0; } }
     .dot-marker{width:8px;height:8px;background:#00e5ff;border-radius:50%;box-shadow:0 0 12px #00e5ff;border:2px solid #fff}
 
+    /* Map Legend */
+    .map-legend{position:absolute; bottom:20px; left:12px; background:rgba(10,25,48,0.85); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); border-radius:14px; padding:10px 12px; z-index:1000; display:flex; flex-direction:column; gap:8px; box-shadow:0 4px 15px rgba(0,0,0,0.4)}
+    .legend-item{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; color:#fff}
+    .legend-line{width:24px; height:3px; border-radius:2px}
+    .legend-line.flight{background:#00d4ff; box-shadow:0 0 5px #00d4ff}
+    .legend-line.car{background:#fb8500}
+    .legend-line.train{background:#bdb2ff}
+    .legend-line.bus{background:#90be6d}
+    .legend-line.ship{background:#219ebc}
+    .legend-line.walking{background:none; border-top:2px dashed #06d6a0; height:0}
+
 
   </style>
 
 
 
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/@elfalem/leaflet-curve/dist/leaflet.curve.js"></script>
 </head>
 <body>
   <div id="splashScreen">
@@ -578,7 +586,9 @@
     </section>
 
     <section id="mapScreen" class="screen map-screen">
-      <div id="exploreMapWrap"><div id="exploreMap"></div></div>
+      <div id="exploreMapWrap">
+        <div id="exploreMap"></div>
+      </div>
     </section>
 
     <section id="recordsScreen" class="screen">
@@ -623,6 +633,25 @@
             </div>
             <div>
               <input id="countryInput" type="text" placeholder="Ülke (otomatik)" readonly>
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label class="field-label">Nereden Geldiniz? (Rota Bağlantısı)</label>
+              <select id="arrivalFromInput">
+                <option value="">Direct / Hub (Yeni Başlangıç)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Ulaşım Şekli</label>
+              <select id="transportModeInput">
+                <option value="flight">✈️ Uçak (Uçuş)</option>
+                <option value="car">🚗 Otomobil</option>
+                <option value="train">🚆 Tren</option>
+                <option value="bus">🚌 Otobüs</option>
+                <option value="ship">🚢 Gemi</option>
+                <option value="walking">🚶 Yürüyerek</option>
+              </select>
             </div>
           </div>
           <div class="row2">
@@ -914,6 +943,14 @@
     </div>
     <div class="journey-map-body">
       <div id="journeyMapContainer"></div>
+      <div class="map-legend" style="bottom:24px; left:24px;">
+        <div class="legend-item"><div class="legend-line flight"></div><span>✈️ Uçuş</span></div>
+        <div class="legend-item"><div class="legend-line car"></div><span>🚗 Otomobil</span></div>
+        <div class="legend-item"><div class="legend-line train"></div><span>🚆 Tren</span></div>
+        <div class="legend-item"><div class="legend-line bus"></div><span>🚌 Otobüs</span></div>
+        <div class="legend-item"><div class="legend-line ship"></div><span>🚢 Gemi</span></div>
+        <div class="legend-item"><div class="legend-line walking"></div><span>🚶 Yürüyerek</span></div>
+      </div>
     </div>
   </div>
 
@@ -959,6 +996,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@elfalem/leaflet-curve/dist/leaflet.curve.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -983,6 +1021,9 @@
     const COUNTRY_PALETTE = ["#8ecae6","#219ebc","#ffb703","#fb8500","#bdb2ff","#a0c4ff","#90be6d","#43aa8b","#f9c74f","#f9844a","#e76f51","#4d908e","#577590","#f94144","#277da1","#3a86ff","#06d6a0","#ff99c8"];
     const WORLD_CODES = ["af","al","dz","ad","ao","ag","ar","am","au","at","az","bs","bh","bd","bb","by","be","bz","bj","bt","bo","ba","bw","br","bn","bg","bf","bi","cv","kh","cm","ca","cf","td","cl","cn","co","km","cg","cd","cr","ci","hr","cu","cy","cz","dk","dj","dm","do","ec","eg","sv","gq","er","ee","sz","et","fj","fi","fr","ga","gm","ge","de","gh","gr","gd","gt","gn","gw","gy","ht","hn","hu","is","in","id","ir","iq","ie","il","it","jm","jp","jo","kz","ke","ki","kp","kr","kw","kg","la","lv","lb","ls","lr","ly","li","lt","lu","mg","mw","my","mv","ml","mt","mh","mr","mu","mx","fm","md","mc","mn","me","ma","mz","mm","na","nr","np","nl","nz","ni","ne","ng","mk","no","om","pk","pw","pa","pg","py","pe","ph","pl","pt","qa","ro","ru","rw","kn","lc","vc","ws","sm","st","sa","sn","rs","sc","sl","sg","sk","si","sb","so","za","ss","es","lk","sd","sr","se","ch","sy","tj","tz","th","tl","tg","to","tt","tn","tr","tm","tv","ug","ua","ae","gb","us","uy","uz","vu","va","ve","vn","ye","zm","zw","tw","xk","ps","hk","mo"];
     const STATUS_TEXT = { visited: "Gezildi", planned: "Planlaniyor", again: "Tekrar gidilecek" };
+    const HOME_COORDS = [41.0082, 28.9784]; // İstanbul (Varsayılan Merkez)
+    let currentScreen = "home"; 
+
 
     const els = {
       homeScreen: document.getElementById("homeScreen"),
@@ -1082,6 +1123,8 @@
       photoPreview: document.getElementById("photoPreview"),
       noteInput: document.getElementById("noteInput"),
       visitTypeInput: document.getElementById("visitTypeInput"),
+      arrivalFromInput: document.getElementById("arrivalFromInput"),
+      transportModeInput: document.getElementById("transportModeInput"),
       saveBtn: document.getElementById("saveBtn"),
       tabs: document.querySelectorAll(".tab-btn"),
       countryTitle: document.getElementById("countryTitle"),
@@ -1105,7 +1148,8 @@
       friendProfileContent: document.getElementById("friendProfileContent"),
       friendPrivacyInputs: document.getElementsByName("privacy"),
       friendMapBackBtn: document.getElementById("friendMapBackBtn"),
-      mainNav: document.querySelector(".tabs")
+      mainNav: document.querySelector(".tabs"),
+      travelPathLayer: null
     };
 
     let records = [];
@@ -1889,6 +1933,7 @@
     }
 
     function switchScreen(name) {
+      currentScreen = name;
       closePhotoLightbox();
       if (isFriendView && (name === "add" || name === "records")) {
         switchScreen(lastNonCountryScreen || "map");
@@ -1946,6 +1991,20 @@
         resizeHomeGlobe();
         exploreMap.invalidateSize();
         countryMap.invalidateSize();
+        
+        // Lazy Rendering (Sadece aktif ekranı yükle)
+        if (name === "home") {
+          renderRecent();
+          renderHomeInsights();
+          renderHomeGlobe();
+        } else if (name === "records") {
+          renderRecords();
+          renderTimeline();
+        } else if (name === "summary") {
+          renderSummaryDashboard();
+        } else if (name === "map") {
+          renderExplorePins();
+        }
       }, 90);
     }
 
@@ -2818,27 +2877,30 @@
           photos: workingPhotos.slice(0, 8),
           tags: selectedTags,
           note,
-          isPublic
+          isPublic,
+          arrivalFrom: els.arrivalFromInput.value || "",
+          transportMode: els.transportModeInput.value || "flight"
         };
 
         if (editId) {
-           // We ONLY update userOwnRecords because friend data is read-only
            userOwnRecords = userOwnRecords.map(item => item.id === editId ? { ...item, ...payload } : item);
-           // If we are NOT in friend view, update active records too
            if (!isFriendView) records = [...userOwnRecords];
         } else {
-           const newId = crypto.randomUUID();
-           const now = new Date().toISOString();
-           const newRecord = { id: newId, createdAt: now, ...payload };
-           userOwnRecords.unshift(newRecord);
+           userOwnRecords.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
            if (!isFriendView) records = [...userOwnRecords];
         }
         
-        await saveRecords({ syncNow: true });
+        // Save locally immediately
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(userOwnRecords));
         
         resetAddForm();
-        renderAll();
         switchScreen("records");
+        setTimeout(() => renderAll(), 50);
+
+        // Background sync
+        persistCloudRecords().catch(err => console.warn("Background sync failed:", err));
+
+        editId = null; 
       } catch (error) {
         alert(error.message || "Kayit kaydedilemedi.");
       } finally {
@@ -2925,9 +2987,34 @@
       } else {
         els.addScreenTitle.textContent = "Sehir Ekle";
       }
+
+      // Populate Arrival From dropdown (Rota Bağlantısı)
+      const others = Array.isArray(records) ? records.filter(r => r.id !== editId) : [];
+      let optionsHtml = '<option value="">Direct / Hub (Yeni Başlangıç)</option>';
+      if (others.length > 0) {
+        optionsHtml += others.map(r => `<option value="${r.id}">${esc(r.city)}, ${esc(r.country)}</option>`).join("");
+      }
+      els.arrivalFromInput.innerHTML = optionsHtml;
+      
+      if (editId) {
+        const item = records.find(r => r.id === editId);
+        els.arrivalFromInput.value = item.arrivalFrom || "";
+        els.transportModeInput.value = item.transportMode || "flight";
+      }
+
       renderPhotoPreview();
       switchScreen("add");
       setTimeout(() => els.cityInput.focus(), 40);
+    }
+
+    function getCityNameById(id) {
+      const r = records.find(item => item.id === id);
+      return r ? r.city : "";
+    }
+
+    function transportIcon(mode) {
+      const ICONS = { flight:"✈️", car:"🚗", train:"🚆", bus:"🚌", ship:"🚢", walking:"🚶" };
+      return ICONS[mode] || "✈️";
     }
 
     function resetAddForm(keepEditId = false) {
@@ -3288,27 +3375,27 @@
     const EMPTY_SVG_LUGGAGE = `<svg class='empty-svg' viewBox='0 0 72 72' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='14' y='26' width='44' height='34' rx='6' stroke='#6aaddf' stroke-width='2.5'/><path d='M26 26V19a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v7' stroke='#6aaddf' stroke-width='2.5' stroke-linecap='round'/><line x1='28' y1='38' x2='28' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><line x1='36' y1='38' x2='36' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><line x1='44' y1='38' x2='44' y2='50' stroke='#6aaddf' stroke-width='2' stroke-linecap='round'/><circle cx='21' cy='62' r='3' stroke='#6aaddf' stroke-width='2'/><circle cx='51' cy='62' r='3' stroke='#6aaddf' stroke-width='2'/></svg>`;
 
     function renderAll() {
-      // Defensive guard: Ensure core UI elements and maps are ready before full render
       if (!els.homeScreen || !els.recordsList) return;
-      
-      if (els.openAddBtn) {
-        els.openAddBtn.style.display = isFriendView ? "none" : "flex";
-      }
+      if (els.openAddBtn) els.openAddBtn.style.display = isFriendView ? "none" : "flex";
       
       renderAuthPanel();
       renderHero();
-      renderHomeGlobe();
-      renderHomeInsights();
-      renderAchievements();
-      renderBucketList();
-      renderRecent();
-      renderRecords();
       renderFlags();
-      renderExplorePins();
-      renderWorldLayers();
       renderExplorerInsights();
-      renderSummaryDashboard();
-      renderTimeline();
+      
+      if (currentScreen === "home") {
+        renderHomeGlobe();
+        renderHomeInsights();
+        renderRecent();
+        renderAchievements();
+        renderBucketList();
+      }
+      if (currentScreen === "records") renderRecords();
+      if (currentScreen === "summary") renderSummaryDashboard();
+      if (currentScreen === "map") {
+        renderExplorePins();
+      }
+      renderTimeline(); 
     }
 
     function renderRecords() {
@@ -3361,7 +3448,8 @@
             hasDate ? "<span class='iinfo'>📅 " + esc(formatDate(item.date)) + "</span>" : "",
             hasDays ? "<span class='iinfo'>⏱ " + item.tripDays + " gün</span>" : "",
             avgScore > 0 ? "<span class='iinfo' style='display:inline-flex;align-items:center;padding:5px 8px;'>" + starsHtml + criteriaHtml + "</span>" : "",
-            hasBudget ? "<span class='iinfo'>💰 " + esc(formatMoney(item.budget, item.currency || "TRY")) + "</span>" : ""
+            hasBudget ? "<span class='iinfo'>💰 " + esc(formatMoney(item.budget, item.currency || "TRY")) + "</span>" : "",
+            item.arrivalFrom ? `<span class='iinfo'>${transportIcon(item.transportMode)} ${esc(getCityNameById(item.arrivalFrom))} üzerinden</span>` : ""
           ].filter(Boolean).join("");
           let cardColorClass = "";
           if (item.ratingOverall != null) {
@@ -3755,6 +3843,7 @@
           "<strong>" + esc(item.city) + ", " + esc(item.country) + "</strong><br>" +
           "Durum: " + esc(STATUS_TEXT[item.status]) + "<br>" +
           (item.date ? "Tarih: " + esc(formatDate(item.date)) + "<br>" : "") +
+          (item.arrivalFrom ? "Ulaşım: " + transportIcon(item.transportMode) + " (" + esc(getCityNameById(item.arrivalFrom)) + " üzerinden)<br>" : "") +
           (popupMeta.length ? esc(popupMeta.join(" | ")) + "<br>" : "") +
           (item.note ? "Not: " + esc(item.note) : "") +
           (displayPhotos.length ? `<div style='margin-top:8px;'><button class='ghost-btn' onclick='openPhotoLightbox(${JSON.stringify(displayPhotos)}, 0)' style='font-size:11px; padding:4px 8px;'>Fotoğraflara Bak</button></div>` : "")
@@ -4392,32 +4481,35 @@
     function renderJourneyMap() {
       if (!els.journeyMapContainer) return;
       if (journeyMap) {
-        journeyMap.remove();
+        try { journeyMap.remove(); } catch(e) {}
         journeyMap = null;
       }
       
-      const visited = records.filter(item => isTravelled(item.status));
-      const istanbulPos = [41.0082, 28.9784]; 
-      
+      // Sadece gezilen yerleri filtrele
+      const visited = records.filter(item => item && isTravelled(item.status));
       if (!visited.length) {
-        els.journeyMapContainer.innerHTML = '<div style="display:grid;place-items:center;height:100%;color:#444;">Henüz seyahat rotası yok.</div>';
+        els.journeyMapContainer.innerHTML = '<div style="display:grid;place-items:center;height:100%;color:#888;">Henüz seyahat rotası yok.</div>';
         return;
       }
+
+      const hCoords = (typeof HOME_COORDS !== 'undefined') ? HOME_COORDS : [41.0082, 28.9784];
 
       journeyMap = L.map('journeyMapContainer', {
         zoomControl: false,
         attributionControl: false,
         backgroundColor: '#0a0c10'
-      }).setView(istanbulPos, 3);
+      }).setView(hCoords, 3);
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19
       }).addTo(journeyMap);
 
       const pathGroup = L.featureGroup().addTo(journeyMap);
+      const recordMap = new Map();
+      records.forEach(r => { if(r.id) recordMap.set(r.id, r); });
 
-      // Hub Marker (Istanbul)
-      L.marker(istanbulPos, {
+      // İstanbul Merkez İşaretçisi
+      L.marker(hCoords, {
         icon: L.divIcon({
           className: 'dot-marker-wrap hub',
           html: '<div class="dot-marker" style="background:#fff; width:12px; height:12px; box-shadow:0 0 20px #fff; border:2px solid #00e5ff;"></div>',
@@ -4425,61 +4517,82 @@
         })
       }).bindPopup('<b>MERKEZ: İSTANBUL</b>').addTo(pathGroup);
 
-      visited.forEach((item) => {
-        if (!item.lat || !item.lng) return;
-        const pos = [item.lat, item.lng];
+      visited.forEach((target) => {
+        if (!target.lat || !target.lng) return;
         
-        // Skip if the city is Istanbul itself (to avoid 0-length curves)
-        const isIstanbul = Math.abs(item.lat - 41.0) < 0.5 && Math.abs(item.lng - 28.9) < 0.5;
-        if (isIstanbul) return;
+        const end = [parseFloat(target.lat), parseFloat(target.lng)];
+        let start = null;
 
-        // Marker for destination
-        L.marker(pos, {
+        // Başlangıç noktası belirleme
+        if (!target.arrivalFrom || target.arrivalFrom === "") {
+          // Eğer nereden geldiği seçilmemişse ve uçuşsa, İstanbul'dan başlat
+          if (target.transportMode === "flight") {
+            start = hCoords;
+          }
+        } else {
+          const source = recordMap.get(target.arrivalFrom);
+          if (source && source.lat && source.lng) {
+            start = [parseFloat(source.lat), parseFloat(source.lng)];
+          } else if (target.transportMode === "flight") {
+            start = hCoords; // Kaynak bulunamazsa uçuş için İstanbul'a dön
+          }
+        }
+
+        // Eğer başlangıç noktası yoksa çizgi çizme
+        if (!start) return;
+
+        // İstanbul - İstanbul döngüsünü engelle
+        const distToHome = Math.sqrt(Math.pow(end[0]-hCoords[0],2) + Math.pow(end[1]-hCoords[1],2));
+        if (start === hCoords && distToHome < 0.1) return;
+
+        // Hedef İşaretçisi
+        L.marker(end, {
           icon: L.divIcon({
             className: 'dot-marker-wrap',
             html: '<div class="dot-marker"></div>',
             iconSize: [8, 8]
           })
-        }).bindPopup(`<b>${item.city}</b>`).addTo(pathGroup);
+        }).bindPopup(`<b>${esc(target.city)}</b>`).addTo(pathGroup);
 
-        // Draw curved path from Istanbul to City
-        // Control point calculation for a "hub and spoke" curve
-        const midLat = (istanbulPos[0] + pos[0]) / 2;
-        const midLng = (istanbulPos[1] + pos[1]) / 2;
+        // Renkler ve Stil
+        const colors = { car: '#fb8500', train: '#bdb2ff', bus: '#90be6d', ship: '#219ebc', walking: '#06d6a0' };
+        const transportColor = target.transportMode === "flight" ? '#00d4ff' : (colors[target.transportMode] || '#6b7a8a');
+
+        // Kavis Hesaplama (Bezier Control Point)
+        const midLat = (start[0] + end[0]) / 2;
+        const midLng = (start[1] + end[1]) / 2;
+        const latDiff = end[0] - start[0];
+        const lngDiff = end[1] - start[1];
         
-        // Offset for curvature
-        const latDiff = pos[0] - istanbulPos[0];
-        const lngDiff = pos[1] - istanbulPos[1];
+        // Uçuşlar için daha yüksek, kara yolları için daha hafif kavis
+        const curveFactor = target.transportMode === "flight" ? 0.25 : 0.12;
         const ctrl = [
-          midLat + (Math.abs(lngDiff) * 0.15) + 5,
-          midLng - (Math.abs(latDiff) * 0.15)
+          midLat + (lngDiff * curveFactor), 
+          midLng - (latDiff * curveFactor)
         ];
 
-        // Draw curved path or simple line if library fails
         if (typeof L.curve === 'function') {
-          L.curve([
-            'M', istanbulPos,
-            'Q', ctrl, pos
-          ], {
+          L.curve(['M', start, 'Q', ctrl, end], {
             className: 'glowing-path animated',
-            color: '#00e5ff',
-            weight: 2,
-            opacity: 0.6,
-            fill: false
+            color: transportColor,
+            weight: target.transportMode === "flight" ? 2.5 : 3,
+            opacity: 0.8,
+            fill: false,
+            dashArray: target.transportMode === 'walking' ? '5, 8' : null
           }).addTo(pathGroup);
         } else {
-          // Fallback to simple straight line if plugin is missing locally
-          L.polyline([istanbulPos, pos], {
-            className: 'glowing-path',
-            color: '#00e5ff',
-            weight: 2,
-            opacity: 0.4
+          // Fallback
+          L.polyline([start, end], {
+            color: transportColor,
+            weight: 3,
+            opacity: 0.8,
+            dashArray: target.transportMode === 'walking' ? '5, 8' : null
           }).addTo(pathGroup);
         }
       });
 
-      if (visited.length > 0) {
-        journeyMap.fitBounds(pathGroup.getBounds(), { padding: [60, 60], maxZoom: 5 });
+      if (pathGroup.getLayers().length > 0) {
+        journeyMap.fitBounds(pathGroup.getBounds(), { padding: [50, 50], maxZoom: 5 });
       }
     }
 
@@ -4515,6 +4628,70 @@
     function closeBadgeDetail() {
       document.getElementById("badgeModal").classList.remove("open");
       document.body.classList.remove("modal-open");
+    }
+
+    function renderTravelPaths() {
+      if (!exploreMap) return;
+      if (els.travelPathLayer) {
+        exploreMap.removeLayer(els.travelPathLayer);
+      }
+      
+      els.travelPathLayer = L.layerGroup();
+      const recordMap = new Map(records.map(r => [r.id, r]));
+      
+      records.forEach(target => {
+        let start;
+        if (!target.arrivalFrom) {
+          if (target.transportMode === "flight") {
+            start = HOME_COORDS;
+          } else {
+            return;
+          }
+        } else {
+          const source = recordMap.get(target.arrivalFrom);
+          if (!source) return;
+          start = [source.lat, source.lng];
+        }
+        
+        const end = [target.lat, target.lng];
+        
+        if (target.transportMode === "flight") {
+          const offsetX = end[1] - start[1];
+          const offsetY = end[0] - start[0];
+          const r = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
+          const theta = Math.atan2(offsetY, offsetX);
+          const thetaOffset = 3.14159 / 8;
+          const r2 = (r / 2) / Math.cos(thetaOffset);
+          const theta2 = theta + thetaOffset;
+          const midpointX = (start[1] + (r2 * Math.cos(theta2)));
+          const midpointY = (start[0] + (r2 * Math.sin(theta2)));
+
+          const curvePath = L.curve([
+            'M', start,
+            'Q', [midpointY, midpointX],
+            end
+          ], { 
+            color: '#00d4ff', 
+            weight: 2, 
+            opacity: 0.8, 
+            fill: false, 
+            dashArray: '5, 10', 
+            className: 'glowing-path animated' 
+          });
+          curvePath.addTo(els.travelPathLayer);
+        } else {
+          const colors = { car: '#fb8500', train: '#bdb2ff', bus: '#90be6d', ship: '#219ebc', walking: '#06d6a0' };
+          const poly = L.polyline([start, end], {
+            color: colors[target.transportMode] || '#6b7a8a',
+            weight: 3,
+            opacity: 0.7,
+            dashArray: target.transportMode === 'walking' ? '2, 5' : null
+          });
+          poly.addTo(els.travelPathLayer);
+        }
+      });
+      
+      els.travelPathLayer.addTo(exploreMap);
     }
 
     function esc(value) {
