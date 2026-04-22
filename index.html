@@ -1475,12 +1475,14 @@
           // CLOUD SECOND: Buluttan guncel veriyi cek
           forceReloadCloudRecords()
             .then(cloudRecords => {
-              if (Array.isArray(cloudRecords) && cloudRecords.length > 0) {
-                records = cloudRecords;
-                userOwnRecords = [...records];
-                localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-                renderAll();
-              }
+              // Gelen veri her halukarda (bos olsa bile) senkronize edilmeli
+              records = Array.isArray(cloudRecords) ? cloudRecords : [];
+              userOwnRecords = [...records];
+              localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+              
+              cloudSyncStatus = "Bulut verisi hazır (" + records.length + " kayıt)";
+              renderAll();
+              
               subscribeCloudRecordsRealtime();
               syncUserProfile();
               subscribeSocialData();
