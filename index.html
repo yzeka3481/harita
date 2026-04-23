@@ -92,7 +92,7 @@
     .recent-dot.active{width:20px;background:#74bcff}
     .card.recent-block{border:none;background:transparent;box-shadow:none;padding:0}
     .card.recent-block h2{margin:0 0 8px}
-    .list{display:grid;gap:10px}
+    .list{display:grid;gap:0}
     .item{border:1px solid rgba(97,176,255,0.14);border-radius:16px;background:linear-gradient(140deg,rgba(18,50,95,0.88) 0%,rgba(11,32,68,0.94) 100%);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:14px;box-shadow:0 4px 20px rgba(0,6,20,0.3);transition:border-color .2s,box-shadow .2s}
     .item:hover{border-color:rgba(97,176,255,0.32);box-shadow:0 6px 28px rgba(4,20,60,0.38)}
     .item.item-green{border-color:rgba(63,212,160,0.4);background:linear-gradient(140deg,rgba(20,60,40,0.88) 0%,rgba(10,40,25,0.94) 100%);}
@@ -178,24 +178,24 @@
     .sort-pill{font-size:10px; font-weight:800; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.5px; padding:4px 8px; border-radius:8px; cursor:pointer}
     .sort-pill.active{color:var(--primary)}
 
-    /* Modern Record Cards */
-    .country-group{border:none; border-radius:24px; background:transparent; overflow:visible; box-shadow:none; margin-bottom:24px}
-    .country-toggle{background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:16px 20px; backdrop-filter:blur(10px); margin-bottom:12px}
+    /* Modern Record Cards - Compact Tweak */
+    .country-group{border:none; border-radius:24px; background:transparent; overflow:visible; box-shadow:none; margin-bottom:8px}
+    .country-toggle{background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:10px 16px; backdrop-filter:blur(10px); margin-bottom:4px}
     .country-toggle:hover{background:rgba(255,255,255,0.05)}
-    .ctry-flag{width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.3)}
-    .country-name{font-size:16px; font-weight:800; letter-spacing:-0.3px}
-    .country-count{background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.6)}
+    .ctry-flag{width:28px; height:28px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.3)}
+    .country-name{font-size:15px; font-weight:800; letter-spacing:-0.3px}
+    .country-count{background:rgba(255,255,255,0.08); border:none; color:rgba(255,255,255,0.6); font-size:11px; padding:2px 8px}
 
     .item{
       position: relative;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 24px;
+      border-radius: 20px;
       background: rgba(255,255,255,0.02);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      padding: 18px;
-      margin-bottom: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
       box-shadow: 0 10px 32px rgba(0,0,0,0.25);
       transition: transform 0.3s ease, border-color 0.3s ease;
     }
@@ -1586,48 +1586,55 @@
       els.cityDetailModal.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
 
-      const rs = [
-        record.ratingFood || 0,
-        record.ratingTransport || 0,
-        record.ratingSafety || 0,
-        record.ratingAccommodation || 0
-      ];
+      // Radar chart needs a small delay to ensure modal is fully visible for correct sizing
+      setTimeout(() => {
+        const rs = [
+          Number(record.ratingFood || 0),
+          Number(record.ratingTransport || 0),
+          Number(record.ratingSafety || 0),
+          Number(record.ratingAccommodation || 0)
+        ];
 
-      if (cityDetailChartInstance) {
-        cityDetailChartInstance.destroy();
-      }
-
-      cityDetailChartInstance = new Chart(els.cityDetailChart, {
-        type: 'radar',
-        data: {
-          labels: ['Yemek', 'Ulaşım', 'Güvenlik', 'Konaklama'],
-          datasets: [{
-            label: 'Puan (1-5)',
-            data: rs,
-            backgroundColor: 'rgba(97, 176, 255, 0.4)',
-            borderColor: 'rgba(97, 176, 255, 1)',
-            pointBackgroundColor: 'rgba(97, 176, 255, 1)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(97, 176, 255, 1)'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            r: {
-              angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-              grid: { color: 'rgba(255, 255, 255, 0.1)' },
-              pointLabels: { color: '#dce9ff', font: { size: 12, family: "'Plus Jakarta Sans'" } },
-              ticks: { display: false, min: 0, max: 5, stepSize: 1 }
-            }
-          },
-          plugins: {
-            legend: { display: false }
-          }
+        if (cityDetailChartInstance) {
+          cityDetailChartInstance.destroy();
         }
-      });
+
+        cityDetailChartInstance = new Chart(els.cityDetailChart, {
+          type: 'radar',
+          data: {
+            labels: ['Yemek', 'Ulaşım', 'Güvenlik', 'Konaklama'],
+            datasets: [{
+              label: 'Puan (1-5)',
+              data: rs,
+              backgroundColor: 'rgba(97, 176, 255, 0.4)',
+              borderColor: 'rgba(97, 176, 255, 1)',
+              pointBackgroundColor: 'rgba(97, 176, 255, 1)',
+              pointBorderColor: '#fff',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: 'rgba(97, 176, 255, 1)',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                pointLabels: { color: '#dce9ff', font: { size: 11, family: "'Plus Jakarta Sans'" } },
+                ticks: { display: false, min: 0, max: 5, stepSize: 1 },
+                suggestedMin: 0,
+                suggestedMax: 5
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true }
+            }
+          }
+        });
+      }, 150);
     }
 
     function onCityInput() {
@@ -3251,12 +3258,19 @@
         
         // Save locally immediately (Snappy UI)
         saveRecords(); 
-        const target = editId ? userOwnRecords.find(r => r.id === editId) : userOwnRecords[0];
-        if (target) persistSingleRecordToCloud(target);
+        const targetRecord = editId ? userOwnRecords.find(r => r.id === editId) : userOwnRecords[0];
+        
+        // Final double check on local state before switching
+        if (!isFriendView) records = [...userOwnRecords];
+        
+        if (targetRecord) {
+          // Cloud sync in background
+          persistSingleRecordToCloud(targetRecord).catch(e => console.warn("Background sync error:", e));
+        }
         
         resetAddForm();
         switchScreen("records");
-        setTimeout(() => renderAll(), 50);
+        renderAll();
 
 
 
@@ -3804,10 +3818,13 @@
             return `<span style="color:#658bb2; font-size:13px; letter-spacing:2px; line-height: 1;">★</span>`;
           }).join("");
           
+          const ratingLabels = ["", "Yetersiz", "Kısıtlı", "Kapsamlı", "Tam"];
+          const criteriaHtml = scores.length > 0 ? `<span style="font-size:10px; opacity:0.6; margin-left:4px; font-weight:600;">(${scores.length}/4 ${ratingLabels[scores.length]})</span>` : "";
+          
           const infoChips = [
             hasDate ? "<span class='iinfo'>📅 " + esc(formatDate(item.date)) + "</span>" : "",
             hasDays ? "<span class='iinfo'>⏱ " + item.tripDays + " gün</span>" : "",
-            avgScore > 0 ? "<span class='iinfo' style='display:inline-flex;align-items:center;padding:5px 8px;'>" + starsHtml + "</span>" : "",
+            avgScore > 0 ? "<span class='iinfo' style='display:inline-flex;align-items:center;padding:5px 8px;'>" + starsHtml + criteriaHtml + "</span>" : "",
             hasBudget ? "<span class='iinfo'>💰 " + esc(formatMoney(item.budget, item.currency || "TRY")) + "</span>" : ""
           ].filter(Boolean).join("");
 
