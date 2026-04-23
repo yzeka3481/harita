@@ -353,7 +353,7 @@
     /* Friend Map Back Button */
     .friend-back-btn {
       position: fixed;
-      top: 20px;
+      top: calc(20px + env(safe-area-inset-top));
       left: 20px;
       z-index: 2000;
       background: rgba(18,50,95,0.85);
@@ -463,7 +463,7 @@
     /* Journey Map (Flight Paths) */
     .journey-map-modal{position:fixed;inset:0;background:rgba(5,7,12,0.98);backdrop-filter:blur(30px);z-index:4000;display:none;flex-direction:column}
     .journey-map-modal.open{display:flex}
-    .journey-map-head{padding:18px 24px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center}
+    .journey-map-head{padding:calc(18px + env(safe-area-inset-top)) 24px 18px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center}
     .journey-map-title{color:#fff;font-size:18px;font-weight:800;margin:0;letter-spacing:-0.5px}
     .journey-map-body{flex:1;position:relative}
     #journeyMapContainer{width:100%;height:100%;background:#0a0c10}
@@ -2618,6 +2618,7 @@
           ratingFood: normalizeScore(item.ratingFood),
           ratingTransport: normalizeScore(item.ratingTransport),
           ratingSafety: normalizeScore(item.ratingSafety),
+          ratingAccommodation: normalizeScore(item.ratingAccommodation),
           budget: normalizeMoney(item.budget),
           currency: normalizeCurrency(item.currency),
           tripDays: normalizeDays(item.tripDays),
@@ -2625,6 +2626,7 @@
           transportMode: item.transportMode || "flight",
           isPublic: item.isPublic !== false,
           photos: normalizePhotos(item.photos),
+          tags: Array.isArray(item.tags) ? item.tags : [],
           note: item.note || "",
           createdAt: item.createdAt || new Date().toISOString()
         };
@@ -2665,6 +2667,7 @@
         transportMode: item.transportMode || "flight",
         isPublic: item.isPublic !== false,
         photos: safePhotos,
+        tags: Array.isArray(item.tags) ? item.tags : [],
         note: String(item.note || ""),
         createdAt: item.createdAt || new Date().toISOString(),
         photoCountLocal: normalizePhotos(item.photos).length
@@ -2872,6 +2875,16 @@
         await batch.commit();
       } catch (err) { console.warn("Cloud save error:", err); }
     }
+
+    async function persistSingleRecordToCloud(record) {
+      if (!firebaseDb || !currentUser || !record || isFriendView) return;
+      try {
+        const ref = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(record.id);
+        await ref.set(toCloudRecord(record));
+      } catch (err) {
+        console.warn("Single record cloud sync error:", err);
+      }
+    }
     async function saveRecords(options = {}) {
       if (!currentUser || !currentUser.uid || isFriendView) {
          if (isFriendView) console.warn("Arkadas modunda kayit engellendi.");
@@ -3034,6 +3047,7 @@
             currency: normalizeCurrency(item.currency),
             tripDays: normalizeDays(item.tripDays),
             photos: normalizePhotos(item.photos),
+            tags: Array.isArray(item.tags) ? item.tags : [],
             note: String(item.note || ""),
             createdAt: item.createdAt || new Date().toISOString()
           };
@@ -3141,8 +3155,10 @@
            if (!isFriendView) records = [...userOwnRecords];
         }
         
-        // Save locally immediately
-        await saveRecords({ syncNow: true });
+        // Save locally immediately (Snappy UI)
+        saveRecords(); 
+        const target = editId ? userOwnRecords.find(r => r.id === editId) : userOwnRecords[0];
+        if (target) persistSingleRecordToCloud(target);
         
         resetAddForm();
         switchScreen("records");
@@ -3203,7 +3219,10 @@
       if (button.dataset.action === "edit") openAddScreen(id);
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
-        await deleteCloudRecordImmediately(id);
+        userOwnRecords = userOwnRecords.filter(r => r.id !== id);
+        if (!isFriendView) records = [...userOwnRecords];
+        saveRecords();
+        deleteCloudRecordImmediately(id); // Background
       }
     }
 
@@ -3707,6 +3726,9 @@
             else if (item.ratingOverall >= 5) cardColorClass = "item-yellow";
             else if (item.ratingOverall >= 0) cardColorClass = "item-red";
           }
+          const tagsMap = { museum:"🏛️ Müze", nature:"🌳 Doğa", food:"🍴 Gastronomi", art:"🎭 Sanat", sightseeing:"🏙️ Şehir", shopping:"🛍️ Alışveriş" };
+          const tagsHtml = Array.isArray(item.tags) ? item.tags.map(t => `<span class='iinfo' style='background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.6);'>${tagsMap[t] || t}</span>`).join("") : "";
+
           return (
             "<article class='item " + cardColorClass + "'>" +
               "<div class='item-top-row'>" +
@@ -3715,6 +3737,7 @@
               "</div>" +
               vtypeBadge(item.visitType) +
               (infoChips ? "<div class='item-info-row'>" + infoChips + "</div>" : "") +
+              (tagsHtml ? "<div class='item-info-row' style='margin-top:6px;'>" + tagsHtml + "</div>" : "") +
               renderGalleryRow(item.photos) +
               (item.note ? "<p class='item-note'>" + esc(item.note) + "</p>" : "") +
               "<div class='records-actions'>" +
