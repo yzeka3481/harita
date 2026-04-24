@@ -550,9 +550,12 @@
     .dot-marker{width:8px;height:8px;background:#00e5ff;border-radius:50%;box-shadow:0 0 12px #00e5ff;border:2px solid #fff}
 
     /* Map Legend */
-    .map-legend{position:absolute; bottom:20px; left:12px; background:rgba(10,25,48,0.85); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); border-radius:14px; padding:10px 12px; z-index:1000; display:flex; flex-direction:column; gap:8px; box-shadow:0 4px 15px rgba(0,0,0,0.4)}
-    .legend-item{display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; color:#fff}
-    .legend-line{width:24px; height:3px; border-radius:2px}
+    .map-legend{position:absolute; bottom:20px; left:10px; background:rgba(10,25,48,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:6px 8px; z-index:1000; display:grid; grid-template-columns:repeat(2,1fr); gap:4px 10px; box-shadow:0 6px 20px rgba(0,0,0,0.5)}
+    .legend-item{display:flex; align-items:center; gap:5px; font-size:10px; font-weight:700; color:#fff; cursor:pointer; user-select:none; white-space:nowrap}
+    .legend-item input[type="checkbox"]{appearance:none; -webkit-appearance:none; width:10px; height:10px; border:1px solid rgba(255,255,255,0.3); border-radius:50%; position:relative; cursor:pointer; flex-shrink:0; background:rgba(255,255,255,0.05)}
+    .legend-item input[type="checkbox"]:checked{background:#fff; border-color:#fff}
+    .legend-item input[type="checkbox"]:checked::after{content:"\2713"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#3fd4a0; font-size:9px; font-weight:900}
+    .legend-line{width:10px; height:2px; border-radius:1px; flex-shrink:0}
     .legend-line.flight{background:#00d4ff; box-shadow:0 0 5px #00d4ff}
     .legend-line.car{background:#fb8500}
     .legend-line.train{background:#bdb2ff}
@@ -1033,13 +1036,13 @@
     </div>
     <div class="journey-map-body">
       <div id="journeyMapContainer"></div>
-      <div class="map-legend" style="bottom:24px; left:24px;">
-        <div class="legend-item"><div class="legend-line flight"></div><span>✈️ Uçuş</span></div>
-        <div class="legend-item"><div class="legend-line car"></div><span>🚗 Otomobil</span></div>
-        <div class="legend-item"><div class="legend-line train"></div><span>🚆 Tren</span></div>
-        <div class="legend-item"><div class="legend-line bus"></div><span>🚌 Otobüs</span></div>
-        <div class="legend-item"><div class="legend-line ship"></div><span>🚢 Gemi</span></div>
-        <div class="legend-item"><div class="legend-line walking"></div><span>🚶 Yürüyerek</span></div>
+      <div class="map-legend">
+        <label class="legend-item"><input type="checkbox" checked data-mode="flight"> <div class="legend-line flight"></div><span>✈️ Uçuş</span></label>
+        <label class="legend-item"><input type="checkbox" checked data-mode="car"> <div class="legend-line car"></div><span>🚗 Araba</span></label>
+        <label class="legend-item"><input type="checkbox" checked data-mode="train"> <div class="legend-line train"></div><span>🚆 Tren</span></label>
+        <label class="legend-item"><input type="checkbox" checked data-mode="bus"> <div class="legend-line bus"></div><span>🚌 Otobüs</span></label>
+        <label class="legend-item"><input type="checkbox" checked data-mode="ship"> <div class="legend-line ship"></div><span>🚢 Gemi</span></label>
+        <label class="legend-item"><input type="checkbox" checked data-mode="walking"> <div class="legend-line walking"></div><span>🚶 Yürüyerek</span></label>
       </div>
     </div>
   </div>
@@ -4906,6 +4909,11 @@
         return;
       }
 
+      // Aktif filtreleri oku
+      const activeModes = new Set();
+      document.querySelectorAll('.map-legend input:checked').forEach(input => activeModes.add(input.dataset.mode));
+
+
       const hCoords = (typeof HOME_COORDS !== 'undefined') ? HOME_COORDS : [41.0082, 28.9784];
 
       journeyMap = L.map('journeyMapContainer', {
@@ -4932,6 +4940,7 @@
       }).bindPopup('<b>MERKEZ: İSTANBUL</b>').addTo(pathGroup);
 
       visited.forEach((target) => {
+        if (!activeModes.has(target.transportMode)) return; // Filtre kontrolü
         if (!target.lat || !target.lng) return;
         
         const end = [parseFloat(target.lat), parseFloat(target.lng)];
@@ -5024,6 +5033,13 @@
         els.journeyMapModal.classList.remove('open');
         document.body.classList.remove('modal-open');
       });
+      
+      document.querySelectorAll('.map-legend input').forEach(input => {
+        input.addEventListener('change', () => {
+          renderJourneyMap();
+          renderTravelPaths();
+        });
+      });
     }
 
     function openBadgeDetail(id, unlocked) {
@@ -5050,10 +5066,16 @@
         exploreMap.removeLayer(els.travelPathLayer);
       }
       
+      const activeModes = new Set();
+      document.querySelectorAll('.map-legend input:checked').forEach(input => {
+        activeModes.add(input.dataset.mode);
+      });
+
       els.travelPathLayer = L.layerGroup();
       const recordMap = new Map(records.map(r => [r.id, r]));
       
       records.forEach(target => {
+        if (!activeModes.has(target.transportMode)) return;
         let start;
         if (!target.arrivalFrom) {
           if (target.transportMode === "flight") {
