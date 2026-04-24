@@ -13,6 +13,7 @@
   <link rel="apple-touch-icon" sizes="152x152" href="./world-icon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./world-icon.png">
   <link rel="apple-touch-icon" sizes="167x167" href="./world-icon.png">
+  <link rel="manifest" href="./manifest.json">
   <title>My Trace</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -148,6 +149,12 @@
     .btn-del{background:linear-gradient(135deg,#7a2435,#a53348)}
     .city-detail-modal{position:fixed;inset:0;z-index:7800;background:rgba(3,9,18,.8);display:none;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity .2s;pointer-events:none}
     .city-detail-modal.open{display:flex;opacity:1;pointer-events:auto}
+    .city-detail-photos{margin-top:12px; padding:0 12px 0;}
+    .city-detail-photos h4{font-size:12px; color:rgba(255,255,255,0.4); margin-bottom:8px; font-weight:600;}
+    .detail-photo-grid{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none;}
+    .detail-photo-grid::-webkit-scrollbar{display:none;}
+    .detail-photo-thumb{width:80px; height:80px; flex-shrink:0; object-fit:cover; border-radius:10px; cursor:pointer; transition:transform 0.2s; border:1px solid rgba(255,255,255,0.1); scroll-snap-align:start;}
+    .detail-photo-thumb:hover{transform:scale(1.05);}
     .city-detail-panel{width:min(94vw,420px);border:1px solid rgba(255,255,255,.24);border-radius:16px;background:linear-gradient(180deg,#173a5f,#133250);padding:24px 16px;position:relative}
     .city-detail-close{position:absolute;top:12px;right:16px;background:transparent;border:none;color:#dbeafc;font-size:24px;line-height:1;cursor:pointer}
     .city-detail-title{margin:0 0 16px;font-size:20px;color:#fff;text-align:center;}
@@ -324,7 +331,7 @@
     .photo-clear{border:none;border-radius:8px;background:#2b405c;color:#dce9ff;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer}
     .gallery-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
     .gallery-row img{width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #30445f;display:block;cursor:pointer}
-    .lightbox{position:fixed;inset:0;z-index:7000;background:rgba(2,8,14,.9);display:none;align-items:center;justify-content:center;padding:14px}
+    .lightbox{position:fixed;inset:0;z-index:9000;background:rgba(2,8,14,.9);display:none;align-items:center;justify-content:center;padding:14px}
     .lightbox.open{display:flex}
     .lightbox-inner{max-width:min(96vw,980px);max-height:90vh;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
     .lightbox img{max-width:100%;max-height:calc(90vh - 36px);border-radius:10px;border:1px solid #2e435e;background:#09101a}
@@ -721,6 +728,21 @@
               <input id="countryInput" type="text" placeholder="Ülke (otomatik)" readonly>
             </div>
           </div>
+          <div style="margin: -8px 0 16px; padding: 0 4px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:11px; color:rgba(255,255,255,0.5); cursor:pointer; width:fit-content;">
+              <input type="checkbox" id="manualCoordsToggle" style="width:14px; height:14px;"> <span>📍 Manuel Koordinat Gir (Aramada çıkmıyorsa)</span>
+            </label>
+          </div>
+          <div id="manualCoordsFields" class="row2" style="display:none; margin-bottom:16px; background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+            <div>
+              <label class="field-label">Enlem (Latitude)</label>
+              <input id="latInput" type="number" step="any" placeholder="Ör: 41.0082">
+            </div>
+            <div>
+              <label class="field-label">Boylam (Longitude)</label>
+              <input id="lngInput" type="number" step="any" placeholder="Ör: 28.9784">
+            </div>
+          </div>
           <div class="row2">
             <div>
               <label class="field-label">Nereden Geldiniz? (Rota Bağlantısı)</label>
@@ -1085,6 +1107,7 @@
       <div class="chart-container">
         <canvas id="cityDetailChart"></canvas>
       </div>
+      <div id="cityDetailPhotos" class="city-detail-photos"></div>
     </div>
   </div>
 
@@ -1238,6 +1261,10 @@
       arrivalFromInput: document.getElementById("arrivalFromInput"),
       transportModeInput: document.getElementById("transportModeInput"),
       saveBtn: document.getElementById("saveBtn"),
+      manualCoordsToggle: document.getElementById("manualCoordsToggle"),
+      manualCoordsFields: document.getElementById("manualCoordsFields"),
+      latInput: document.getElementById("latInput"),
+      lngInput: document.getElementById("lngInput"),
       tabs: document.querySelectorAll(".tab-btn"),
       countryTitle: document.getElementById("countryTitle"),
       countryBackBtn: document.getElementById("countryBackBtn"),
@@ -1492,6 +1519,21 @@
       els.importJsonBtn.addEventListener("click", () => els.importJsonInput.click());
       els.importJsonInput.addEventListener("change", onImportJson);
       els.deleteAllBtn.addEventListener("click", onDeleteAllData);
+      
+      if (els.manualCoordsToggle) {
+        els.manualCoordsToggle.addEventListener("change", (e) => {
+          const checked = e.target.checked;
+          els.manualCoordsFields.style.display = checked ? "flex" : "none";
+          if (checked) {
+            els.countryInput.removeAttribute("readonly");
+            els.countryInput.placeholder = "Ülke adını girin";
+          } else {
+            els.countryInput.setAttribute("readonly", true);
+            els.countryInput.placeholder = "Ülke (otomatik)";
+          }
+        });
+      }
+
       els.cityInput.addEventListener("input", onCityInput);
       els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
       els.flagsGrid.addEventListener("click", onFlagClick);
@@ -1644,6 +1686,18 @@
           }
         });
       }, 150);
+
+      // Fotoğrafları Render Et
+      const photoWrap = document.getElementById("cityDetailPhotos");
+      if (photoWrap) {
+        if (record.photos && record.photos.length > 0) {
+          photoWrap.innerHTML = `<h4>Fotoğraflar (${record.photos.length})</h4><div class="detail-photo-grid">` + 
+            record.photos.map(p => `<img src="${p}" class="detail-photo-thumb" loading="lazy" onclick="openPhotoLightbox('${p}')">`).join("") + 
+            `</div>`;
+        } else {
+          photoWrap.innerHTML = "";
+        }
+      }
     }
 
     function onCityInput() {
@@ -3205,51 +3259,72 @@
       const currency = normalizeCurrency(els.currencyInput.value);
       const tripDays = normalizeDays(els.tripDaysInput.value);
       const note = els.noteInput.value.trim();
-      const isPublic = Array.from(els.friendPrivacyInputs).find(i => i.checked)?.value === "public";
+      const isPublic = (Array.from(els.friendPrivacyInputs || []).find(i => i.checked)?.value === "public");
+      
       if (!city) return;
 
       els.saveBtn.disabled = true;
-      els.saveBtn.textContent = editId ? "Guncelleniyor..." : "Kaydediliyor...";
+      els.saveBtn.textContent = editId ? "Güncelleniyor..." : "Kaydediliyor...";
+
       try {
-        let geo;
-        let cityResolved = city;
-        let countryResolved = country;
-        let codeResolved = "";
+        let finalLat = null;
+        let finalLng = null;
+        let finalCountryCode = "";
+        let finalCity = city;
+        let finalCountry = country;
+
         const old = editId ? records.find(item => item.id === editId) : null;
-        if (selectedCitySuggestion) {
-          geo = { lat: selectedCitySuggestion.lat, lng: selectedCitySuggestion.lng, countryCode: selectedCitySuggestion.countryCode };
-          cityResolved = selectedCitySuggestion.city;
-          countryResolved = selectedCitySuggestion.country;
-          codeResolved = selectedCitySuggestion.countryCode;
-        } else if (old && old.city.toLowerCase() === city.toLowerCase() && old.country.toLowerCase() === country.toLowerCase()) {
-          geo = { lat: old.lat, lng: old.lng, countryCode: old.countryCode };
-          codeResolved = old.countryCode;
+
+        if (els.manualCoordsToggle.checked && els.latInput.value && els.lngInput.value) {
+          finalLat = Number(els.latInput.value);
+          finalLng = Number(els.lngInput.value);
+          finalCountryCode = old ? old.countryCode : "";
+          finalCity = city;
+          finalCountry = country;
+        } else if (selectedCitySuggestion) {
+          finalLat = selectedCitySuggestion.lat;
+          finalLng = selectedCitySuggestion.lng;
+          finalCountryCode = selectedCitySuggestion.countryCode;
+          finalCity = selectedCitySuggestion.city;
+          finalCountry = selectedCitySuggestion.country;
+        } else if (old && old.city.toLowerCase() === city.toLowerCase() && (old.country || "").toLowerCase() === country.toLowerCase()) {
+          finalLat = old.lat;
+          finalLng = old.lng;
+          finalCountryCode = old.countryCode;
+          finalCity = old.city;
+          finalCountry = old.country;
         } else {
+          // Geocode fallback
           try {
-            geo = await geocode(city, country);
-            cityResolved = geo.city || cityResolved;
-            countryResolved = geo.country || countryResolved;
-            codeResolved = geo.countryCode;
-          } catch (geoError) {
+            const geo = await geocode(city, country);
+            finalLat = geo.lat;
+            finalLng = geo.lng;
+            finalCountryCode = geo.countryCode;
+            finalCity = geo.city || city;
+            finalCountry = geo.country || country;
+          } catch (e) {
             const fallback = await searchCitySuggestions(city);
-            if (Array.isArray(fallback) && fallback.length) {
+            if (fallback && fallback.length) {
               const top = fallback[0];
-              geo = { lat: top.lat, lng: top.lng, countryCode: top.countryCode };
-              cityResolved = top.city || cityResolved;
-              countryResolved = top.country || countryResolved;
-              codeResolved = top.countryCode || codeResolved;
+              finalLat = top.lat;
+              finalLng = top.lng;
+              finalCountryCode = top.countryCode;
+              finalCity = top.city || city;
+              finalCountry = top.country || country;
             } else {
-              throw geoError;
+              throw e;
             }
           }
         }
-        if (!countryResolved) throw new Error("Lutfen onerilerden bir sehir secin.");
+
+        if (!finalCountry && !els.manualCoordsToggle.checked) throw new Error("Ülke bilgisi bulunamadı.");
+
         const payload = {
-          city: cityResolved,
-          country: countryResolved,
-          countryCode: codeResolved || geo.countryCode,
-          lat: geo.lat,
-          lng: geo.lng,
+          city: finalCity,
+          country: finalCountry || country,
+          countryCode: finalCountryCode,
+          lat: finalLat,
+          lng: finalLng,
           date,
           status,
           visitType,
@@ -3264,40 +3339,31 @@
           photos: workingPhotos.slice(0, 8),
           tags: selectedTags,
           note,
-          isPublic,
+          privacy: isPublic ? "public" : "private",
           arrivalFrom: els.arrivalFromInput.value || "",
           transportMode: els.transportModeInput.value || "flight"
         };
 
         if (editId) {
-           userOwnRecords = userOwnRecords.map(item => item.id === editId ? { ...item, ...payload } : item);
-           if (!isFriendView) records = [...userOwnRecords];
+           userOwnRecords = userOwnRecords.map(item => item.id === editId ? { ...item, ...payload, createdAt: item.createdAt } : item);
         } else {
            userOwnRecords.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
-           if (!isFriendView) records = [...userOwnRecords];
         }
         
-        // Save locally immediately (Snappy UI)
-        saveRecords(); 
-        const targetRecord = editId ? userOwnRecords.find(r => r.id === editId) : userOwnRecords[0];
-        
-        // Final double check on local state before switching
         if (!isFriendView) records = [...userOwnRecords];
-        
+        saveRecords(); 
+
+        const targetRecord = editId ? userOwnRecords.find(r => r.id === editId) : userOwnRecords[0];
         if (targetRecord) {
-          // Cloud sync in background
           persistSingleRecordToCloud(targetRecord).catch(e => console.warn("Background sync error:", e));
         }
         
         resetAddForm();
         switchScreen("records");
         renderAll();
-
-
-
         editId = null; 
       } catch (error) {
-        alert(error.message || "Kayit kaydedilemedi.");
+        alert(error.message || "Kayıt kaydedilemedi.");
       } finally {
         els.saveBtn.disabled = false;
         els.saveBtn.textContent = "Kaydet";
@@ -3366,6 +3432,14 @@
         els.countryInput.value = item.country;
         els.dateInput.value = item.date || "";
         els.statusInput.value = item.status;
+        
+        if (els.manualCoordsToggle) {
+          els.manualCoordsToggle.checked = false;
+          els.manualCoordsFields.style.display = "none";
+          els.latInput.value = item.lat || "";
+          els.lngInput.value = item.lng || "";
+        }
+
         if (els.visitTypeInput) els.visitTypeInput.value = item.visitType || "holiday";
         updateStarRatingUI("ratingFoodInput", item.ratingFood);
         updateStarRatingUI("ratingTransportInput", item.ratingTransport);

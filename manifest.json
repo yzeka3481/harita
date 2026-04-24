@@ -1,0 +1,21 @@
+{
+  "name": "My Trace",
+  "short_name": "My Trace",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#142640",
+  "theme_color": "#142640",
+  "description": "Seyahat anılarını takip et ve harita üzerinde görselleştir.",
+  "icons": [
+    {
+      "src": "./world-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./world-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
