@@ -1937,7 +1937,19 @@
       const data = await response.json();
       return data.map(row => {
         const a = row.address || {};
-        const city = a.city || a.town || a.village || a.municipality || a.state || "";
+        // Sehir ismini daha geniş bir yelpazede ara
+        let city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || "";
+        
+        // Eğer yukarıdaki alanlar boşsa ama sonucun bir adı varsa onu kullan (Sevilla örneği için kritik)
+        if (!city && row.name) {
+          // Eyalet veya ülke isminin şehir yerine geçmesini engellemek için kontrol
+          if (row.type !== "state" && row.type !== "country") {
+            city = row.name;
+          } else if (!city) {
+            city = row.name; // Yine de boş kalmasın
+          }
+        }
+
         const country = a.country || "";
         const code = (a.country_code || "").toLowerCase();
         return {
