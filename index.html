@@ -3038,7 +3038,7 @@
 
       switch (sortBy) {
         case "oldest":
-          list.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+          list.sort((a, b) => (a.date || a.createdAt).localeCompare(b.date || b.createdAt));
           break;
         case "expensive":
           list.sort((a, b) => (b.budget || 0) - (a.budget || 0));
@@ -3051,7 +3051,7 @@
           break;
         case "newest":
         default:
-          list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+          list.sort((a, b) => (b.date || b.createdAt).localeCompare(a.date || a.createdAt));
       }
       return list;
     }
@@ -3804,7 +3804,7 @@
           if (!groups.has(key)) groups.set(key, { key, country: countryName, items: [] });
           groups.get(key).items.push(item);
         });
-        groupList = [...groups.values()].sort((a, b) => a.country.localeCompare(b.country, "tr"));
+        groupList = [...groups.values()]; // Ülke sıralaması, içindeki en üstte yer alan şehrin sırasına göre belirlenir.
       }
 
       els.recordsList.innerHTML = groupList.map(group => {
