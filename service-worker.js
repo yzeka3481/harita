@@ -1,11 +1,10 @@
-const CACHE_NAME = 'my-trace-v2';
+const CACHE_NAME = 'my-trace-v3';
 const ASSETS = [
   './index.html',
   './script_ok.js',
-  './world-icon.png'
+  './app-icon.png'
 ];
 
-// Kurulumda dosyaları önbelleğe al
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -15,12 +14,10 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Yeni Service Worker'ın hemen kontrolü ele almasını sağla
 self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
-// İstekleri önce önbellekten, yoksa ağdan getir
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {

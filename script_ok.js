@@ -220,10 +220,20 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./service-worker.js')
-            .then(reg => console.log('Service Worker registered!', reg))
-            .catch(err => console.log('Service Worker registration failed: ', err));
+            .then(reg => console.log('PWA: Service Worker Kaydedildi!', reg))
+            .catch(err => console.error('PWA: Service Worker Hatası: ', err));
         });
       }
+
+      // Kurulum isteği geldiğinde yakala
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA: Kurulum istemi yakalandı.');
+        // İsteği otomatik göstermeyip butona bağlayabiliriz ama şimdilik loglayalım
+      });
+
+      window.addEventListener('appinstalled', () => {
+        console.log('PWA: Uygulama başarıyla yüklendi!');
+      });
     }
 
     function initMaps() {
