@@ -36,7 +36,7 @@
     .tool-btn.export{background:#2f7cde;color:#fff}
     .tool-btn.import{background:#2c8b6b;color:#fff}
     .tool-btn.stats{background:#394f6c;color:#e6f1ff}
-    .hero{border:none;border-radius:0;overflow:hidden;height:400px;margin:-14px -14px -180px;position:relative;background:#060c18;z-index:1;animation: heroEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
+    .hero{border:none;border-radius:0;overflow:visible;height:400px;margin:-14px -14px -180px;position:relative;background:#060c18;z-index:1;animation: heroEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
     @keyframes heroEnter {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -117,8 +117,8 @@
     .hero-auth-trigger.logged-in{background:rgba(0, 230, 150, 0.25) !important; border-color:rgba(0, 230, 150, 0.5) !important; box-shadow: 0 0 15px rgba(0, 230, 150, 0.3);}
     .hero-auth-trigger.logged-in svg{stroke:#00e696 !important}
     .hero-auth-trigger .user-initial{color:#fff;font-weight:800;font-size:16px}
-    .auth-card.floating{position:absolute;top:66px;right:16px;width:280px;z-index:110;transform:translateY(-10px);opacity:0;pointer-events:none;transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);box-shadow:0 15px 40px rgba(0,0,0,0.5)}
-    .auth-card.floating.open{transform:translateY(0);opacity:1;pointer-events:all}
+    .auth-card.floating{position:absolute;top:66px;right:16px;width:280px;z-index:9999;transform:translateY(-10px);opacity:0;pointer-events:none;transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);box-shadow:0 15px 40px rgba(0,0,0,0.5);padding-bottom:20px;overflow:visible}
+    .auth-card.floating.open{transform:translateY(0);opacity:1;pointer-events:all !important}
     .auth-card .auth-row{flex-direction:column;gap:12px;align-items:flex-start}
     .auth-card .auth-actions{width:100%;display:flex;gap:8px}
     .auth-card .auth-btn{flex:1;font-size:12px;padding:8px}
@@ -146,6 +146,13 @@
     .records-actions button:hover{opacity:.8}
     .btn-detail{background:linear-gradient(135deg,#138A72,#1ABC9C)}
     .btn-edit{background:linear-gradient(135deg,#2c5e96,#3d7fc4)}
+    
+    .info-tab{background:none; border:none; color:rgba(255,255,255,0.4); font-size:14px; font-weight:700; cursor:pointer; padding:5px 0; border-bottom:2px solid transparent; transition:all 0.3s;}
+    .info-tab.active{color:#00e5ff; border-bottom-color:#00e5ff;}
+    .guide-step{display:flex; gap:15px; margin-bottom:20px; align-items:flex-start;}
+    .step-num{flex-shrink:0; width:28px; height:28px; background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#00e5ff; font-weight:800; font-size:14px;}
+    .guide-step strong{display:block; color:#fff; margin-bottom:4px; font-size:14px;}
+    .guide-step div{font-size:12px; color:rgba(255,255,255,0.6); line-height:1.5;}
     .btn-del{background:linear-gradient(135deg,#7a2435,#a53348)}
     .city-detail-modal{position:fixed;inset:0;z-index:7800;background:rgba(3,9,18,.8);display:none;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity .2s;pointer-events:none}
     .city-detail-modal.open{display:flex;opacity:1;pointer-events:auto}
@@ -598,6 +605,27 @@
     .legend-line.walking{background:#fff; box-shadow:0 0 8px #fff}
 
 
+    .quick-pin-loading{background:var(--primary); color:#fff; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:800; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,0.3); border:2px solid #fff; animation: quickPulse 1.5s infinite}
+    @keyframes quickPulse{ 0%{transform:scale(1); opacity:1} 50%{transform:scale(1.1); opacity:0.8} 100%{transform:scale(1); opacity:1} }
+    
+    .journey-dot-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .journey-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+      animation: neonPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes neonPulse {
+      0% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px currentColor; }
+      50% { transform: scale(1.4); opacity: 0.7; box-shadow: 0 0 18px currentColor; }
+      100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px currentColor; }
+    }
   </style>
 
 
@@ -617,27 +645,38 @@
   </div>
   <main class="app">
     <section id="homeScreen" class="screen active" style="position:relative;">
+      <article id="authCard" class="auth-card floating">
+        <div class="auth-row">
+          <div id="authStateText" class="auth-state">Hesap: ertugrul yagmur</div>
+          <div class="auth-actions">
+            <button id="openAuthBtn" class="auth-btn primary" type="button" hidden>Giris / Kayit</button>
+            <button id="logoutBtn" class="auth-btn ghost" type="button">Çıkış</button>
+          </div>
+          <div id="syncStatusRow" class="sync-status-row">
+            <span id="syncDot" class="sync-dot ok"></span>
+            <span id="syncText" class="sync-text">Bulut esitlendi (canli). · 56 kayıt</span>
+          </div>
+          <div id="authHelpText" style="margin-top:4px; font-size:9px; color:rgba(255,255,255,0.4); text-align:center;">Tüm verileriniz bulutta güvenle saklanır.</div>
+            <div id="homeSettingRow" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); text-align:left; position:relative;">
+              <label style="font-size:9px; color:rgba(255,255,255,0.4); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">Ev Şehriniz (Merkez)</label>
+              <div style="display:flex; gap:6px;">
+                <input type="text" id="homeCityInput" placeholder="Örn: İstanbul" style="flex:1; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#fff; font-size:11px; padding:6px 12px; outline:none;">
+                <button id="saveHomeBtn" style="background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.2); color:#00e5ff; border-radius:8px; font-size:10px; font-weight:700; padding:0 12px; cursor:pointer; transition:all 0.2s;">Kaydet</button>
+              </div>
+              <div id="homeSuggestions" class="suggestions-box" style="position:absolute; top:100%; left:0; right:0; z-index:10001; background:#1a2b40; border:1px solid rgba(255,255,255,0.1); border-radius:8px; margin-top:4px; max-height:150px; overflow-y:auto; display:none;"></div>
+            </div>
+            <div style="margin-top:12px; display:flex; justify-content:center; gap:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+              <a href="javascript:void(0)" onclick="openInfoModal('guide')" style="color:rgba(255,255,255,0.4); font-size:10px; text-decoration:none;">Kullanım Kılavuzu</a>
+              <a href="javascript:void(0)" onclick="openInfoModal('kvkk')" style="color:rgba(255,255,255,0.4); font-size:10px; text-decoration:none;">KVKK & Gizlilik</a>
+            </div>
+          </div>
+        </article>
       <article class="hero">
         <button id="heroAuthTrigger" class="hero-auth-trigger" type="button" title="Profil">
           <div id="heroAuthIcon">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           </div>
         </button>
-
-        <article id="authCard" class="auth-card floating">
-          <div class="auth-row">
-            <div id="authStateText" class="auth-state">Hesap: Misafir modunda.</div>
-            <div class="auth-actions">
-              <button id="openAuthBtn" class="auth-btn primary" type="button">Giris / Kayit</button>
-              <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Çıkış</button>
-            </div>
-            <div id="syncStatusRow" class="sync-status-row" hidden>
-              <span id="syncDot" class="sync-dot"></span>
-              <span id="syncText" class="sync-text">Kontrol ediliyor...</span>
-            </div>
-            <div id="authHelpText" style="margin-top:4px; font-size:9px; color:rgba(255,255,255,0.4); text-align:center;">Tüm verileriniz bulutta güvenle saklanır.</div>
-          </div>
-        </article>
         
         <img id="heroImage" alt="Ülke Fotoğrafı" src="">
         <div class="hero-content">
@@ -1094,6 +1133,9 @@
         <label class="legend-item"><input type="checkbox" checked data-mode="bus"> <div class="legend-line bus"></div><span>🚌 Otobüs</span></label>
         <label class="legend-item"><input type="checkbox" checked data-mode="ship"> <div class="legend-line ship"></div><span>🚢 Gemi</span></label>
         <label class="legend-item"><input type="checkbox" checked data-mode="walking"> <div class="legend-line walking"></div><span>🚶 Yürüyerek</span></label>
+        <label class="legend-item" style="opacity: 0.8; color: #00e5ff; grid-column: span 2; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
+          <input type="checkbox" checked id="toggleDomestic"> <span>📍 Yurt İçi Rotalar</span>
+        </label>
       </div>
     </div>
   </div>
@@ -1112,6 +1154,77 @@
       </div>
       <img id="photoLightboxImg" alt="Buyuk fotograf">
       <div id="photoLightboxCounter" class="lightbox-counter"></div>
+    </div>
+  </div>
+
+  <div id="infoModal" class="auth-modal" aria-hidden="true" style="z-index: 10000;">
+    <div class="auth-panel" style="max-width:450px; padding:0; overflow:hidden; border-radius:24px;">
+      <div style="padding:20px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:15px;">
+          <button id="infoTabGuide" onclick="setInfoTab('guide')" class="info-tab active">Kılavuz</button>
+          <button id="infoTabKvkk" onclick="setInfoTab('kvkk')" class="info-tab">KVKK</button>
+        </div>
+        <button onclick="closeInfoModal()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer; opacity:0.5;">×</button>
+      </div>
+      
+      <div id="infoContentGuide" class="info-body" style="padding:25px; max-height:65vh; overflow-y:auto;">
+        <h3 style="color:#00e5ff; margin-bottom:18px;">🚀 My Trace Kullanım Rehberi</h3>
+        
+        <div class="guide-section">
+          <h4 style="color:#fff; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <span style="background:#00e5ff; color:#000; width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">1</span>
+            Şehir Ekleme ve Rota Mantığı
+          </h4>
+          <p style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.6; margin-bottom:15px;">
+            Yeni bir yer eklerken <strong>"Nereden Geldiniz?"</strong> alanı haritanızın nasıl görüneceğini belirler:
+            <br><br>
+            • <strong>Boş Bırakırsanız:</strong> Sadece bir "Pin" oluşturur, hiçbir yere bağlanmaz.
+            <br>• <strong>Evim'i Seçerseniz:</strong> Belirlediğiniz merkezden (Ev) o şehre bir rota çizer.
+            <br>• <strong>Başka Bir Şehir:</strong> İki seyahat durağınız arasında bağ kurar.
+          </p>
+        </div>
+
+        <div class="guide-section">
+          <h4 style="color:#fff; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <span style="background:#00e5ff; color:#000; width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+            Dinamik Akıllı Filtre (Zoom)
+          </h4>
+          <p style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.6; margin-bottom:15px;">
+            Uygulama, <strong>kendi ülkenizdeki</strong> kısa rotaları otomatik olarak algılar. Haritadan uzaklaştığınızda bu yerel rotalar şeffaflaşır, böylece dünya haritanız her zaman temiz ve profesyonel görünür. Yaklaştığınızda tüm detaylar geri gelir.
+          </p>
+        </div>
+
+        <div class="guide-section">
+          <h4 style="color:#fff; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <span style="background:#00e5ff; color:#000; width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+            Kayıtlar ve Detaylar
+          </h4>
+          <p style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.6; margin-bottom:15px;">
+            "Records" ekranında seyahatlerinizi duruma göre (Gezildi, Planlandı, Tekrar) filtreleyebilir, şehir kartlarına tıklayarak fotoğraflarınıza ve özel notlarınıza ulaşabilirsiniz.
+          </p>
+        </div>
+
+        <div class="guide-section" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:15px;">
+          <h4 style="color:#fff; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <span style="background:#ff007f; color:#fff; width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:12px;">☁️</span>
+            Bulut Senkronizasyonu
+          </h4>
+          <p style="font-size:12px; color:rgba(255,255,255,0.6); line-height:1.6;">
+            Giriş yaptığınızda verileriniz anında bulutla eşitlenir. Profil panelindeki <strong>yeşil nokta</strong> verilerinizin güvende ve güncel olduğunu gösterir. Başka bir cihazdan girdiğinizde tüm anılarınız sizi bekliyor olacak.
+          </p>
+        </div>
+      </div>
+
+      <div id="infoContentKvkk" class="info-body" style="padding:25px; max-height:60vh; overflow-y:auto; display:none;">
+        <h3 style="color:#ff007f; margin-bottom:15px;">🔒 Gizlilik ve KVKK Politikası</h3>
+        <div style="font-size:12px; line-height:1.6; color:rgba(255,255,255,0.6);">
+          <p style="margin-bottom:10px;"><strong>1. Veri Sorumlusu:</strong> My Trace uygulaması, kullanıcı verilerinin gizliliğini temel prensip edinmiştir.</p>
+          <p style="margin-bottom:10px;"><strong>2. İşlenen Veriler:</strong> Kaydettiğiniz şehirler, fotoğraflar ve notlar tamamen sizin kontrolünüzdedir.</p>
+          <p style="margin-bottom:10px;"><strong>3. Saklama:</strong> Verileriniz tarayıcınızın <em>localStorage</em> alanında ve eğer giriş yaptıysanız güvenli Firebase (Firestore) bulut sunucularında saklanır.</p>
+          <p style="margin-bottom:10px;"><strong>4. Paylaşım:</strong> Verileriniz üçüncü şahıslarla asla paylaşılmaz ve reklam amaçlı kullanılmaz.</p>
+          <p style="margin-bottom:10px;"><strong>5. Haklarınız:</strong> İstediğiniz an "Ayarlar" kısmından tüm verilerinizi silebilir veya dışa aktarabilirsiniz.</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1191,7 +1304,9 @@
       "ge": { capital: ["Tiflis"], population: 3714000, currencies: { GEL: { name: "Lari" }}, languages: { kat: "Gürcüce" } }
     };
     const STATUS_TEXT = { visited: "Gezildi", planned: "Planlaniyor", again: "Tekrar gidilecek" };
-    const HOME_COORDS = [41.0082, 28.9784]; // İstanbul (Varsayılan Merkez)
+    let HOME_COORDS = JSON.parse(localStorage.getItem('homeCoords')) || [41.0082, 28.9784];
+    let HOME_CITY_NAME = localStorage.getItem('homeCityName') || 'İstanbul';
+    let HOME_COUNTRY_CODE = localStorage.getItem('homeCountryCode') || 'tr';
     let currentScreen = "home"; 
 
 
@@ -1242,6 +1357,9 @@
       tabIndicator: document.getElementById("tabIndicator"),
       tabs: document.querySelectorAll(".tab-btn"),
       deleteAllBtn: document.getElementById("deleteAllBtn"),
+      homeCityInput: document.getElementById("homeCityInput"),
+      homeSuggestions: document.getElementById("homeSuggestions"),
+      saveHomeBtn: document.getElementById("saveHomeBtn"),
       authStateText: document.getElementById("authStateText"),
       openAuthBtn: document.getElementById("openAuthBtn"),
       logoutBtn: document.getElementById("logoutBtn"),
@@ -1465,6 +1583,9 @@
         className: 'relief-tiles'
       }).addTo(exploreMap);
 
+      // HARİTAYA TIKLA-PİNLE ÖZELLİĞİ
+      exploreMap.on("click", onExploreMapClick);
+
       // 3. ORTA: Ülkeler ve Rotalar
       exploreWorldLayer = L.geoJSON(null, {
         pane: "exploreCountryPane",
@@ -1474,9 +1595,9 @@
           const visitedPoints = getVisitedPoints();
           const on = isVisitedFeature(feature, visitedCodes, visitedNames) || featureContainsVisitedPoint(feature, visitedPoints);
           return {
-            fillColor: on ? "#3d8fe8" : "transparent",
-            fillOpacity: on ? 0.35 : 0,
-            color: on ? "rgba(61, 143, 232, 0.6)" : "rgba(255,255,255,0.15)",
+            fillColor: on ? "#2a75ff" : "transparent",
+            fillOpacity: on ? 0.4 : 0,
+            color: on ? "rgba(42, 117, 255, 0.7)" : "rgba(255,255,255,0.2)",
             weight: on ? 1.5 : 0.4,
             opacity: 1
           };
@@ -1542,18 +1663,63 @@
       });
       els.countryBackBtn.addEventListener("click", () => switchScreen(lastNonCountryScreen || "home"));
       els.openAddBtn.addEventListener("click", () => openAddScreen());
-      if (els.heroAuthTrigger) {
-         els.heroAuthTrigger.addEventListener("click", (e) => {
+         const toggleAuthCard = (e) => {
             e.stopPropagation();
-            els.authCard.classList.toggle("open");
-         });
-         document.addEventListener("click", () => {
+            const isOpen = els.authCard.classList.contains("open");
+            if (isOpen) els.authCard.classList.remove("open");
+            else els.authCard.classList.add("open");
+         };
+         els.heroAuthTrigger.addEventListener("click", toggleAuthCard);
+         
+         const handleGlobalClose = (e) => {
+            if (e.target.closest('#authCard') || e.target.closest('#heroAuthTrigger')) return;
             if (els.authCard) els.authCard.classList.remove("open");
-         });
-         els.authCard.addEventListener("click", (e) => e.stopPropagation());
-      }
+         };
+         document.addEventListener("click", handleGlobalClose);
+         document.addEventListener("mousedown", handleGlobalClose);
+         document.addEventListener("pointerdown", handleGlobalClose);
+
+         const preventCardClose = (e) => e.stopPropagation();
+         els.authCard.addEventListener("click", preventCardClose);
+         els.authCard.addEventListener("mousedown", preventCardClose);
+         els.authCard.addEventListener("pointerdown", preventCardClose);
+         els.authCard.addEventListener("touchstart", preventCardClose, {passive: true});
+         const settingsRow = document.getElementById("authSettingsRow");
+         if (settingsRow) {
+            settingsRow.addEventListener("click", preventCardClose);
+            settingsRow.addEventListener("mousedown", preventCardClose);
+         }
       els.cityForm.addEventListener("submit", onSave);
       els.recordsList.addEventListener("click", onRecordAction);
+      if (els.saveHomeBtn) {
+        const stop = (e) => e.stopPropagation();
+        els.homeCityInput.addEventListener("click", stop);
+        els.homeCityInput.addEventListener("mousedown", stop);
+        els.homeCityInput.addEventListener("pointerdown", stop);
+        els.homeCityInput.addEventListener("focus", stop);
+        
+        els.homeCityInput.addEventListener("input", onHomeCityInput);
+        els.homeCityInput.addEventListener("blur", () => setTimeout(() => { if (els.homeSuggestions) els.homeSuggestions.style.display = "none"; }, 200));
+
+        els.saveHomeBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          const city = (els.homeCityInput.value || "").trim();
+          if (!city) return;
+          els.saveHomeBtn.textContent = "...";
+          els.saveHomeBtn.disabled = true;
+          try {
+            const res = await geocode(city);
+            if (res && res.lat) {
+              window.selectHomeCity(res.city || city, res.lat, res.lng, (res.country_code || 'tr').toLowerCase());
+            }
+          } catch(e) {
+            showToast("Şehir bulunamadı.");
+          } finally {
+            els.saveHomeBtn.textContent = "Kaydet";
+            els.saveHomeBtn.disabled = false;
+          }
+        });
+      }
       els.tabs.forEach(btn => btn.addEventListener("click", () => {
         switchScreen(btn.dataset.screen);
       }));
@@ -1964,6 +2130,9 @@
           ? "Hesabina girerek kendi kayit alanini kullanabilirsin."
           : "Firebase baglantisi icin index.html icinde FIREBASE_CONFIG tanimla.";
       }
+      if (els.homeCityInput) {
+        els.homeCityInput.value = HOME_CITY_NAME;
+      }
       setAuthMode(authMode);
     }
 
@@ -2143,6 +2312,60 @@
     function closeSuggestions() {
       els.citySuggestions.classList.remove("open");
       els.citySuggestions.innerHTML = "";
+    }
+
+    async function reverseGeocode(lat, lng) {
+      // Nominatim için temiz bir sorgu
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+           if (response.status === 429) throw new Error("Çok hızlı tıkladınız, lütfen bir saniye bekleyin.");
+           throw new Error("Servis şu an yanıt vermiyor.");
+        }
+        const data = await response.json();
+        if (data.error) throw new Error("Bu konumda bir yerleşim yeri bulunamadı.");
+        
+        const a = data.address || {};
+        const city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || a.province || a.state || "";
+        const country = a.country || "";
+        const code = (a.country_code || "").toLowerCase();
+        
+        return { city, country, countryCode: code, lat, lng };
+      } catch (e) {
+        throw e;
+      }
+    }
+
+    async function onExploreMapClick(e) {
+      if (isFriendView) return; 
+      const { lat, lng } = e.latlng;
+      
+      const tempMarker = L.marker([lat, lng], { 
+        icon: L.divIcon({ className: 'quick-pin-loading', html: '📍...' }) 
+      }).addTo(exploreMap);
+
+      try {
+        const info = await reverseGeocode(lat, lng);
+        if (!info.city || !info.country) {
+          alert("Bu noktada net bir şehir/ülke bilgisi bulunamadı. Lütfen karaya veya bir yerleşim yerine tıklayın.");
+          return;
+        }
+        
+        selectedCitySuggestion = info;
+        openAddScreen();
+        
+        els.cityInput.value = info.city;
+        els.countryInput.value = info.country;
+        els.latInput.value = lat.toFixed(6);
+        els.lngInput.value = lng.toFixed(6);
+        els.manualCoordsToggle.checked = true;
+        
+      } catch (err) {
+        alert("Konum Hatası: " + err.message);
+      } finally {
+        exploreMap.removeLayer(tempMarker);
+      }
     }
 
     async function onPhotoInputChange(event) {
@@ -2380,14 +2603,20 @@
       if (!worldGeoJson) return;
       const visitedCodes = getVisitedCodesUpper();
       const visitedNames = getVisitedCountryNamesLower();
+      const visitedPoints = getVisitedPoints();
 
       if (exploreWorldLayer) exploreMap.removeLayer(exploreWorldLayer);
       exploreWorldLayer = L.geoJSON(worldGeoJson, {
         pane: "exploreCountryPane",
         style: f => {
-          const code = getFeatureCode(f);
-          const on = isVisitedFeature(f, visitedCodes, visitedNames);
-          return { fillColor: on ? "#d92f2f" : colorByCountryCode(code), fillOpacity: on ? 0.86 : 0.52, color: "#233244", weight: 0.65, opacity: 0.95 };
+          const on = isVisitedFeature(f, visitedCodes, visitedNames) || featureContainsVisitedPoint(f, visitedPoints);
+          return { 
+            fillColor: on ? "#2a75ff" : "transparent", 
+            fillOpacity: on ? 0.35 : 0, 
+            color: on ? "rgba(42, 117, 255, 0.6)" : "rgba(255,255,255,0.15)", 
+            weight: on ? 1.5 : 0.4, 
+            opacity: 1 
+          };
         }
       }).addTo(exploreMap);
     }
@@ -3241,7 +3470,13 @@
 
       switch (sortBy) {
         case "oldest":
-          list.sort((a, b) => (a.date || a.createdAt).localeCompare(b.date || b.createdAt));
+          list.sort((a, b) => {
+            if (!a.date && b.date) return 1;
+            if (a.date && !b.date) return -1;
+            const da = a.date || a.createdAt || "";
+            const db = b.date || b.createdAt || "";
+            return da.localeCompare(db);
+          });
           break;
         case "expensive":
           list.sort((a, b) => (b.budget || 0) - (a.budget || 0));
@@ -3254,7 +3489,13 @@
           break;
         case "newest":
         default:
-          list.sort((a, b) => (b.date || b.createdAt).localeCompare(a.date || a.createdAt));
+          list.sort((a, b) => {
+            if (!a.date && b.date) return 1;
+            if (a.date && !b.date) return -1;
+            const da = a.date || a.createdAt || "";
+            const db = b.date || b.createdAt || "";
+            return db.localeCompare(da);
+          });
       }
       return list;
     }
@@ -3453,6 +3694,15 @@
 
         if (!finalCountry && !els.manualCoordsToggle.checked) throw new Error("Ülke bilgisi bulunamadı.");
 
+        // Manuel Girişler için Akıllı Ülke Kodu Düzeltme (Gruplandırma Sorununu Çözer)
+        if (!finalCountryCode && finalCountry) {
+          const c = finalCountry.toLowerCase();
+          if (c === "türkiye" || c === "turkey") finalCountryCode = "tr";
+          else if (c === "almanya" || c === "germany") finalCountryCode = "de";
+          else if (c === "fransa" || c === "france") finalCountryCode = "fr";
+          else if (c === "italya" || c === "italy") finalCountryCode = "it";
+        }
+
         const payload = {
           city: finalCity,
           country: finalCountry || country,
@@ -3600,7 +3850,9 @@
 
       // Populate Arrival From dropdown (Rota Bağlantısı)
       const others = Array.isArray(records) ? records.filter(r => r.id !== editId) : [];
-      let optionsHtml = '<option value="">Direct / Hub (Yeni Başlangıç)</option>';
+      let optionsHtml = `<option value="_home">🏠 Evim (${esc(HOME_CITY_NAME)})</option>`;
+      optionsHtml += '<option value="">📍 Bağlantısız (Sadece Pin)</option>';
+      
       if (others.length > 0) {
         optionsHtml += others.map(r => `<option value="${r.id}">${esc(r.city)}, ${esc(r.country)}</option>`).join("");
       }
@@ -3610,6 +3862,8 @@
         const item = records.find(r => r.id === editId);
         els.arrivalFromInput.value = item.arrivalFrom || "";
         els.transportModeInput.value = item.transportMode || "flight";
+      } else {
+        els.arrivalFromInput.value = "_home"; // Default to Home
       }
 
       const mode = els.transportModeInput.value;
@@ -5181,149 +5435,224 @@
       `).join('');
     }
 
-    let journeyMap = null;
-    function renderJourneyMap() {
-      if (!els.journeyMapContainer) return;
-      if (journeyMap) {
-        try { journeyMap.remove(); } catch(e) {}
-        journeyMap = null;
-      }
-      
-      // Sadece gezilen yerleri filtrele
-      const visited = records.filter(item => item && isTravelled(item.status));
-      if (!visited.length) {
-        els.journeyMapContainer.innerHTML = '<div style="display:grid;place-items:center;height:100%;color:#888;">Henüz seyahat rotası yok.</div>';
+    async function geocode(query) {
+      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q=" + encodeURIComponent(query);
+      try {
+        const r = await fetch(url);
+        const d = await r.json();
+        if (d && d.length > 0) {
+          const first = d[0];
+          return {
+            lat: parseFloat(first.lat),
+            lng: parseFloat(first.lon),
+            city: first.address.city || first.address.town || first.address.village || first.address.suburb,
+            country: first.address.country,
+            country_code: first.address.country_code
+          };
+        }
+      } catch (e) { console.error("Geocode error:", e); }
+      return null;
+    }
+
+    let homeCityTimer = null;
+    async function onHomeCityInput() {
+      const val = els.homeCityInput.value.trim();
+      if (val.length < 3) {
+        els.homeSuggestions.style.display = "none";
         return;
       }
+      if (homeCityTimer) clearTimeout(homeCityTimer);
+      homeCityTimer = setTimeout(async () => {
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&q=${encodeURIComponent(val)}&limit=5`;
+        try {
+          const r = await fetch(url);
+          const d = await r.json();
+          renderHomeSuggestions(d);
+        } catch (e) { console.error("Home suggestions error:", e); }
+      }, 400);
+    }
 
-      // Aktif filtreleri oku
-      const activeModes = new Set();
-      document.querySelectorAll('.map-legend input:checked').forEach(input => activeModes.add(input.dataset.mode));
+    function renderHomeSuggestions(data) {
+      if (!data || data.length === 0) {
+        els.homeSuggestions.style.display = "none";
+        return;
+      }
+      els.homeSuggestions.innerHTML = data.map(item => {
+        const name = item.display_name;
+        const city = item.address.city || item.address.town || item.address.village || item.address.suburb || "";
+        const country = item.address.country || "";
+        const countryCode = (item.address.country_code || "").toLowerCase();
+        return `
+          <div class="suggestion-item" style="padding:8px 12px; cursor:pointer; font-size:11px; color:#fff; border-bottom:1px solid rgba(255,255,255,0.05);"
+               onclick="selectHomeCity('${esc(city)}', ${item.lat}, ${item.lon}, '${esc(countryCode)}')">
+            <div style="font-weight:700;">${esc(city)}</div>
+            <div style="font-size:9px; opacity:0.6;">${esc(name)}</div>
+          </div>
+        `;
+      }).join('');
+      els.homeSuggestions.style.display = "block";
+    }
 
+    window.selectHomeCity = function(city, lat, lng, countryCode) {
+      els.homeCityInput.value = city;
+      els.homeSuggestions.style.display = "none";
+      
+      HOME_COORDS = [parseFloat(lat), parseFloat(lng)];
+      HOME_CITY_NAME = city;
+      HOME_COUNTRY_CODE = countryCode || 'tr';
+      
+      localStorage.setItem('homeCoords', JSON.stringify(HOME_COORDS));
+      localStorage.setItem('homeCityName', HOME_CITY_NAME);
+      localStorage.setItem('homeCountryCode', HOME_COUNTRY_CODE);
+      
+      showToast(`Ev konumu ${HOME_CITY_NAME} (${HOME_COUNTRY_CODE.toUpperCase()}) olarak güncellendi.`);
+      renderJourneyMap();
+    };
 
-      const hCoords = (typeof HOME_COORDS !== 'undefined') ? HOME_COORDS : [41.0082, 28.9784];
-
-      journeyMap = L.map('journeyMapContainer', {
-        zoomControl: false,
-        attributionControl: false,
-        backgroundColor: '#0a0c10'
-      }).setView(hCoords, 3);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19
-      }).addTo(journeyMap);
-
-      const pathGroup = L.featureGroup().addTo(journeyMap);
-      const recordMap = new Map();
-      records.forEach(r => { if(r.id) recordMap.set(r.id, r); });
-
-      // İstanbul Merkez İşaretçisi
-      L.marker(hCoords, {
-        icon: L.divIcon({
-          className: 'dot-marker-wrap hub',
-          html: '<div class="dot-marker" style="background:#fff; width:12px; height:12px; box-shadow:0 0 20px #fff; border:2px solid #00e5ff;"></div>',
-          iconSize: [12, 12]
-        })
-      }).bindPopup('<b>MERKEZ: İSTANBUL</b>').addTo(pathGroup);
-
-      visited.forEach((target) => {
-        if (!activeModes.has(target.transportMode)) return; // Filtre kontrolü
-        if (!target.lat || !target.lng) return;
+    function renderJourneyMap() {
+      const isNew = !els.journeyMap;
+      if (isNew) {
+        els.journeyMap = L.map('journeyMapContainer', { 
+          zoomControl: true, 
+          attributionControl: false,
+          scrollWheelZoom: true,
+          dragging: true,
+          touchZoom: true,
+          doubleClickZoom: true,
+          boxZoom: true
+        }).setView([20, 0], 2);
         
-        const end = [parseFloat(target.lat), parseFloat(target.lng)];
-        let start = null;
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO'
+        }).addTo(els.journeyMap);
+        
+        els.journeyPathLayer = L.layerGroup().addTo(els.journeyMap);
+        
+        els.journeyMap.on('zoomend', () => {
+          renderJourneyMapLines(false);
+        });
+      }
+      
+      els.journeyMap.scrollWheelZoom.enable();
+      els.journeyMap.dragging.enable();
+      renderJourneyMapLines(isNew);
+    }
 
-        // Başlangıç noktası belirleme
-        if (!target.arrivalFrom || target.arrivalFrom === "") {
-          // Eğer nereden geldiği seçilmemişse (Yeni Başlangıç), merkezden (İstanbul) başlat
-          start = hCoords;
-        } else {
-          const source = recordMap.get(target.arrivalFrom);
-          if (source && source.lat && source.lng) {
-            start = [parseFloat(source.lat), parseFloat(source.lng)];
-          } else if (target.transportMode === "flight") {
-            start = hCoords; // Kaynak bulunamazsa uçuş için İstanbul'a dön
+    function renderJourneyMapLines(shouldFit = false) {
+      if (!els.journeyMap || !els.journeyPathLayer) return;
+      els.journeyPathLayer.clearLayers();
+      
+      const activeModes = new Set();
+      document.querySelectorAll('.map-legend input[data-mode]:checked').forEach(input => {
+        activeModes.add(input.dataset.mode);
+      });
+      
+      const domesticInput = document.getElementById('toggleDomestic');
+      const showDomestic = domesticInput ? domesticInput.checked : true;
+      const zoom = els.journeyMap.getZoom();
+      const recordMap = new Map(records.map(r => [r.id, r]));
+      const pts = [];
+      
+      records.filter(r => r && isTravelled(r.status)).forEach(target => {
+        if (!activeModes.has(target.transportMode)) return;
+        
+        let start = null;
+        let isDomestic = false;
+        let startCountryCode = null;
+        
+        if (target.arrivalFrom) {
+          if (target.arrivalFrom === "_home") {
+            start = HOME_COORDS;
+            startCountryCode = HOME_COUNTRY_CODE;
+          } else {
+            const source = recordMap.get(target.arrivalFrom);
+            if (source) {
+              start = [source.lat, source.lng];
+              startCountryCode = source.countryCode;
+            }
           }
         }
 
-        // Eğer başlangıç noktası yoksa çizgi çizme
-        if (!start) return;
+        const targetCountry = target.countryCode;
+        if (startCountryCode === HOME_COUNTRY_CODE && targetCountry === HOME_COUNTRY_CODE) {
+          isDomestic = true;
+        }
 
-        // İstanbul - İstanbul döngüsünü engelle
-        const distToHome = Math.sqrt(Math.pow(end[0]-hCoords[0],2) + Math.pow(end[1]-hCoords[1],2));
-        if (start === hCoords && distToHome < 0.1) return;
+        if (isDomestic && !showDomestic) return;
+        
+        const end = [target.lat, target.lng];
+        if (start) pts.push(start);
+        pts.push(end);
 
-        // Hedef İşaretçisi
+        let lineOpacity = 0.7;
+        let dotOpacity = 1;
+        if (isDomestic && zoom < 5) {
+          lineOpacity = 0.08;
+          dotOpacity = 0.2;
+        }
+
+        if (start) {
+          const colors = { 
+            car: '#ff007f', train: '#7000ff', bus: '#39ff14', ship: '#00e5ff', walking: '#fff'
+          };
+          const transportColor = target.transportMode === "flight" ? '#00e5ff' : (colors[target.transportMode] || '#6b7a8a');
+
+          if (target.transportMode === "flight") {
+             const curvePath = L.curve(['M', start, 'Q', [ (start[0]+end[0])/2 + 4, (start[1]+end[1])/2 ], end], { 
+               color: transportColor, weight: 2.5, opacity: lineOpacity, fill: false
+             });
+             curvePath.addTo(els.journeyPathLayer);
+          } else {
+             L.polyline([start, end], { 
+               color: transportColor, weight: 2, opacity: lineOpacity 
+             }).addTo(els.journeyPathLayer);
+          }
+        }
+        
+        const dotColor = (target.transportMode === 'flight' ? '#00e5ff' : ({ car:'#ff007f', train:'#7000ff', bus:'#39ff14', walking:'#ffffff' }[target.transportMode] || '#00e5ff'));
         L.marker(end, {
           icon: L.divIcon({
-            className: 'dot-marker-wrap',
-            html: '<div class="dot-marker"></div>',
-            iconSize: [8, 8]
+            className: 'journey-dot-wrap',
+            html: `<div class="journey-dot" style="color: ${dotColor}; opacity: ${dotOpacity};"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
           })
-        }).bindPopup(`<b>${esc(target.city)}</b>`).addTo(pathGroup);
-
-        // Renkler ve Stil
-        const colors = { car: '#fb8500', train: '#bdb2ff', bus: '#90be6d', ship: '#219ebc', walking: '#06d6a0' };
-        const transportColor = target.transportMode === "flight" ? '#00d4ff' : (colors[target.transportMode] || '#6b7a8a');
-
-        // Kavis Hesaplama (Bezier Control Point)
-        const midLat = (start[0] + end[0]) / 2;
-        const midLng = (start[1] + end[1]) / 2;
-        const latDiff = end[0] - start[0];
-        const lngDiff = end[1] - start[1];
-        
-        // Uçuşlar için daha yüksek, kara yolları için daha hafif kavis
-        const curveFactor = target.transportMode === "flight" ? 0.25 : 0.12;
-        const ctrl = [
-          midLat + (lngDiff * curveFactor), 
-          midLng - (latDiff * curveFactor)
-        ];
-
-        if (typeof L.curve === 'function') {
-          L.curve(['M', start, 'Q', ctrl, end], {
-            className: 'glowing-path animated',
-            color: transportColor,
-            weight: target.transportMode === "flight" ? 2.5 : 3,
-            opacity: 0.8,
-            fill: false,
-            dashArray: target.transportMode === 'walking' ? '5, 8' : null
-          }).addTo(pathGroup);
-        } else {
-          // Fallback
-          L.polyline([start, end], {
-            color: transportColor,
-            weight: 3,
-            opacity: 0.8,
-            dashArray: target.transportMode === 'walking' ? '5, 8' : null
-          }).addTo(pathGroup);
-        }
+        }).addTo(els.journeyPathLayer).bindTooltip(target.city, { direction: 'top' });
       });
+      
+      L.marker(HOME_COORDS, {
+        icon: L.divIcon({
+          className: 'journey-dot-wrap',
+          html: `<div class="journey-dot" style="color: #fff; width:12px; height:12px; box-shadow: 0 0 15px #fff, 0 0 30px #fff;"></div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        })
+      }).addTo(els.journeyPathLayer).bindTooltip(`Evim (${HOME_CITY_NAME})`, { direction: 'top' });
 
-      if (pathGroup.getLayers().length > 0) {
-        journeyMap.fitBounds(pathGroup.getBounds(), { padding: [50, 50], maxZoom: 5 });
+      if (shouldFit && pts.length > 0) {
+        els.journeyMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50] });
       }
     }
 
-
-
     function bindProEvents() {
-      if (els.openJourneyMapBtn) els.openJourneyMapBtn.addEventListener('click', () => {
-        els.journeyMapModal.classList.add('open');
-        document.body.classList.add('modal-open');
-        setTimeout(() => {
-          renderJourneyMap();
-        }, 300);
-      });
-      if (els.closeJourneyMapBtn) els.closeJourneyMapBtn.addEventListener('click', () => {
-        els.journeyMapModal.classList.remove('open');
-        document.body.classList.remove('modal-open');
-      });
-      
-      document.querySelectorAll('.map-legend input').forEach(input => {
-        input.addEventListener('change', () => {
-          renderJourneyMap();
-          renderTravelPaths();
+      if (els.openJourneyMapBtn) {
+        els.openJourneyMapBtn.addEventListener('click', () => {
+          els.journeyMapModal.classList.add('open');
+          document.body.classList.add('modal-open');
+          setTimeout(() => {
+            renderJourneyMap();
+            if (els.journeyMap) els.journeyMap.invalidateSize();
+          }, 400);
         });
+      }
+      if (els.closeJourneyMapBtn) {
+        els.closeJourneyMapBtn.addEventListener('click', () => {
+          els.journeyMapModal.classList.remove('open');
+          document.body.classList.remove('modal-open');
+        });
+      }
+      document.querySelectorAll('.map-legend input').forEach(input => {
+        input.addEventListener('change', () => renderJourneyMapLines(false));
       });
     }
 
@@ -5339,81 +5668,49 @@
       document.getElementById("badgeModal").classList.add("open");
       document.body.classList.add("modal-open");
     }
-
     function closeBadgeDetail() {
       document.getElementById("badgeModal").classList.remove("open");
       document.body.classList.remove("modal-open");
     }
-
     function renderTravelPaths() {
       if (els.travelPathLayer) els.travelPathLayer.clearLayers();
-      if (typeof worldGeoJson !== 'undefined' && worldGeoJson && exploreWorldLayer) {
-        exploreWorldLayer.clearLayers().addData(worldGeoJson);
-      }
     }
 
-    function renderJourneyMap() {
-      if (!els.journeyMap) {
-        els.journeyMap = L.map('journeyMapContainer', { zoomControl: false, attributionControl: false }).setView([20, 0], 2);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap &copy; CARTO'
-        }).addTo(els.journeyMap);
-        els.journeyPathLayer = L.layerGroup().addTo(els.journeyMap);
+    window.openInfoModal = function(tab = 'guide') {
+      const modal = document.getElementById("infoModal");
+      if (modal) {
+        modal.classList.add("open");
+        document.body.classList.add("modal-open");
+        window.setInfoTab(tab);
       }
-      
-      els.journeyPathLayer.clearLayers();
-      const activeModes = new Set();
-      document.querySelectorAll('.map-legend input:checked').forEach(input => {
-        activeModes.add(input.dataset.mode);
-      });
-      
-      const recordMap = new Map(records.map(r => [r.id, r]));
-      const pts = [];
-      
-      records.forEach(target => {
-        if (!activeModes.has(target.transportMode)) return;
-        let start;
-        if (!target.arrivalFrom) {
-          start = HOME_COORDS;
-        } else {
-          const source = recordMap.get(target.arrivalFrom);
-          if (!source) return;
-          start = [source.lat, source.lng];
-        }
-        const end = [target.lat, target.lng];
-        pts.push(start, end);
-
-        if (target.transportMode === "flight") {
-          const curvePath = L.curve(['M', start, 'Q', [ (start[0]+end[0])/2 + 4, (start[1]+end[1])/2 ], end], { 
-            color: '#00e5ff', weight: 2.5, opacity: 0.8, fill: false
-          });
-          curvePath.addTo(els.journeyPathLayer);
-        } else {
-          const colors = { 
-            car: '#ff007f',      // Neon Pembe
-            train: '#7000ff',    // Neon Mor
-            bus: '#39ff14',      // Neon Yeşil
-            ship: '#00e5ff',     // Neon Mavi
-            walking: '#fff'      // Beyaz
-          };
-          L.polyline([start, end], { 
-            color: colors[target.transportMode] || '#6b7a8a', 
-            weight: 2, 
-            opacity: 0.7 
-          }).addTo(els.journeyPathLayer);
-        }
-      });
-      
-      if (pts.length > 0) {
-        els.journeyMap.fitBounds(L.latLngBounds(pts), { padding: [30, 30] });
+    };
+    window.closeInfoModal = function() {
+      const modal = document.getElementById("infoModal");
+      if (modal) {
+        modal.classList.remove("open");
+        document.body.classList.remove("modal-open");
       }
-    }
+    };
+    window.setInfoTab = function(tab) {
+      const isGuide = tab === 'guide';
+      const tg = document.getElementById("infoTabGuide");
+      const tk = document.getElementById("infoTabKvkk");
+      const cg = document.getElementById("infoContentGuide");
+      const ck = document.getElementById("infoContentKvkk");
+      if (tg) tg.classList.toggle("active", isGuide);
+      if (tk) tk.classList.toggle("active", !isGuide);
+      if (cg) cg.style.display = isGuide ? "block" : "none";
+      if (ck) ck.style.display = isGuide ? "none" : "block";
+    };
 
     function esc(value) {
       const d = document.createElement("div");
       d.textContent = value == null ? "" : String(value);
       return d.innerHTML;
     }
+
+    // Initialize
+    bindProEvents();
   </script>
 
 </body>
