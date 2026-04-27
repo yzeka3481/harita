@@ -654,6 +654,9 @@
     <div class="splash-title">My Trace</div>
     <div class="splash-sub">Seyahat anıların seninle ✈️</div>
   </div>
+  <div id="globalProgressWrap" style="position:fixed; top:0; left:0; right:0; height:4px; background:rgba(0,0,0,0.2); z-index:20000; display:none;">
+    <div id="globalProgressFill" style="height:100%; width:0%; background:linear-gradient(90deg, #00e5ff, #007bff); box-shadow:0 0 10px rgba(0,229,255,0.5); transition:width 0.3s ease;"></div>
+  </div>
   <main class="app">
     <section id="homeScreen" class="screen active" style="position:relative;">
       <article id="authCard" class="auth-card floating">
@@ -2135,7 +2138,7 @@
         const statusMsg = firebaseDb
           ? (cloudSyncStatus || "Senkron bekleniyor...")
           : "Firestore bağlantısı yok.";
-        els.authHelpText.innerHTML = "Bulut: " + statusMsg + "<br><span style='font-size:9px; opacity:0.6;'>UID: " + currentUser.uid + "</span>";
+        els.authHelpText.innerHTML = "";
         // Görünür sync satırı
         const row = document.getElementById("syncStatusRow");
         const dot = document.getElementById("syncDot");
@@ -2146,7 +2149,7 @@
           const isBusy = statusMsg.toLowerCase().includes("bekleniyor") || statusMsg.toLowerCase().includes("baglaniyor");
           dot.className = "sync-dot" + (isErr ? " err" : isBusy ? " busy" : " ok");
           const uidRef = String(currentUser.uid || "").slice(0, 8);
-          txt.textContent = statusMsg + " · " + records.length + " kayıt · ID:" + uidRef;
+          txt.textContent = statusMsg + " · " + records.length + " kayıt";
         }
       } else {
         els.authStateText.textContent = "Hesap: Misafir modunda.";
@@ -3519,26 +3522,47 @@
 
     async function persistCloudRecords() {
       if (!firebaseDb || !currentUser || isFriendView) return;
+      
+      const barWrap = document.getElementById("globalProgressWrap");
+      const barFill = document.getElementById("globalProgressFill");
+      
       cloudSyncBusy = true;
       try {
-        // Larger imports (e.g. 60+ cities) are split into chunks to avoid Firestore payload/time limits
-        const CHUNK_SIZE = 15;
         const recordsToSync = [...userOwnRecords];
-        for (let i = 0; i < recordsToSync.length; i += CHUNK_SIZE) {
+        const total = recordsToSync.length;
+        if (total > 0 && barWrap) barWrap.style.display = "block";
+
+        const CHUNK_SIZE = 5;
+        
+        for (let i = 0; i < total; i += CHUNK_SIZE) {
           const chunk = recordsToSync.slice(i, i + CHUNK_SIZE);
           const batch = firebaseDb.batch();
           chunk.forEach(r => {
             const ref = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(r.id);
             batch.set(ref, toCloudRecord(r));
           });
+          
+          const progress = Math.min(i + CHUNK_SIZE, total);
+          const percent = (progress / total) * 100;
+          
+          if (barFill) barFill.style.width = percent + "%";
+          cloudSyncStatus = `Aktarılıyor: ${progress} / ${total}`;
+          renderAuthPanel();
+          
+          if (total > 5) {
+            showToast(`Bulut senkronize ediliyor: ${progress}/${total}`);
+          }
+          
           await batch.commit();
         }
-        cloudSyncStatus = "Bulut esitlendi.";
+        cloudSyncStatus = "Bulut eşitlendi.";
       } catch (err) { 
         console.warn("Cloud save error:", err);
         cloudSyncStatus = "Senkronizasyon hatası.";
+        showToast("Senkronizasyon hatası!");
       } finally {
         cloudSyncBusy = false;
+        if (barWrap) setTimeout(() => { barWrap.style.display = "none"; if (barFill) barFill.style.width = "0%"; }, 1000);
         renderAuthPanel();
       }
     }
