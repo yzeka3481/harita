@@ -336,6 +336,10 @@
     .lightbox-inner{max-width:min(96vw,980px);max-height:90vh;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
     .lightbox img{max-width:100%;max-height:calc(90vh - 36px);border-radius:10px;border:1px solid #2e435e;background:#09101a}
     .lightbox-close{border:none;border-radius:8px;background:#233853;color:#dce9ff;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
+    .lightbox-nav{position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 20px; pointer-events:none}
+    .lightbox-nav-btn{width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:20px; cursor:pointer; pointer-events:auto; display:flex; align-items:center; justify-content:center; transition:all 0.2s}
+    .lightbox-nav-btn:hover{background:rgba(255,255,255,0.2); transform:scale(1.1)}
+    .lightbox-counter{position:absolute; bottom:-34px; left:50%; transform:translateX(-50%); color:#fff; font-size:13px; font-weight:700; background:rgba(0,0,0,0.5); padding:4px 12px; border-radius:10px; pointer-events:none}
     .flag-pin{width:18px;height:18px;border-radius:999px;border:1.5px solid #fff;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,0.3);background:#fff;position:relative}.flag-pin img{width:100%;height:100%;object-fit:cover;display:block}.flag-pin:after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;background:#fff;transform:translateX(-50%) rotate(45deg);z-index:-1}
     .country-facts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
     .country-fact{border:1px solid rgba(97,176,255,0.18);border-radius:16px;background:linear-gradient(135deg,rgba(22,54,91,0.8),rgba(14,35,62,0.9));backdrop-filter:blur(10px);padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.25);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
@@ -650,7 +654,7 @@
 
 
       <article class="card recent-block">
-        <h2>Son Eklenen 3 Şehir</h2>
+        <h2>Son Gezilen 3 Şehir</h2>
         <div id="recentList" class="list"></div>
       </article>
 
@@ -1077,7 +1081,12 @@
   <div id="photoLightbox" class="lightbox" aria-hidden="true">
     <div class="lightbox-inner">
       <button id="photoLightboxClose" class="lightbox-close" type="button">Kapat</button>
+      <div class="lightbox-nav">
+        <button id="photoLightboxPrev" class="lightbox-nav-btn" type="button">❮</button>
+        <button id="photoLightboxNext" class="lightbox-nav-btn" type="button">❯</button>
+      </div>
       <img id="photoLightboxImg" alt="Buyuk fotograf">
+      <div id="photoLightboxCounter" class="lightbox-counter"></div>
     </div>
   </div>
 
@@ -1113,6 +1122,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@elfalem/leaflet-curve/dist/leaflet.curve.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     window.FIREBASE_CONFIG = {
@@ -1265,7 +1275,6 @@
       manualCoordsFields: document.getElementById("manualCoordsFields"),
       latInput: document.getElementById("latInput"),
       lngInput: document.getElementById("lngInput"),
-      tabs: document.querySelectorAll(".tab-btn"),
       countryTitle: document.getElementById("countryTitle"),
       countryBackBtn: document.getElementById("countryBackBtn"),
       countryMap: document.getElementById("countryMap"),
@@ -1277,6 +1286,9 @@
       photoLightbox: document.getElementById("photoLightbox"),
       photoLightboxImg: document.getElementById("photoLightboxImg"),
       photoLightboxClose: document.getElementById("photoLightboxClose"),
+      photoLightboxPrev: document.getElementById("photoLightboxPrev"),
+      photoLightboxNext: document.getElementById("photoLightboxNext"),
+      photoLightboxCounter: document.getElementById("photoLightboxCounter"),
       homeInsightTotal: document.getElementById("homeInsightTotal"),
       cityDetailModal: document.getElementById("cityDetailModal"),
       cityDetailCloseBtn: document.getElementById("cityDetailCloseBtn"),
@@ -1306,6 +1318,7 @@
     let firebaseDb = null;
     let editId = null;
     let heroCountry = "";
+    let heroCountryCode = "";
     let recentItems = [];
     let recentIndex = 0;
     let recentGesture = null;
@@ -1349,6 +1362,8 @@
     let countryMarkerLayer;
     let lastNonCountryScreen = "home";
     let cityDetailChartInstance = null;
+    let lightboxCurrentList = [];
+    let lightboxCurrentIndex = 0;
 
     // Splash ekrani bagimsiz olarak gizle - init() hata verse bile calisiyor
     (function hideSplashSafe() {
@@ -1552,8 +1567,10 @@
         renderPhotoPreview();
       });
       els.photoLightboxClose.addEventListener("click", closePhotoLightbox);
+      els.photoLightboxPrev.addEventListener("click", (e) => { e.stopPropagation(); rotateLightbox(-1); });
+      els.photoLightboxNext.addEventListener("click", (e) => { e.stopPropagation(); rotateLightbox(1); });
       els.photoLightbox.addEventListener("click", e => {
-        if (e.target === els.photoLightbox) closePhotoLightbox();
+        if (e.target === els.photoLightbox || e.target.closest(".lightbox-inner") === null || e.target === els.photoLightbox.querySelector('.lightbox-inner')) closePhotoLightbox();
       });
       document.addEventListener("click", e => {
         const img = e.target.closest("img[data-gallery-photo]");
@@ -1565,6 +1582,11 @@
         if (els.authModal.classList.contains("open")) closeAuthModal();
         if (els.cityDetailModal.classList.contains("open")) closeCityDetailModal();
         closePhotoLightbox();
+      });
+      document.addEventListener("keydown", e => {
+        if (!els.photoLightbox.classList.contains("open")) return;
+        if (e.key === "ArrowLeft") rotateLightbox(-1);
+        if (e.key === "ArrowRight") rotateLightbox(1);
       });
       document.addEventListener("click", e => {
         if (!e.target.closest(".field")) closeSuggestions();
@@ -2215,12 +2237,38 @@
       ).join("");
     }
 
-    function openPhotoLightbox(src) {
-      if (!src) return;
-      els.photoLightboxImg.src = src;
+    function openPhotoLightbox(srcOrList, index = 0) {
+      if (!srcOrList) return;
+      if (Array.isArray(srcOrList)) {
+        lightboxCurrentList = srcOrList;
+        lightboxCurrentIndex = index;
+      } else {
+        lightboxCurrentList = [srcOrList];
+        lightboxCurrentIndex = 0;
+      }
+      updateLightboxUI();
       els.photoLightbox.classList.add("open");
       els.photoLightbox.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
+    }
+
+    function rotateLightbox(step) {
+      if (!lightboxCurrentList.length) return;
+      lightboxCurrentIndex = (lightboxCurrentIndex + step + lightboxCurrentList.length) % lightboxCurrentList.length;
+      updateLightboxUI();
+    }
+
+    function updateLightboxUI() {
+      const src = lightboxCurrentList[lightboxCurrentIndex];
+      if (src) els.photoLightboxImg.src = src;
+      
+      const isGallery = lightboxCurrentList.length > 1;
+      els.photoLightboxPrev.style.display = isGallery ? "flex" : "none";
+      els.photoLightboxNext.style.display = isGallery ? "flex" : "none";
+      els.photoLightboxCounter.style.display = isGallery ? "block" : "none";
+      if (isGallery) {
+        els.photoLightboxCounter.textContent = (lightboxCurrentIndex + 1) + " / " + lightboxCurrentList.length;
+      }
     }
 
     function closePhotoLightbox() {
@@ -2228,7 +2276,11 @@
       els.photoLightbox.classList.remove("open");
       els.photoLightbox.setAttribute("aria-hidden", "true");
       els.photoLightboxImg.src = "";
-      document.body.classList.remove("modal-open");
+      lightboxCurrentList = [];
+      lightboxCurrentIndex = 0;
+      // Re-check if any other modal is open before removing modal-open
+      const anyModalOpen = els.authModal.classList.contains("open") || els.cityDetailModal.classList.contains("open") || (els.journeyMapModal && els.journeyMapModal.classList.contains("open"));
+      if (!anyModalOpen) document.body.classList.remove("modal-open");
     }
 
     async function loadWorldData() {
@@ -2304,7 +2356,8 @@
       
       const vIdx = visibleTabs.findIndex(b => b.dataset.screen === name);
       if (vIdx !== -1 && els.tabIndicator) {
-        els.tabIndicator.style.transform = `translateX(${vIdx * 100}%)`;
+        const tabWidth = (els.tabsInner.clientWidth - 12) / visibleTabs.length;
+        els.tabIndicator.style.transform = `translateX(${vIdx * tabWidth}px)`;
       }
 
       els.homeScreen.scrollTop = 0;
@@ -3415,6 +3468,10 @@
       if (button.dataset.action === "delete") {
         if (!confirm("Bu kaydi silmek istiyor musun?")) return;
         userOwnRecords = userOwnRecords.filter(r => r.id !== id);
+        // Clear arrivalFrom references
+        userOwnRecords.forEach(r => {
+          if (r.arrivalFrom === id) r.arrivalFrom = "";
+        });
         if (!isFriendView) records = [...userOwnRecords];
         saveRecords();
         deleteCloudRecordImmediately(id); // Background
@@ -3474,6 +3531,10 @@
         els.transportModeInput.value = item.transportMode || "flight";
       }
 
+      const mode = els.transportModeInput.value;
+      const transportField = els.arrivalFromInput.closest('.field');
+      if (transportField) transportField.style.display = (mode === 'flight' || !mode) ? 'none' : 'block';
+
       renderPhotoPreview();
       switchScreen("add");
       setTimeout(() => els.cityInput.focus(), 40);
@@ -3523,8 +3584,11 @@
         return;
       }
 
-      // En son eklenen (listenin en basindaki) ulkeyi tespit et
-      heroCountry = records[0].country;
+      // En son gezilen (visited) ulkeyi tespit et, yoksa en son ekleneni al
+      const lastVisited = records.find(item => isTravelled(item.status));
+      const target = lastVisited || records[0];
+      heroCountry = target.country;
+      heroCountryCode = target.countryCode;
 
       setHeroImageByCountry(heroCountry);
       els.heroBadge.textContent = heroCountry;
@@ -3720,8 +3784,8 @@
     }
 
     function renderRecent() {
-      recentItems = records.filter(item => item.status !== 'planned')
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      recentItems = records.filter(item => isTravelled(item.status))
+        .sort((a, b) => getRecordTime(b) - getRecordTime(a))
         .slice(0, 3);
       if (!recentItems.length) {
         recentIndex = 0;
@@ -3982,8 +4046,12 @@
       els.summaryIntro.textContent = stats.uniqueCities
         ? selectedYear + " yilinda " + formatInteger(stats.yearTrips) + " gezi kaydindan " + formatInteger(stats.yearKm) + " km yol cikti."
         : "Kayit ekledikce yillik ozet burada canli guncellenir.";
+      const budgetStr = Object.entries(stats.budgetMap || {})
+        .map(([curr, amt]) => formatMoney(amt, curr))
+        .join(", ");
+      
       els.summaryNote.textContent = stats.uniqueCities
-        ? "Toplam " + formatInteger(stats.totalTrips) + " gezi, " + formatInteger(stats.totalDays) + " gun ve " + formatMoney(stats.totalBudget, "TRY") + " butce kaydi var."
+        ? "Toplam " + formatInteger(stats.totalTrips) + " gezi, " + formatInteger(stats.totalDays) + " gun" + (budgetStr ? " ve " + budgetStr : "") + " butce kaydi var."
         : "Henuz veri yok.";
       const canGenerate = stats.yearTrips > 0;
       els.generateStoryBtn.disabled = !canGenerate;
@@ -4028,7 +4096,13 @@
         countryCount[key] = (countryCount[key] || 0) + 1;
       });
       const topCountry = Object.entries(countryCount).sort((a, b) => b[1] - a[1])[0];
-      const totalBudget = yearTrips.reduce((sum, item) => sum + (Number(item.budget) > 0 ? Number(item.budget) : 0), 0);
+      const budgetMap = {};
+      yearTrips.forEach(item => {
+        if (Number(item.budget) > 0) {
+          const c = item.currency || "TRY";
+          budgetMap[c] = (budgetMap[c] || 0) + Number(item.budget);
+        }
+      });
       const totalDays = yearTrips.reduce((sum, item) => sum + (Number(item.tripDays) > 0 ? Number(item.tripDays) : 0), 0);
       return {
         yearKm,
@@ -4037,7 +4111,7 @@
         uniqueCities: uniqueCities.size,
         uniqueCountries: uniqueCountries.size,
         topCountry: topCountry ? (topCountry[0] + " (" + topCountry[1] + ")") : "",
-        totalBudget,
+        budgetMap,
         totalDays
       };
     }
@@ -4514,7 +4588,7 @@
       if (value === "" || value == null) return null;
       const n = Number(value);
       if (!Number.isFinite(n) || n === 0) return null;
-      return Math.max(1, Math.min(10, Math.round(n)));
+      return Math.max(1, Math.min(5, Math.round(n)));
     }
 
     function computeOverallRating(scores) {
@@ -4956,6 +5030,16 @@
       
       els.worldProgressText.textContent = `%${percentage}`;
       els.worldProgressFill.style.width = `${percentage}%`;
+
+      if (travelled.length === 0) {
+        els.explorerInsightsGrid.innerHTML = `
+          <div class="insight-box"><small>En Kuzey</small><strong>-</strong></div>
+          <div class="insight-box"><small>En Güney</small><strong>-</strong></div>
+          <div class="insight-box"><small>Uzaklık</small><strong>0 km</strong></div>
+          <div class="insight-box"><small>Ülke Skoru</small><strong>0/195</strong></div>
+        `;
+        return;
+      }
 
       let north = null, south = null, east = null, west = null;
       travelled.forEach(r => {
