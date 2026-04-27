@@ -5118,10 +5118,8 @@
 
         // Başlangıç noktası belirleme
         if (!target.arrivalFrom || target.arrivalFrom === "") {
-          // Eğer nereden geldiği seçilmemişse ve uçuşsa, İstanbul'dan başlat
-          if (target.transportMode === "flight") {
-            start = hCoords;
-          }
+          // Eğer nereden geldiği seçilmemişse (Yeni Başlangıç), merkezden (İstanbul) başlat
+          start = hCoords;
         } else {
           const source = recordMap.get(target.arrivalFrom);
           if (source && source.lat && source.lng) {
@@ -5248,11 +5246,7 @@
         if (!activeModes.has(target.transportMode)) return;
         let start;
         if (!target.arrivalFrom) {
-          if (target.transportMode === "flight") {
-            start = HOME_COORDS;
-          } else {
-            return;
-          }
+          start = HOME_COORDS;
         } else {
           const source = recordMap.get(target.arrivalFrom);
           if (!source) return;
