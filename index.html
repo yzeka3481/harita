@@ -598,27 +598,6 @@
     .legend-line.walking{background:#fff; box-shadow:0 0 8px #fff}
 
 
-    .quick-pin-loading{background:var(--primary); color:#fff; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:800; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,0.3); border:2px solid #fff; animation: quickPulse 1.5s infinite}
-    @keyframes quickPulse{ 0%{transform:scale(1); opacity:1} 50%{transform:scale(1.1); opacity:0.8} 100%{transform:scale(1); opacity:1} }
-    
-    .journey-dot-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .journey-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
-      animation: neonPulse 1.8s ease-in-out infinite;
-    }
-    @keyframes neonPulse {
-      0% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px currentColor; }
-      50% { transform: scale(1.4); opacity: 0.7; box-shadow: 0 0 18px currentColor; }
-      100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px currentColor; }
-    }
   </style>
 
 
@@ -1486,9 +1465,6 @@
         className: 'relief-tiles'
       }).addTo(exploreMap);
 
-      // HARİTAYA TIKLA-PİNLE ÖZELLİĞİ
-      exploreMap.on("click", onExploreMapClick);
-
       // 3. ORTA: Ülkeler ve Rotalar
       exploreWorldLayer = L.geoJSON(null, {
         pane: "exploreCountryPane",
@@ -1498,9 +1474,9 @@
           const visitedPoints = getVisitedPoints();
           const on = isVisitedFeature(feature, visitedCodes, visitedNames) || featureContainsVisitedPoint(feature, visitedPoints);
           return {
-            fillColor: on ? "#2a75ff" : "transparent",
-            fillOpacity: on ? 0.4 : 0,
-            color: on ? "rgba(42, 117, 255, 0.7)" : "rgba(255,255,255,0.2)",
+            fillColor: on ? "#3d8fe8" : "transparent",
+            fillOpacity: on ? 0.35 : 0,
+            color: on ? "rgba(61, 143, 232, 0.6)" : "rgba(255,255,255,0.15)",
             weight: on ? 1.5 : 0.4,
             opacity: 1
           };
@@ -2169,60 +2145,6 @@
       els.citySuggestions.innerHTML = "";
     }
 
-    async function reverseGeocode(lat, lng) {
-      // Nominatim için temiz bir sorgu
-      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-           if (response.status === 429) throw new Error("Çok hızlı tıkladınız, lütfen bir saniye bekleyin.");
-           throw new Error("Servis şu an yanıt vermiyor.");
-        }
-        const data = await response.json();
-        if (data.error) throw new Error("Bu konumda bir yerleşim yeri bulunamadı.");
-        
-        const a = data.address || {};
-        const city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || a.province || a.state || "";
-        const country = a.country || "";
-        const code = (a.country_code || "").toLowerCase();
-        
-        return { city, country, countryCode: code, lat, lng };
-      } catch (e) {
-        throw e;
-      }
-    }
-
-    async function onExploreMapClick(e) {
-      if (isFriendView) return; 
-      const { lat, lng } = e.latlng;
-      
-      const tempMarker = L.marker([lat, lng], { 
-        icon: L.divIcon({ className: 'quick-pin-loading', html: '📍...' }) 
-      }).addTo(exploreMap);
-
-      try {
-        const info = await reverseGeocode(lat, lng);
-        if (!info.city || !info.country) {
-          alert("Bu noktada net bir şehir/ülke bilgisi bulunamadı. Lütfen karaya veya bir yerleşim yerine tıklayın.");
-          return;
-        }
-        
-        selectedCitySuggestion = info;
-        openAddScreen();
-        
-        els.cityInput.value = info.city;
-        els.countryInput.value = info.country;
-        els.latInput.value = lat.toFixed(6);
-        els.lngInput.value = lng.toFixed(6);
-        els.manualCoordsToggle.checked = true;
-        
-      } catch (err) {
-        alert("Konum Hatası: " + err.message);
-      } finally {
-        exploreMap.removeLayer(tempMarker);
-      }
-    }
-
     async function onPhotoInputChange(event) {
       if (!currentUser) {
         alert("Fotoğraf eklemek için lütfen giriş yapın.");
@@ -2458,20 +2380,14 @@
       if (!worldGeoJson) return;
       const visitedCodes = getVisitedCodesUpper();
       const visitedNames = getVisitedCountryNamesLower();
-      const visitedPoints = getVisitedPoints();
 
       if (exploreWorldLayer) exploreMap.removeLayer(exploreWorldLayer);
       exploreWorldLayer = L.geoJSON(worldGeoJson, {
         pane: "exploreCountryPane",
         style: f => {
-          const on = isVisitedFeature(f, visitedCodes, visitedNames) || featureContainsVisitedPoint(f, visitedPoints);
-          return { 
-            fillColor: on ? "#2a75ff" : "transparent", 
-            fillOpacity: on ? 0.35 : 0, 
-            color: on ? "rgba(42, 117, 255, 0.6)" : "rgba(255,255,255,0.15)", 
-            weight: on ? 1.5 : 0.4, 
-            opacity: 1 
-          };
+          const code = getFeatureCode(f);
+          const on = isVisitedFeature(f, visitedCodes, visitedNames);
+          return { fillColor: on ? "#d92f2f" : colorByCountryCode(code), fillOpacity: on ? 0.86 : 0.52, color: "#233244", weight: 0.65, opacity: 0.95 };
         }
       }).addTo(exploreMap);
     }
@@ -3325,13 +3241,7 @@
 
       switch (sortBy) {
         case "oldest":
-          list.sort((a, b) => {
-            if (!a.date && b.date) return 1;
-            if (a.date && !b.date) return -1;
-            const da = a.date || a.createdAt || "";
-            const db = b.date || b.createdAt || "";
-            return da.localeCompare(db);
-          });
+          list.sort((a, b) => (a.date || a.createdAt).localeCompare(b.date || b.createdAt));
           break;
         case "expensive":
           list.sort((a, b) => (b.budget || 0) - (a.budget || 0));
@@ -3344,13 +3254,7 @@
           break;
         case "newest":
         default:
-          list.sort((a, b) => {
-            if (!a.date && b.date) return 1;
-            if (a.date && !b.date) return -1;
-            const da = a.date || a.createdAt || "";
-            const db = b.date || b.createdAt || "";
-            return db.localeCompare(da);
-          });
+          list.sort((a, b) => (b.date || b.createdAt).localeCompare(a.date || a.createdAt));
       }
       return list;
     }
@@ -3548,15 +3452,6 @@
         }
 
         if (!finalCountry && !els.manualCoordsToggle.checked) throw new Error("Ülke bilgisi bulunamadı.");
-
-        // Manuel Girişler için Akıllı Ülke Kodu Düzeltme (Gruplandırma Sorununu Çözer)
-        if (!finalCountryCode && finalCountry) {
-          const c = finalCountry.toLowerCase();
-          if (c === "türkiye" || c === "turkey") finalCountryCode = "tr";
-          else if (c === "almanya" || c === "germany") finalCountryCode = "de";
-          else if (c === "fransa" || c === "france") finalCountryCode = "fr";
-          else if (c === "italya" || c === "italy") finalCountryCode = "it";
-        }
 
         const payload = {
           city: finalCity,
@@ -5507,31 +5402,10 @@
             opacity: 0.7 
           }).addTo(els.journeyPathLayer);
         }
-        
-        // Şehir Noktaları (Neon Dots - HTML DivIcon ile)
-        const dotColor = (target.transportMode === 'flight' ? '#00e5ff' : ({ car:'#ff007f', train:'#7000ff', bus:'#39ff14', walking:'#ffffff' }[target.transportMode] || '#00e5ff'));
-        L.marker(end, {
-          icon: L.divIcon({
-            className: 'journey-dot-wrap',
-            html: `<div class="journey-dot" style="color: ${dotColor};"></div>`,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-          })
-        }).addTo(els.journeyPathLayer);
       });
       
-      // Ev (Home) Noktası
-      L.marker(HOME_COORDS, {
-        icon: L.divIcon({
-          className: 'journey-dot-wrap',
-          html: `<div class="journey-dot" style="color: #fff; width:12px; height:12px; box-shadow: 0 0 15px #fff, 0 0 30px #fff;"></div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        })
-      }).addTo(els.journeyPathLayer).bindTooltip("Evim", { direction: 'top' });
-
       if (pts.length > 0) {
-        els.journeyMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50] });
+        els.journeyMap.fitBounds(L.latLngBounds(pts), { padding: [30, 30] });
       }
     }
 
