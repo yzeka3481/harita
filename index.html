@@ -1045,7 +1045,10 @@
         <div class="social-section-title"><span>👋</span> İstekler</div>
         <div id="socialRequestsList" class="social-list"></div>
 
-        <div class="social-section-title"><span>🌍</span> Arkadaşlarım</div>
+        <div class="social-section-title">
+          <span>🌍</span> Arkadaşlarım
+          <button onclick="subscribeSocialData()" style="background:transparent; border:none; color:var(--primary); cursor:pointer; font-size:16px; margin-left:auto; padding:4px;">🔄</button>
+        </div>
         <div id="socialFriendsList" class="social-list" style="margin-bottom:100px;"></div>
       </div>
     </section>
@@ -2754,12 +2757,14 @@
       // Friends Listener
       const unsubFriends = firebaseDb.collection("profiles").doc(currentUser.uid).collection("friends")
         .onSnapshot(snap => {
+          console.log("Social snapshot updated, docs:", snap.size);
           const friends = snap.docs
             .map(d => {
               const data = d.data() || {};
+              // Ensure we always have a name and uid
               return { 
                 uid: d.id, 
-                name: data.name || data.email || "İsimsiz Gezgin", 
+                name: data.name || data.email || "Gezgin #" + d.id.slice(0,4), 
                 email: data.email || "",
                 ...data 
               };
@@ -2768,6 +2773,11 @@
             .sort((a, b) => (a.name || "").localeCompare(b.name || "", 'tr'));
           
           renderSocialFriends(friends);
+        }, err => {
+          console.error("Social snapshot error:", err);
+          if (err.code === 'permission-denied') {
+             els.socialFriendsList.innerHTML = '<div class="hint" style="color:#ff6b6b; padding:10px;">Liste okuma izni hatası.</div>';
+          }
         });
       socialListeners.push(unsubFriends);
     }
