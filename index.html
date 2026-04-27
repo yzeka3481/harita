@@ -36,7 +36,7 @@
     .tool-btn.export{background:#2f7cde;color:#fff}
     .tool-btn.import{background:#2c8b6b;color:#fff}
     .tool-btn.stats{background:#394f6c;color:#e6f1ff}
-    .hero{border:none;border-radius:0;overflow:hidden;height:400px;margin:-14px -14px -180px;position:relative;background:#060c18;z-index:1;animation: heroEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
+    .hero{border:none;border-radius:0;overflow:visible;height:400px;margin:-14px -14px -180px;position:relative;background:#060c18;z-index:1;animation: heroEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;}
     @keyframes heroEnter {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -117,8 +117,8 @@
     .hero-auth-trigger.logged-in{background:rgba(0, 230, 150, 0.25) !important; border-color:rgba(0, 230, 150, 0.5) !important; box-shadow: 0 0 15px rgba(0, 230, 150, 0.3);}
     .hero-auth-trigger.logged-in svg{stroke:#00e696 !important}
     .hero-auth-trigger .user-initial{color:#fff;font-weight:800;font-size:16px}
-    .auth-card.floating{position:absolute;top:66px;right:16px;width:280px;z-index:110;transform:translateY(-10px);opacity:0;pointer-events:none;transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);box-shadow:0 15px 40px rgba(0,0,0,0.5)}
-    .auth-card.floating.open{transform:translateY(0);opacity:1;pointer-events:all}
+    .auth-card.floating{position:absolute;top:66px;right:16px;width:280px;z-index:9999;transform:translateY(-10px);opacity:0;pointer-events:none;transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);box-shadow:0 15px 40px rgba(0,0,0,0.5);padding-bottom:20px;overflow:visible}
+    .auth-card.floating.open{transform:translateY(0);opacity:1;pointer-events:all !important}
     .auth-card .auth-row{flex-direction:column;gap:12px;align-items:flex-start}
     .auth-card .auth-actions{width:100%;display:flex;gap:8px}
     .auth-card .auth-btn{flex:1;font-size:12px;padding:8px}
@@ -600,6 +600,25 @@
 
     .quick-pin-loading{background:var(--primary); color:#fff; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:800; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,0.3); border:2px solid #fff; animation: quickPulse 1.5s infinite}
     @keyframes quickPulse{ 0%{transform:scale(1); opacity:1} 50%{transform:scale(1.1); opacity:0.8} 100%{transform:scale(1); opacity:1} }
+    
+    .journey-dot-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .journey-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+      animation: neonPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes neonPulse {
+      0% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px currentColor; }
+      50% { transform: scale(1.4); opacity: 0.7; box-shadow: 0 0 18px currentColor; }
+      100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px currentColor; }
+    }
   </style>
 
 
@@ -619,27 +638,33 @@
   </div>
   <main class="app">
     <section id="homeScreen" class="screen active" style="position:relative;">
+      <article id="authCard" class="auth-card floating">
+        <div class="auth-row">
+          <div id="authStateText" class="auth-state">Hesap: ertugrul yagmur</div>
+          <div class="auth-actions">
+            <button id="openAuthBtn" class="auth-btn primary" type="button" hidden>Giris / Kayit</button>
+            <button id="logoutBtn" class="auth-btn ghost" type="button">Çıkış</button>
+          </div>
+          <div id="syncStatusRow" class="sync-status-row">
+            <span id="syncDot" class="sync-dot ok"></span>
+            <span id="syncText" class="sync-text">Bulut esitlendi (canli). · 56 kayıt</span>
+          </div>
+          <div id="authHelpText" style="margin-top:4px; font-size:9px; color:rgba(255,255,255,0.4); text-align:center;">Tüm verileriniz bulutta güvenle saklanır.</div>
+          <div id="homeSettingRow" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); text-align:left;">
+            <label style="font-size:9px; color:rgba(255,255,255,0.4); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">Ev Şehriniz (Merkez)</label>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="homeCityInput" placeholder="Örn: İstanbul" style="flex:1; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#fff; font-size:11px; padding:6px 12px; outline:none;">
+              <button id="saveHomeBtn" style="background:rgba(0,229,255,0.1); border:1px solid rgba(0,229,255,0.2); color:#00e5ff; border-radius:8px; font-size:10px; font-weight:700; padding:0 12px; cursor:pointer; transition:all 0.2s;">Kaydet</button>
+            </div>
+          </div>
+        </div>
+      </article>
       <article class="hero">
         <button id="heroAuthTrigger" class="hero-auth-trigger" type="button" title="Profil">
           <div id="heroAuthIcon">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           </div>
         </button>
-
-        <article id="authCard" class="auth-card floating">
-          <div class="auth-row">
-            <div id="authStateText" class="auth-state">Hesap: Misafir modunda.</div>
-            <div class="auth-actions">
-              <button id="openAuthBtn" class="auth-btn primary" type="button">Giris / Kayit</button>
-              <button id="logoutBtn" class="auth-btn ghost" type="button" hidden>Çıkış</button>
-            </div>
-            <div id="syncStatusRow" class="sync-status-row" hidden>
-              <span id="syncDot" class="sync-dot"></span>
-              <span id="syncText" class="sync-text">Kontrol ediliyor...</span>
-            </div>
-            <div id="authHelpText" style="margin-top:4px; font-size:9px; color:rgba(255,255,255,0.4); text-align:center;">Tüm verileriniz bulutta güvenle saklanır.</div>
-          </div>
-        </article>
         
         <img id="heroImage" alt="Ülke Fotoğrafı" src="">
         <div class="hero-content">
@@ -1096,6 +1121,9 @@
         <label class="legend-item"><input type="checkbox" checked data-mode="bus"> <div class="legend-line bus"></div><span>🚌 Otobüs</span></label>
         <label class="legend-item"><input type="checkbox" checked data-mode="ship"> <div class="legend-line ship"></div><span>🚢 Gemi</span></label>
         <label class="legend-item"><input type="checkbox" checked data-mode="walking"> <div class="legend-line walking"></div><span>🚶 Yürüyerek</span></label>
+        <label class="legend-item" style="opacity: 0.8; color: #00e5ff; grid-column: span 2; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
+          <input type="checkbox" checked id="toggleDomestic"> <span>📍 Yurt İçi Rotalar</span>
+        </label>
       </div>
     </div>
   </div>
@@ -1193,7 +1221,8 @@
       "ge": { capital: ["Tiflis"], population: 3714000, currencies: { GEL: { name: "Lari" }}, languages: { kat: "Gürcüce" } }
     };
     const STATUS_TEXT = { visited: "Gezildi", planned: "Planlaniyor", again: "Tekrar gidilecek" };
-    const HOME_COORDS = [41.0082, 28.9784]; // İstanbul (Varsayılan Merkez)
+    let HOME_COORDS = JSON.parse(localStorage.getItem('homeCoords')) || [41.0082, 28.9784];
+    let HOME_CITY_NAME = localStorage.getItem('homeCityName') || 'İstanbul';
     let currentScreen = "home"; 
 
 
@@ -1244,6 +1273,8 @@
       tabIndicator: document.getElementById("tabIndicator"),
       tabs: document.querySelectorAll(".tab-btn"),
       deleteAllBtn: document.getElementById("deleteAllBtn"),
+      homeCityInput: document.getElementById("homeCityInput"),
+      saveHomeBtn: document.getElementById("saveHomeBtn"),
       authStateText: document.getElementById("authStateText"),
       openAuthBtn: document.getElementById("openAuthBtn"),
       logoutBtn: document.getElementById("logoutBtn"),
@@ -1479,9 +1510,9 @@
           const visitedPoints = getVisitedPoints();
           const on = isVisitedFeature(feature, visitedCodes, visitedNames) || featureContainsVisitedPoint(feature, visitedPoints);
           return {
-            fillColor: on ? "#3d8fe8" : "transparent",
-            fillOpacity: on ? 0.35 : 0,
-            color: on ? "rgba(61, 143, 232, 0.6)" : "rgba(255,255,255,0.15)",
+            fillColor: on ? "#2a75ff" : "transparent",
+            fillOpacity: on ? 0.4 : 0,
+            color: on ? "rgba(42, 117, 255, 0.7)" : "rgba(255,255,255,0.2)",
             weight: on ? 1.5 : 0.4,
             opacity: 1
           };
@@ -1547,16 +1578,32 @@
       });
       els.countryBackBtn.addEventListener("click", () => switchScreen(lastNonCountryScreen || "home"));
       els.openAddBtn.addEventListener("click", () => openAddScreen());
-      if (els.heroAuthTrigger) {
-         els.heroAuthTrigger.addEventListener("click", (e) => {
+         const toggleAuthCard = (e) => {
             e.stopPropagation();
-            els.authCard.classList.toggle("open");
-         });
-         document.addEventListener("click", () => {
+            const isOpen = els.authCard.classList.contains("open");
+            if (isOpen) els.authCard.classList.remove("open");
+            else els.authCard.classList.add("open");
+         };
+         els.heroAuthTrigger.addEventListener("click", toggleAuthCard);
+         
+         const handleGlobalClose = (e) => {
+            if (e.target.closest('#authCard') || e.target.closest('#heroAuthTrigger')) return;
             if (els.authCard) els.authCard.classList.remove("open");
-         });
-         els.authCard.addEventListener("click", (e) => e.stopPropagation());
-      }
+         };
+         document.addEventListener("click", handleGlobalClose);
+         document.addEventListener("mousedown", handleGlobalClose);
+         document.addEventListener("pointerdown", handleGlobalClose);
+
+         const preventCardClose = (e) => e.stopPropagation();
+         els.authCard.addEventListener("click", preventCardClose);
+         els.authCard.addEventListener("mousedown", preventCardClose);
+         els.authCard.addEventListener("pointerdown", preventCardClose);
+         els.authCard.addEventListener("touchstart", preventCardClose, {passive: true});
+         const settingsRow = document.getElementById("authSettingsRow");
+         if (settingsRow) {
+            settingsRow.addEventListener("click", preventCardClose);
+            settingsRow.addEventListener("mousedown", preventCardClose);
+         }
       els.cityForm.addEventListener("submit", onSave);
       els.recordsList.addEventListener("click", onRecordAction);
       els.tabs.forEach(btn => btn.addEventListener("click", () => {
@@ -1625,6 +1672,37 @@
       els.cityInput.addEventListener("blur", () => setTimeout(closeSuggestions, 120));
       els.flagsGrid.addEventListener("click", onFlagClick);
       els.photoInput.addEventListener("change", onPhotoInputChange);
+      if (els.saveHomeBtn) {
+        const stop = (e) => e.stopPropagation();
+        els.homeCityInput.addEventListener("click", stop);
+        els.homeCityInput.addEventListener("mousedown", stop);
+        els.homeCityInput.addEventListener("pointerdown", stop);
+        els.homeCityInput.addEventListener("focus", stop);
+        
+        els.saveHomeBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          const city = (els.homeCityInput.value || "").trim();
+          if (!city) return;
+          els.saveHomeBtn.textContent = "...";
+          els.saveHomeBtn.disabled = true;
+          try {
+            const res = await geocode(city, "");
+            if (res && res.lat) {
+              HOME_COORDS = [res.lat, res.lng];
+              HOME_CITY_NAME = res.city || city;
+              localStorage.setItem('homeCoords', JSON.stringify(HOME_COORDS));
+              localStorage.setItem('homeCityName', HOME_CITY_NAME);
+              showToast(`Ev konumu ${HOME_CITY_NAME} olarak ayarlandı.`);
+              renderJourneyMap();
+            }
+          } catch(e) {
+            showToast("Şehir bulunamadı.");
+          } finally {
+            els.saveHomeBtn.textContent = "Kaydet";
+            els.saveHomeBtn.disabled = false;
+          }
+        });
+      }
       els.clearPhotosBtn.addEventListener("click", () => {
         workingPhotos = [];
         els.photoInput.value = "";
@@ -1969,6 +2047,9 @@
           ? "Hesabina girerek kendi kayit alanini kullanabilirsin."
           : "Firebase baglantisi icin index.html icinde FIREBASE_CONFIG tanimla.";
       }
+      if (els.homeCityInput) {
+        els.homeCityInput.value = HOME_CITY_NAME;
+      }
       setAuthMode(authMode);
     }
 
@@ -2151,22 +2232,32 @@
     }
 
     async function reverseGeocode(lat, lng) {
-      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`;
-      const response = await fetch(url, { headers: { "Accept-Language": "tr,en", "Accept": "application/json" } });
-      if (!response.ok) throw new Error("Konum bilgisi alınamadı.");
-      const data = await response.json();
-      const a = data.address || {};
-      const city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || "";
-      const country = a.country || "";
-      const code = (a.country_code || "").toLowerCase();
-      return { city, country, countryCode: code, lat, lng };
+      // Nominatim için temiz bir sorgu
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+           if (response.status === 429) throw new Error("Çok hızlı tıkladınız, lütfen bir saniye bekleyin.");
+           throw new Error("Servis şu an yanıt vermiyor.");
+        }
+        const data = await response.json();
+        if (data.error) throw new Error("Bu konumda bir yerleşim yeri bulunamadı.");
+        
+        const a = data.address || {};
+        const city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || a.province || a.state || "";
+        const country = a.country || "";
+        const code = (a.country_code || "").toLowerCase();
+        
+        return { city, country, countryCode: code, lat, lng };
+      } catch (e) {
+        throw e;
+      }
     }
 
     async function onExploreMapClick(e) {
-      if (isFriendView) return; // Arkadaş modunda pinleme kapalı
+      if (isFriendView) return; 
       const { lat, lng } = e.latlng;
       
-      // Harita üzerinde geçici bir "yükleniyor" işareti gösterilebilir
       const tempMarker = L.marker([lat, lng], { 
         icon: L.divIcon({ className: 'quick-pin-loading', html: '📍...' }) 
       }).addTo(exploreMap);
@@ -2174,12 +2265,12 @@
       try {
         const info = await reverseGeocode(lat, lng);
         if (!info.city || !info.country) {
-          alert("Bu noktada net bir şehir/ülke bilgisi bulunamadı. Lütfen karaya tıklayın.");
+          alert("Bu noktada net bir şehir/ülke bilgisi bulunamadı. Lütfen karaya veya bir yerleşim yerine tıklayın.");
           return;
         }
         
         selectedCitySuggestion = info;
-        openRecordModal();
+        openAddScreen();
         
         els.cityInput.value = info.city;
         els.countryInput.value = info.country;
@@ -2188,7 +2279,7 @@
         els.manualCoordsToggle.checked = true;
         
       } catch (err) {
-        alert("Konum çözülürken bir hata oluştu.");
+        alert("Konum Hatası: " + err.message);
       } finally {
         exploreMap.removeLayer(tempMarker);
       }
@@ -2429,14 +2520,20 @@
       if (!worldGeoJson) return;
       const visitedCodes = getVisitedCodesUpper();
       const visitedNames = getVisitedCountryNamesLower();
+      const visitedPoints = getVisitedPoints();
 
       if (exploreWorldLayer) exploreMap.removeLayer(exploreWorldLayer);
       exploreWorldLayer = L.geoJSON(worldGeoJson, {
         pane: "exploreCountryPane",
         style: f => {
-          const code = getFeatureCode(f);
-          const on = isVisitedFeature(f, visitedCodes, visitedNames);
-          return { fillColor: on ? "#d92f2f" : colorByCountryCode(code), fillOpacity: on ? 0.86 : 0.52, color: "#233244", weight: 0.65, opacity: 0.95 };
+          const on = isVisitedFeature(f, visitedCodes, visitedNames) || featureContainsVisitedPoint(f, visitedPoints);
+          return { 
+            fillColor: on ? "#2a75ff" : "transparent", 
+            fillOpacity: on ? 0.35 : 0, 
+            color: on ? "rgba(42, 117, 255, 0.6)" : "rgba(255,255,255,0.15)", 
+            weight: on ? 1.5 : 0.4, 
+            opacity: 1 
+          };
         }
       }).addTo(exploreMap);
     }
@@ -3290,7 +3387,13 @@
 
       switch (sortBy) {
         case "oldest":
-          list.sort((a, b) => (a.date || a.createdAt).localeCompare(b.date || b.createdAt));
+          list.sort((a, b) => {
+            if (!a.date && b.date) return 1;
+            if (a.date && !b.date) return -1;
+            const da = a.date || a.createdAt || "";
+            const db = b.date || b.createdAt || "";
+            return da.localeCompare(db);
+          });
           break;
         case "expensive":
           list.sort((a, b) => (b.budget || 0) - (a.budget || 0));
@@ -3303,7 +3406,13 @@
           break;
         case "newest":
         default:
-          list.sort((a, b) => (b.date || b.createdAt).localeCompare(a.date || a.createdAt));
+          list.sort((a, b) => {
+            if (!a.date && b.date) return 1;
+            if (a.date && !b.date) return -1;
+            const da = a.date || a.createdAt || "";
+            const db = b.date || b.createdAt || "";
+            return db.localeCompare(da);
+          });
       }
       return list;
     }
@@ -3502,6 +3611,15 @@
 
         if (!finalCountry && !els.manualCoordsToggle.checked) throw new Error("Ülke bilgisi bulunamadı.");
 
+        // Manuel Girişler için Akıllı Ülke Kodu Düzeltme (Gruplandırma Sorununu Çözer)
+        if (!finalCountryCode && finalCountry) {
+          const c = finalCountry.toLowerCase();
+          if (c === "türkiye" || c === "turkey") finalCountryCode = "tr";
+          else if (c === "almanya" || c === "germany") finalCountryCode = "de";
+          else if (c === "fransa" || c === "france") finalCountryCode = "fr";
+          else if (c === "italya" || c === "italy") finalCountryCode = "it";
+        }
+
         const payload = {
           city: finalCity,
           country: finalCountry || country,
@@ -3649,7 +3767,9 @@
 
       // Populate Arrival From dropdown (Rota Bağlantısı)
       const others = Array.isArray(records) ? records.filter(r => r.id !== editId) : [];
-      let optionsHtml = '<option value="">Direct / Hub (Yeni Başlangıç)</option>';
+      let optionsHtml = `<option value="_home">🏠 Evim (${esc(HOME_CITY_NAME)})</option>`;
+      optionsHtml += '<option value="">📍 Bağlantısız (Sadece Pin)</option>';
+      
       if (others.length > 0) {
         optionsHtml += others.map(r => `<option value="${r.id}">${esc(r.city)}, ${esc(r.country)}</option>`).join("");
       }
@@ -3659,6 +3779,8 @@
         const item = records.find(r => r.id === editId);
         els.arrivalFromInput.value = item.arrivalFrom || "";
         els.transportModeInput.value = item.transportMode || "flight";
+      } else {
+        els.arrivalFromInput.value = "_home"; // Default to Home
       }
 
       const mode = els.transportModeInput.value;
@@ -5361,6 +5483,9 @@
         document.body.classList.add('modal-open');
         setTimeout(() => {
           renderJourneyMap();
+          if (els.journeyMap) {
+            els.journeyMap.invalidateSize();
+          }
         }, 300);
       });
       if (els.closeJourneyMapBtn) els.closeJourneyMapBtn.addEventListener('click', () => {
@@ -5402,59 +5527,124 @@
     }
 
     function renderJourneyMap() {
-      if (!els.journeyMap) {
-        els.journeyMap = L.map('journeyMapContainer', { zoomControl: false, attributionControl: false }).setView([20, 0], 2);
+      const isNew = !els.journeyMap;
+      if (isNew) {
+        els.journeyMap = L.map('journeyMapContainer', { 
+          zoomControl: true, 
+          attributionControl: false,
+          scrollWheelZoom: true,
+          dragging: true,
+          touchZoom: true,
+          doubleClickZoom: true,
+          boxZoom: true
+        }).setView([20, 0], 2);
+        
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
           attribution: '&copy; OpenStreetMap &copy; CARTO'
         }).addTo(els.journeyMap);
+        
         els.journeyPathLayer = L.layerGroup().addTo(els.journeyMap);
+        
+        els.journeyMap.on('zoomend', () => {
+          renderJourneyMapLines(false); // Zoom sonrası tekrar sığdırma YAPMA
+        });
       }
       
+      els.journeyMap.scrollWheelZoom.enable();
+      els.journeyMap.dragging.enable();
+      
+      renderJourneyMapLines(isNew); // Sadece ilk açılışta sığdır
+    }
+
+    function renderJourneyMapLines(shouldFit = false) {
+      if (!els.journeyMap || !els.journeyPathLayer) return;
       els.journeyPathLayer.clearLayers();
+      
       const activeModes = new Set();
-      document.querySelectorAll('.map-legend input:checked').forEach(input => {
+      document.querySelectorAll('.map-legend input[data-mode]:checked').forEach(input => {
         activeModes.add(input.dataset.mode);
       });
+      
+      const domesticInput = document.getElementById('toggleDomestic');
+      const showDomestic = domesticInput ? domesticInput.checked : true;
+      const currentZoom = els.journeyMap.getZoom();
       
       const recordMap = new Map(records.map(r => [r.id, r]));
       const pts = [];
       
       records.forEach(target => {
         if (!activeModes.has(target.transportMode)) return;
-        let start;
-        if (!target.arrivalFrom) {
-          start = HOME_COORDS;
-        } else {
-          const source = recordMap.get(target.arrivalFrom);
-          if (!source) return;
-          start = [source.lat, source.lng];
+        
+        let start = null;
+        let isDomestic = false;
+        
+        if (target.arrivalFrom) {
+          if (target.arrivalFrom === "_home") {
+            start = HOME_COORDS;
+            if (target.countryCode === 'tr') isDomestic = true;
+          } else {
+            const source = recordMap.get(target.arrivalFrom);
+            if (source) {
+              start = [source.lat, source.lng];
+              if (source.countryCode === 'tr' && target.countryCode === 'tr') isDomestic = true;
+            }
+          }
         }
-        const end = [target.lat, target.lng];
-        pts.push(start, end);
 
-        if (target.transportMode === "flight") {
-          const curvePath = L.curve(['M', start, 'Q', [ (start[0]+end[0])/2 + 4, (start[1]+end[1])/2 ], end], { 
-            color: '#00e5ff', weight: 2.5, opacity: 0.8, fill: false
-          });
-          curvePath.addTo(els.journeyPathLayer);
-        } else {
-          const colors = { 
-            car: '#ff007f',      // Neon Pembe
-            train: '#7000ff',    // Neon Mor
-            bus: '#39ff14',      // Neon Yeşil
-            ship: '#00e5ff',     // Neon Mavi
-            walking: '#fff'      // Beyaz
-          };
-          L.polyline([start, end], { 
-            color: colors[target.transportMode] || '#6b7a8a', 
-            weight: 2, 
-            opacity: 0.7 
-          }).addTo(els.journeyPathLayer);
+        if (isDomestic && !showDomestic) return;
+        
+        const end = [target.lat, target.lng];
+        if (start) pts.push(start);
+        pts.push(end);
+
+        let lineOpacity = 0.7;
+        let dotOpacity = 1;
+        if (isDomestic && currentZoom < 5) {
+          lineOpacity = 0.08;
+          dotOpacity = 0.2;
         }
+
+        if (start) {
+          if (target.transportMode === "flight") {
+            const curvePath = L.curve(['M', start, 'Q', [ (start[0]+end[0])/2 + 4, (start[1]+end[1])/2 ], end], { 
+              color: '#00e5ff', weight: 2.5, opacity: lineOpacity, fill: false
+            });
+            curvePath.addTo(els.journeyPathLayer);
+          } else {
+            const colors = { 
+              car: '#ff007f', train: '#7000ff', bus: '#39ff14', ship: '#00e5ff', walking: '#fff'
+            };
+            L.polyline([start, end], { 
+              color: colors[target.transportMode] || '#6b7a8a', 
+              weight: 2, 
+              opacity: lineOpacity 
+            }).addTo(els.journeyPathLayer);
+          }
+        }
+        
+        const dotColor = (target.transportMode === 'flight' ? '#00e5ff' : ({ car:'#ff007f', train:'#7000ff', bus:'#39ff14', walking:'#ffffff' }[target.transportMode] || '#00e5ff'));
+        L.marker(end, {
+          icon: L.divIcon({
+            className: 'journey-dot-wrap',
+            html: `<div class="journey-dot" style="color: ${dotColor}; opacity: ${dotOpacity};"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          })
+        }).addTo(els.journeyPathLayer);
       });
       
-      if (pts.length > 0) {
-        els.journeyMap.fitBounds(L.latLngBounds(pts), { padding: [30, 30] });
+      // Ev (Home) Noktası
+      L.marker(HOME_COORDS, {
+        icon: L.divIcon({
+          className: 'journey-dot-wrap',
+          html: `<div class="journey-dot" style="color: #fff; width:12px; height:12px; box-shadow: 0 0 15px #fff, 0 0 30px #fff;"></div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        })
+      }).addTo(els.journeyPathLayer).bindTooltip("Evim", { direction: 'top' });
+
+      if (shouldFit && pts.length > 0) {
+        els.journeyMap.fitBounds(L.latLngBounds(pts), { padding: [50, 50] });
       }
     }
 
