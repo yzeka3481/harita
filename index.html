@@ -598,6 +598,8 @@
     .legend-line.walking{background:#fff; box-shadow:0 0 8px #fff}
 
 
+    .quick-pin-loading{background:var(--primary); color:#fff; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:800; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,0.3); border:2px solid #fff; animation: quickPulse 1.5s infinite}
+    @keyframes quickPulse{ 0%{transform:scale(1); opacity:1} 50%{transform:scale(1.1); opacity:0.8} 100%{transform:scale(1); opacity:1} }
   </style>
 
 
@@ -1465,6 +1467,9 @@
         className: 'relief-tiles'
       }).addTo(exploreMap);
 
+      // HARİTAYA TIKLA-PİNLE ÖZELLİĞİ
+      exploreMap.on("click", onExploreMapClick);
+
       // 3. ORTA: Ülkeler ve Rotalar
       exploreWorldLayer = L.geoJSON(null, {
         pane: "exploreCountryPane",
@@ -2143,6 +2148,50 @@
     function closeSuggestions() {
       els.citySuggestions.classList.remove("open");
       els.citySuggestions.innerHTML = "";
+    }
+
+    async function reverseGeocode(lat, lng) {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`;
+      const response = await fetch(url, { headers: { "Accept-Language": "tr,en", "Accept": "application/json" } });
+      if (!response.ok) throw new Error("Konum bilgisi alınamadı.");
+      const data = await response.json();
+      const a = data.address || {};
+      const city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || "";
+      const country = a.country || "";
+      const code = (a.country_code || "").toLowerCase();
+      return { city, country, countryCode: code, lat, lng };
+    }
+
+    async function onExploreMapClick(e) {
+      if (isFriendView) return; // Arkadaş modunda pinleme kapalı
+      const { lat, lng } = e.latlng;
+      
+      // Harita üzerinde geçici bir "yükleniyor" işareti gösterilebilir
+      const tempMarker = L.marker([lat, lng], { 
+        icon: L.divIcon({ className: 'quick-pin-loading', html: '📍...' }) 
+      }).addTo(exploreMap);
+
+      try {
+        const info = await reverseGeocode(lat, lng);
+        if (!info.city || !info.country) {
+          alert("Bu noktada net bir şehir/ülke bilgisi bulunamadı. Lütfen karaya tıklayın.");
+          return;
+        }
+        
+        selectedCitySuggestion = info;
+        openRecordModal();
+        
+        els.cityInput.value = info.city;
+        els.countryInput.value = info.country;
+        els.latInput.value = lat.toFixed(6);
+        els.lngInput.value = lng.toFixed(6);
+        els.manualCoordsToggle.checked = true;
+        
+      } catch (err) {
+        alert("Konum çözülürken bir hata oluştu.");
+      } finally {
+        exploreMap.removeLayer(tempMarker);
+      }
     }
 
     async function onPhotoInputChange(event) {
