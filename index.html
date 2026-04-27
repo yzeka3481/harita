@@ -2223,35 +2223,47 @@
 
     async function onGoogleSignIn() {
       if (!firebaseReady || !firebaseAuth) {
-        alert("Firebase hazir degil. FIREBASE_CONFIG eklenmeli.");
+        alert("Firebase henüz hazır değil veya yapılandırılmamış.");
         return;
       }
+      
       const provider = new firebase.auth.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
-      els.authGoogleBtn.disabled = true;
+      
+      const btn = els.authGoogleBtn;
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Bağlanıyor...";
+      
       const ua = String((navigator && navigator.userAgent) || "").toLowerCase();
-      const looksMobile = /android|iphone|ipad|ipod|mobile/.test(ua) || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+      const isMobile = /android|iphone|ipad|ipod|mobile/.test(ua);
+      
       try {
-        if (looksMobile) {
+        // Mobilde veya bazı gömülü tarayıcılarda doğrudan redirect daha güvenlidir
+        if (isMobile || ua.includes("instagram") || ua.includes("fbav")) {
           await firebaseAuth.signInWithRedirect(provider);
           return;
         }
+        
         await firebaseAuth.signInWithPopup(provider);
         closeAuthModal();
       } catch (error) {
         const code = error && error.code ? String(error.code) : "";
-        if (code.includes("popup-blocked") || code.includes("popup-closed-by-user") || code.includes("operation-not-supported-in-this-environment") || code.includes("cancelled-popup-request")) {
+        console.error("Google Auth Error:", error);
+        
+        // Popup engellendiyse veya desteklenmiyorsa redirect'e zorla
+        if (code.includes("popup-blocked") || code.includes("operation-not-supported") || code.includes("cancelled-popup-request")) {
           try {
             await firebaseAuth.signInWithRedirect(provider);
-            return;
           } catch (err2) {
             alert(mapAuthError(err2));
-            return;
           }
+        } else {
+          alert(mapAuthError(error));
         }
-        alert(mapAuthError(error));
       } finally {
-        els.authGoogleBtn.disabled = false;
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
     }
 
@@ -3319,8 +3331,25 @@
     function mergeCloudWithLocalPhotos(cloudList, localList) {
       const cloud = normalizeRecordsArray(cloudList);
       const local = normalizeRecordsArray(localList);
+      const cloudIds = new Set(cloud.map(item => item.id));
       const localById = new Map(local.map(item => [item.id, item]));
-      return cloud.map(item => {
+      
+      const mergedResult = [...cloud];
+      
+      // Safety: If cloud snapshot is missing some local items, keep them if they were mutated recently.
+      // This prevents "flicker/disappear" bug during new account imports.
+      const now = Date.now();
+      const recentlyMutated = (now - lastLocalMutationAt < 90000); // 1.5 minutes
+      
+      if (recentlyMutated) {
+        local.forEach(lItem => {
+          if (!cloudIds.has(lItem.id)) {
+            mergedResult.push(lItem);
+          }
+        });
+      }
+
+      return mergedResult.map(item => {
         const localItem = localById.get(item.id);
         const cloudPhotos = normalizePhotos(item.photos);
         const localPhotos = localItem ? normalizePhotos(localItem.photos) : [];
@@ -3490,14 +3519,28 @@
 
     async function persistCloudRecords() {
       if (!firebaseDb || !currentUser || isFriendView) return;
+      cloudSyncBusy = true;
       try {
-        const batch = firebaseDb.batch();
-        userOwnRecords.forEach(r => {
-          const ref = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(r.id);
-          batch.set(ref, toCloudRecord(r));
-        });
-        await batch.commit();
-      } catch (err) { console.warn("Cloud save error:", err); }
+        // Larger imports (e.g. 60+ cities) are split into chunks to avoid Firestore payload/time limits
+        const CHUNK_SIZE = 15;
+        const recordsToSync = [...userOwnRecords];
+        for (let i = 0; i < recordsToSync.length; i += CHUNK_SIZE) {
+          const chunk = recordsToSync.slice(i, i + CHUNK_SIZE);
+          const batch = firebaseDb.batch();
+          chunk.forEach(r => {
+            const ref = firebaseDb.collection("users").doc(currentUser.uid).collection("records").doc(r.id);
+            batch.set(ref, toCloudRecord(r));
+          });
+          await batch.commit();
+        }
+        cloudSyncStatus = "Bulut esitlendi.";
+      } catch (err) { 
+        console.warn("Cloud save error:", err);
+        cloudSyncStatus = "Senkronizasyon hatası.";
+      } finally {
+        cloudSyncBusy = false;
+        renderAuthPanel();
+      }
     }
 
     async function persistSingleRecordToCloud(record) {
@@ -3690,9 +3733,17 @@
         }).filter(item => item.city && item.country && Number.isFinite(item.lat) && Number.isFinite(item.lng));
 
         if (!normalized.length) throw new Error("Gecerli kayit yok.");
+        
+        lastLocalMutationAt = Date.now();
+        cloudSyncBusy = true;
+        
         records = normalized.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         userOwnRecords = [...records];
+        
+        showToast("Veriler içe aktarılıyor (60+ şehir)...");
         await saveRecords({ syncNow: true });
+        
+        cloudSyncBusy = false;
         renderAll();
         alert("JSON ice aktarma tamamlandi: " + records.length + " kayit.");
       } catch (error) {
@@ -3818,6 +3869,7 @@
         } else {
            userOwnRecords.unshift({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...payload });
         }
+        lastLocalMutationAt = Date.now();
         
         if (!isFriendView) records = [...userOwnRecords];
         saveRecords(); 
@@ -3889,6 +3941,7 @@
           if (r.arrivalFrom === id) r.arrivalFrom = "";
         });
         if (!isFriendView) records = [...userOwnRecords];
+        lastLocalMutationAt = Date.now();
         saveRecords();
         deleteCloudRecordImmediately(id); // Background
       }
