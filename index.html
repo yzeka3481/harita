@@ -2029,6 +2029,7 @@
         }
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
         firebaseAuth = firebase.auth();
+        firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         firebaseDb = (firebase.firestore && typeof firebase.firestore === "function") ? firebase.firestore() : null;
         firebaseReady = true;
         firebaseAuth.onAuthStateChanged(user => {
@@ -2108,10 +2109,19 @@
         });
         firebaseAuth.getRedirectResult()
           .then(result => {
-            if (result && result.user) closeAuthModal();
+            if (result && result.user) {
+               console.log("Redirect login success:", result.user.email);
+               closeAuthModal();
+               showToast("Giriş yapıldı: " + (result.user.displayName || result.user.email));
+            }
           })
           .catch(error => {
-            console.warn("Redirect sonucu alinamadi:", error);
+            console.error("Redirect login error:", error);
+            const authErr = mapAuthError(error);
+            // Don't alert if it's just a generic "no result" or similar, but alert for real errors
+            if (error.code && error.code !== 'auth/no-auth-event') {
+               alert("Giriş Hatası: " + authErr);
+            }
           });
       } catch (error) {
         console.warn("Firebase baslatilamadi:", error);
@@ -2240,33 +2250,40 @@
       
       const ua = String((navigator && navigator.userAgent) || "").toLowerCase();
       const isMobile = /android|iphone|ipad|ipod|mobile/.test(ua);
+      const isInApp = ua.includes("instagram") || ua.includes("fbav") || ua.includes("messenger") || ua.includes("threads");
       
       try {
-        // Mobilde veya bazı gömülü tarayıcılarda doğrudan redirect daha güvenlidir
-        if (isMobile || ua.includes("instagram") || ua.includes("fbav")) {
+        // In-App browserlarda (Instagram, Facebook vb.) popup kesinlikle çalışmaz, doğrudan redirect
+        if (isInApp) {
           await firebaseAuth.signInWithRedirect(provider);
           return;
         }
-        
-        await firebaseAuth.signInWithPopup(provider);
-        closeAuthModal();
-      } catch (error) {
-        const code = error && error.code ? String(error.code) : "";
-        console.error("Google Auth Error:", error);
-        
-        // Popup engellendiyse veya desteklenmiyorsa redirect'e zorla
-        if (code.includes("popup-blocked") || code.includes("operation-not-supported") || code.includes("cancelled-popup-request")) {
-          try {
+
+        // Modern mobil tarayıcılar (Chrome, Safari) artık popup'ı destekliyor ve daha güvenilir
+        // Önce popup deneyelim, başarısız olursa redirect'e düşeriz
+        try {
+          await firebaseAuth.signInWithPopup(provider);
+          closeAuthModal();
+        } catch (popupError) {
+          console.warn("Popup login failed, trying redirect:", popupError);
+          const code = popupError && popupError.code ? String(popupError.code) : "";
+          
+          // Popup engellendiyse veya desteklenmiyorsa redirect'e geç
+          if (code.includes("popup-blocked") || code.includes("operation-not-supported") || code.includes("cancelled-popup-request")) {
             await firebaseAuth.signInWithRedirect(provider);
-          } catch (err2) {
-            alert(mapAuthError(err2));
+          } else {
+            throw popupError;
           }
-        } else {
-          alert(mapAuthError(error));
         }
+      } catch (error) {
+        console.error("Google Auth Error:", error);
+        alert(mapAuthError(error));
       } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
+        // Redirect durumunda sayfa yenileneceği için buton durumunu sadece popup durumunda eski haline getiriyoruz
+        if (!isInApp) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
       }
     }
 
