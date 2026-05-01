@@ -805,7 +805,7 @@
               <div id="citySuggestions" class="suggestions"></div>
             </div>
             <div>
-              <input id="countryInput" type="text" placeholder="Ülke (otomatik)" readonly>
+              <input id="countryInput" type="text" placeholder="Ülke (Seçiniz)">
             </div>
           </div>
           <div style="margin: -8px 0 16px; padding: 0 4px;">
@@ -813,14 +813,17 @@
               <input type="checkbox" id="manualCoordsToggle" style="width:14px; height:14px;"> <span>📍 Manuel Koordinat Gir (Aramada çıkmıyorsa)</span>
             </label>
           </div>
-          <div id="manualCoordsFields" class="row2" style="display:none; margin-bottom:16px; background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+          <div id="manualCoordsFields" class="row2" style="display:none; margin-bottom:16px; background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); align-items: flex-end;">
             <div>
               <label class="field-label">Enlem (Latitude)</label>
-              <input id="latInput" type="number" step="any" placeholder="Ör: 41.0082">
+              <input id="latInput" type="text" placeholder="Ör: 41.0082">
             </div>
             <div>
               <label class="field-label">Boylam (Longitude)</label>
-              <input id="lngInput" type="number" step="any" placeholder="Ör: 28.9784">
+              <input id="lngInput" type="text" placeholder="Ör: 28.9784">
+            </div>
+            <div style="grid-column: span 2; margin-top: 4px;">
+              <button id="findCityFromCoordsBtn" type="button" style="width:100%; background:rgba(97,176,255,0.1); border:1px solid rgba(97,176,255,0.3); color:var(--primary); padding:8px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer;">🌍 Koordinatlardan Şehri Bul</button>
             </div>
           </div>
           <div class="row2">
@@ -1462,6 +1465,7 @@
       mainNav: document.querySelector(".tabs"),
       optimizeStorageBtn: document.getElementById("optimizeStorageBtn"),
       hardResetBtn: document.getElementById("hardResetBtn"),
+      findCityFromCoordsBtn: document.getElementById("findCityFromCoordsBtn"),
       travelPathLayer: null
     };
 
@@ -2301,7 +2305,7 @@
     }
 
     async function searchCitySuggestions(query) {
-      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=7&q=" + encodeURIComponent(query);
+      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&limit=7&accept-language=tr,en&q=" + encodeURIComponent(query);
       const response = await fetch(url, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error("Sehir aramasi basarisiz.");
       const data = await response.json();
@@ -2360,7 +2364,7 @@
 
     async function reverseGeocode(lat, lng) {
       // Nominatim için temiz bir sorgu
-      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1&namedetails=1&accept-language=tr,en`;
       try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -2371,9 +2375,25 @@
         if (data.error) throw new Error("Bu konumda bir yerleşim yeri bulunamadı.");
         
         const a = data.address || {};
-        const city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || a.province || a.state || "";
+        let city = a.city || a.town || a.village || a.municipality || a.suburb || a.city_district || a.province || a.state || "";
         const country = a.country || "";
         const code = (a.country_code || "").toLowerCase();
+
+        // Arkaik isim düzeltme (OSM'nin bazı Türkçe karşılıkları çok eski)
+        const archaicMap = {
+          "işbiliye": "Sevilla",
+          "gırnata": "Granada",
+          "kurtuba": "Cordoba",
+          "lebe": "Huelva",
+          "belme": "Palma"
+        };
+        const lowerCity = city.toLowerCase();
+        if (archaicMap[lowerCity]) {
+          city = archaicMap[lowerCity];
+        } else if (data.namedetails && data.namedetails.name && /^[A-Z]/.test(data.namedetails.name)) {
+          // Eğer şehir ismi çok garipse ve namedetails'te Latin karakterli bir isim varsa onu dene
+          if (lowerCity.includes("işbiliye")) city = "Sevilla"; 
+        }
         
         return { city, country, countryCode: code, lat, lng };
       } catch (e) {
@@ -3813,7 +3833,16 @@
         if (els.manualCoordsToggle.checked && els.latInput.value && els.lngInput.value) {
           finalLat = Number(els.latInput.value);
           finalLng = Number(els.lngInput.value);
-          finalCountryCode = old ? old.countryCode : "";
+          
+          // Eğer koordinatlar son seçilen öneri ile eşleşiyorsa ülke kodunu koru
+          if (selectedCitySuggestion && 
+              Math.abs(selectedCitySuggestion.lat - finalLat) < 0.0001 && 
+              Math.abs(selectedCitySuggestion.lng - finalLng) < 0.0001) {
+            finalCountryCode = selectedCitySuggestion.countryCode;
+          } else {
+            finalCountryCode = old ? old.countryCode : "";
+          }
+          
           finalCity = city;
           finalCountry = country;
         } else if (selectedCitySuggestion) {
@@ -3854,6 +3883,16 @@
 
         if (!finalCountry && !els.manualCoordsToggle.checked) throw new Error("Ülke bilgisi bulunamadı.");
 
+        // Manuel Girişler için Ülke Kodu Çözümleme
+        if (!finalCountryCode && finalCountry) {
+          const lowerC = finalCountry.toLowerCase();
+          // Önce mevcut kayıtlarda bu ülke adı var mı bak (Tutarlılık için)
+          const existing = records.find(r => r.country && r.country.toLowerCase() === lowerC && r.countryCode);
+          if (existing) {
+             finalCountryCode = existing.countryCode;
+          }
+        }
+
         // Manuel Girişler için Akıllı Ülke Kodu Düzeltme (Gruplandırma Sorununu Çözer)
         if (!finalCountryCode && finalCountry) {
           const c = finalCountry.toLowerCase();
@@ -3861,6 +3900,11 @@
           else if (c === "almanya" || c === "germany") finalCountryCode = "de";
           else if (c === "fransa" || c === "france") finalCountryCode = "fr";
           else if (c === "italya" || c === "italy") finalCountryCode = "it";
+          else if (c === "ispanya" || c === "spain") finalCountryCode = "es";
+          else if (c === "yunanistan" || c === "greece") finalCountryCode = "gr";
+          else if (c === "ingiltere" || c === "united kingdom" || c === "uk") finalCountryCode = "gb";
+          else if (c === "abd" || c === "usa" || c === "united states") finalCountryCode = "us";
+          else if (c === "rusya" || c === "russia") finalCountryCode = "ru";
         }
 
         const payload = {
@@ -5816,6 +5860,50 @@
       document.querySelectorAll('.map-legend input').forEach(input => {
         input.addEventListener('change', () => renderJourneyMapLines(false));
       });
+      if (els.findCityFromCoordsBtn) {
+        els.findCityFromCoordsBtn.addEventListener('click', async () => {
+          let latVal = String(els.latInput.value || "").trim().replace(',', '.');
+          let lngVal = String(els.lngInput.value || "").trim().replace(',', '.');
+
+          // Akıllı Yapıştırma: Eğer enlem alanına "37.38, -5.98" gibi her iki değer de girildiyse ayır
+          if (latVal.includes(' ') || latVal.includes(';') || (latVal.includes('.') && latVal.split('.').length > 2) || (latVal.includes(',') && !latVal.includes('.'))) {
+             const parts = latVal.split(/[\s,;]+/).filter(Boolean);
+             if (parts.length >= 2) {
+                latVal = parts[0];
+                lngVal = parts[1];
+                els.latInput.value = latVal;
+                els.lngInput.value = lngVal;
+             }
+          }
+
+          const lat = parseFloat(latVal);
+          const lng = parseFloat(lngVal);
+
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            alert("Lütfen geçerli enlem ve boylam değerleri girin (Nokta kullanın).");
+            return;
+          }
+          const originalText = els.findCityFromCoordsBtn.textContent;
+          els.findCityFromCoordsBtn.disabled = true;
+          els.findCityFromCoordsBtn.textContent = "Aranıyor...";
+          try {
+            const info = await reverseGeocode(lat, lng);
+            if (info && info.city) {
+              els.cityInput.value = info.city;
+              els.countryInput.value = info.country;
+              selectedCitySuggestion = info;
+              showToast(`${info.city}, ${info.country} bulundu.`);
+            } else {
+              alert("Bu koordinatlarda bir yerleşim yeri bulunamadı.");
+            }
+          } catch (e) {
+            alert("Hata: " + e.message);
+          } finally {
+            els.findCityFromCoordsBtn.disabled = false;
+            els.findCityFromCoordsBtn.textContent = originalText;
+          }
+        });
+      }
     }
 
     function openBadgeDetail(id, unlocked) {
