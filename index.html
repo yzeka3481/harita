@@ -5154,11 +5154,16 @@
     }
 
     function normalizePhotos(value) {
-      if (!Array.isArray(value)) return [];
-      return value
+      let arr = [];
+      if (Array.isArray(value)) arr = value;
+      else if (typeof value === 'string' && value.startsWith('[')) {
+        try { arr = JSON.parse(value); } catch(e) { arr = []; }
+      }
+      if (!Array.isArray(arr)) return [];
+      return arr
         .map(v => String(v || "").trim())
         .filter(v => v.startsWith("data:image/") || v.startsWith("http://") || v.startsWith("https://"))
-        .slice(0, 8);
+        .slice(0, 20);
     }
 
     function isQuotaExceededError(error) {
@@ -5460,7 +5465,7 @@
       const countries = new Set(travelled.map(r => r.country).filter(Boolean));
       const cities = new Set(travelled.map(r => r.city).filter(Boolean));
       const totalKm = calculateRouteKm(travelled);
-      const totalPhotos = travelled.reduce((acc, r) => acc + (r.photos ? r.photos.length : 0), 0);
+      const totalPhotos = records.reduce((acc, r) => acc + (r.photos ? r.photos.length : 0), 0);
       const highRatedFood = travelled.filter(r => r.ratingFood === 5).length;
 
       const badges = [
