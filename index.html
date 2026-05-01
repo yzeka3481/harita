@@ -2658,6 +2658,7 @@
         worldGeoJson = await response.json();
         renderWorldLayers();
         renderHomeGlobe();
+        renderExplorePins();
       } catch (error) {
         console.warn("Dunya katmani yuklenemedi:", error);
       }
@@ -2756,10 +2757,12 @@
           renderTimeline();
         } else if (name === "summary") {
           renderSummaryDashboard();
+          renderExplorerInsights();
+          renderAchievements();
         } else if (name === "map") {
           renderExplorePins();
         }
-      }, 90);
+      }, 300);
     }
 
     async function syncUserProfile() {
@@ -4602,6 +4605,8 @@
       els.storyPreviewWrap.hidden = true;
       els.storyPreviewImg.removeAttribute("src");
       renderTimeline();
+      renderExplorerInsights();
+      renderAchievements();
     }
 
     function ensureSummaryYearOptions() {
@@ -4945,7 +4950,9 @@
       const activeRecs = isFriendView ? (currentFriendData ? currentFriendData.records : []) : records;
       
       activeRecs.forEach(item => {
-        if (item.status === 'planned') return;
+        if (!item || item.status === 'planned') return;
+        if (!Number.isFinite(item.lat) || !Number.isFinite(item.lng)) return;
+        
         const code = item.countryCode && item.countryCode.length === 2 ? item.countryCode : "xx";
         const icon = L.divIcon({ 
             className: "flag-pin-wrap", 
@@ -5502,7 +5509,7 @@
       const countries = new Set(travelled.map(r => r.country).filter(Boolean));
       const cities = new Set(travelled.map(r => r.city).filter(Boolean));
       const totalKm = calculateRouteKm(travelled);
-      const totalPhotos = travelled.reduce((acc, r) => acc + (r.photos ? r.photos.length : 0), 0);
+      const totalPhotos = records.reduce((acc, r) => acc + (r.photos ? r.photos.length : 0), 0);
       const highRatedFood = travelled.filter(r => r.ratingFood === 5).length;
 
       const badges = [
