@@ -4281,7 +4281,7 @@
     }
 
     function renderRecent() {
-      recentItems = records.filter(item => isTravelled(item.status))
+      recentItems = records.filter(item => isTravelled(item.status) && item.date)
         .sort((a, b) => getRecordTime(b) - getRecordTime(a))
         .slice(0, 3);
       if (!recentItems.length) {
@@ -4572,14 +4572,16 @@
       const current = new Date().getFullYear();
       const years = new Set([current]);
       records.forEach(item => {
-        const y = getRecordYear(item);
-        if (y >= 1970) years.add(y);
+        if (item.date) {
+          const y = getRecordYear(item);
+          if (y >= 1970) years.add(y);
+        }
       });
       return [...years].sort((a, b) => b - a);
     }
 
     function getSummaryStats(year) {
-      const travelled = records.filter(item => isTravelled(item.status));
+      const travelled = records.filter(item => isTravelled(item.status) && item.date);
       const yearTrips = travelled
         .filter(item => getRecordYear(item) === year)
         .sort((a, b) => getRecordTime(a) - getRecordTime(b));
