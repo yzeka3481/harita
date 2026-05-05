@@ -176,7 +176,31 @@
     .country-count{font-size:10px;font-weight:700;border-radius:999px;padding:2px 9px;background:rgba(97,176,255,0.14);color:#9ecbff;border:1px solid rgba(97,176,255,0.22)}
     .country-caret{font-size:12px;transition:transform .22s ease;color:#7aaddf;flex-shrink:0;opacity:.8}
     .country-group.open .country-caret{transform:rotate(180deg)}
-    .country-rows{display:grid;gap:8px;padding:0 10px 10px}
+    .country-rows{display:grid;gap:12px;padding:0 0 10px}
+    .country-rows.is-reel {
+      display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding: 10px 14px 24px;
+      margin: 0 -14px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .country-rows.is-reel::-webkit-scrollbar { display: none; }
+    .country-rows.is-reel .item {
+      flex: 0 0 280px;
+      scroll-snap-align: start;
+      margin-bottom: 0;
+      margin-left: 0;
+    }
+    .country-rows.is-reel .item:first-child { margin-left: 0; }
+    .country-rows.is-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 4px 0 20px;
+    }
     .country-rows[hidden]{display:none !important}
     .empty{border:none;border-radius:16px;text-align:center;color:var(--muted);padding:24px 16px;font-size:13px;background:var(--glass-bg);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;gap:10px}
     .empty-svg{width:72px;height:72px;opacity:.75}
@@ -216,7 +240,7 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       padding: 14px;
-      margin-bottom: 10px;
+      margin-bottom: 0;
       box-shadow: 0 10px 32px rgba(0,0,0,0.25);
       transition: transform 0.3s ease, border-color 0.3s ease;
     }
@@ -4542,7 +4566,7 @@
               "</div>" +
               "<span class='country-caret'>&#9662;</span>" +
             "</button>" +
-            "<div class='country-rows'" + (isOpen ? "" : " hidden") + ">" + rows + "</div>" +
+            "<div class='country-rows " + (group.key === "custom" ? "is-grid" : "is-reel") + "'" + (isOpen ? "" : " hidden") + ">" + rows + "</div>" +
           "</section>"
         );
       }).join("");
