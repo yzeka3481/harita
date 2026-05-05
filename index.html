@@ -166,7 +166,7 @@
     .city-detail-close{position:absolute;top:12px;right:16px;background:transparent;border:none;color:#dbeafc;font-size:24px;line-height:1;cursor:pointer}
     .city-detail-title{margin:0 0 16px;font-size:20px;color:#fff;text-align:center;}
     .chart-container{position:relative;height:300px;width:100%;}
-    .country-group{border:1px solid rgba(97,176,255,0.16);border-radius:16px;background:rgba(10,28,58,0.92);overflow:hidden;box-shadow:0 4px 18px rgba(0,6,24,0.28);transition:border-color .2s,box-shadow .2s}
+    .country-group{border:1px solid rgba(97,176,255,0.16);border-radius:16px;background:rgba(10,28,58,0.92);overflow:visible;box-shadow:0 4px 18px rgba(0,6,24,0.28);transition:border-color .2s,box-shadow .2s;min-width:0;}
     .country-group.open{border-color:rgba(97,176,255,0.38);box-shadow:0 6px 28px rgba(6,30,90,0.32)}
     .country-toggle{width:100%;border:none;background:transparent;color:#eef7ff;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;cursor:pointer;transition:background .15s}
     .country-toggle:hover{background:rgba(97,176,255,0.06)}
@@ -179,17 +179,22 @@
     .country-rows{display:grid;gap:12px;padding:0 0 10px}
     .country-rows.is-reel {
       display: flex;
+      flex-wrap: nowrap;
       overflow-x: auto;
+      overflow-y: hidden;
       gap: 16px;
       padding: 14px 20px 28px;
       margin: 0 -14px;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      min-width: 100%;
     }
     .country-rows.is-reel::-webkit-scrollbar { display: none; }
     .country-rows.is-reel .item {
       flex: 0 0 280px;
+      width: 280px;
+      flex-shrink: 0;
       scroll-snap-align: start;
       margin-bottom: 0;
       margin-left: 0;
